@@ -9,7 +9,7 @@ runs:
         helm repo add cnpg https://cloudnative-pg.github.io/charts
 
         helm upgrade
-        --install 
+        --install
         --namespace cnpg-system
         --create-namespace
         --wait
