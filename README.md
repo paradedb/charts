@@ -1,7 +1,5 @@
 # ParadeDB Helm Chart
 
-[![GitHub License](https://img.shields.io/github/license/cloudnative-pg/charts)][license]
-
 Getting Started
 ---------------
 
