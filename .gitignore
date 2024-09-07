@@ -21,6 +21,3 @@ charts/**/charts/*.tgz
 *.swp
 *.swo
 *~
-
-# macOS
-.DS_Store

@@ -3,12 +3,11 @@
 ![Version: 0.0.11](https://img.shields.io/badge/Version-0.0.11-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
 
 > **Warning**
->
 > ### This chart is under active development.
->
 > ### Advised caution when using in production!
 
-## A note on the chart's purpose
+A note on the chart's purpose
+-----------------------------
 
 This is an opinionated chart that is designed to provide a subset of simple, stable and safe configurations using the
 CloudNativePG operator. It is designed to provide a simple way to perform recovery operations to decrease your RTO.
@@ -16,9 +15,9 @@ CloudNativePG operator. It is designed to provide a simple way to perform recove
 It is not designed to be a one size fits all solution. If you need a more complicated setup we strongly recommend that
 you either:
 
-- use the operator directly
-- create your own chart
-- use Kustomize to modify the chart's resources
+* use the operator directly
+* create your own chart
+* use Kustomize to modify the chart's resources
 
 **_Note_** that the latter option carries it's own risks as the chart configuration may change, especially before it
 reaches a stable release.
@@ -27,10 +26,10 @@ That being said, we welcome PRs that improve the chart, but please keep in mind 
 single configuration that the operator provides and we may reject PRs that add too much complexity and maintenance
 difficulty to the chart.
 
-## Getting Started
+Getting Started
+---------------
 
 ### Installing the Operator
-
 Skip this step if the CNPG operator is already installed in your cluster.
 
 ```console
@@ -54,24 +53,23 @@ paradedb/cluster
 
 A more detailed guide can be found in the [Getting Started docs](<./docs/Getting Started.md>).
 
-## Cluster Configuration
+Cluster Configuration
+---------------------
 
 ### Database types
 
 Currently the chart supports two database types. These are configured via the `type` parameter. These are:
-
-- `postgresql` - A standard PostgreSQL database.
-- `postgis` - A PostgreSQL database with the PostGIS extension installed.
+* `postgresql` - A standard PostgreSQL database.
+* `postgis` - A PostgreSQL database with the PostGIS extension installed.
 
 Depending on the type the chart will use a different Docker image and fill in some initial setup, like extension installation.
 
 ### Modes of operation
 
 The chart has three modes of operation. These are configured via the `mode` parameter:
-
-- `standalone` - Creates new or updates an existing CNPG cluster. This is the default mode.
-- `replica` - Creates a replica cluster from an existing CNPG cluster. **_Note_ that this mode is not yet supported.**
-- `recovery` - Recovers a CNPG cluster from a backup, object store or via pg_basebackup.
+* `standalone` - Creates new or updates an existing CNPG cluster. This is the default mode.
+* `replica` - Creates a replica cluster from an existing CNPG cluster. **_Note_ that this mode is not yet supported.**
+* `recovery` - Recovers a CNPG cluster from a backup, object store or via pg_basebackup.
 
 ### Backup configuration
 
@@ -80,15 +78,13 @@ store where backups will be stored. Barman performs backups of the cluster files
 stored in the specified location. The backup provider is configured via the `backups.provider` parameter. The following
 providers are supported:
 
-- S3 or S3-compatible stores, like MinIO
-- Microsoft Azure Blob Storage
-- Google Cloud Storage
+* S3 or S3-compatible stores, like MinIO
+* Microsoft Azure Blob Storage
+* Google Cloud Storage
 
 Additionally you can specify the following parameters:
-
-- `backups.retentionPolicy` - The retention policy for backups. Defaults to `30d`.
-- `backups.scheduledBackups` - An array of scheduled backups containing a name and a crontab schedule. Example:
-
+* `backups.retentionPolicy` - The retention policy for backups. Defaults to `30d`.
+* `backups.scheduledBackups` - An array of scheduled backups containing a name and a crontab schedule. Example:
 ```yaml
 backups:
   scheduledBackups:
@@ -101,14 +97,16 @@ Each backup adapter takes it's own set of parameters, listed in the [Configurati
 below. Refer to the table for the full list of parameters and place the configuration under the appropriate key: `backup.s3`,
 `backup.azure`, or `backup.google`.
 
-## Recovery
+Recovery
+--------
 
 There is a separate document outlining the recovery procedure here: **[Recovery](docs/recovery.md)**
 
-## Examples
+Examples
+--------
 
 There are several configuration examples in the [examples](examples) directory. Refer to them for a basic setup and
-refer to the [CloudNativePG Documentation](https://cloudnative-pg.io/documentation/current/) for more advanced configurations.
+refer to  the [CloudNativePG Documentation](https://cloudnative-pg.io/documentation/current/) for more advanced configurations.
 
 ## Values
 
@@ -251,11 +249,12 @@ refer to the [CloudNativePG Documentation](https://cloudnative-pg.io/documentati
 
 ## Maintainers
 
-| Name        | Email                                             | Url |
-| ----------- | ------------------------------------------------- | --- |
-| itay-grudev | <itay+cloudnativepg-charts+github.com@grudev.com> |     |
+| Name | Email | Url |
+| ---- | ------ | --- |
+| itay-grudev | <itay+cloudnativepg-charts+github.com@grudev.com> |  |
 
-## Features that require feedback
+Features that require feedback
+------------------------------
 
 Please raise a ticket tested any of the following features and they have worked.
 Alternatively a ticket and a PR if you have found that something needs a change to work properly.
@@ -263,7 +262,8 @@ Alternatively a ticket and a PR if you have found that something needs a change 
 - [ ] Google Cloud Storage Backups
 - [ ] Google Cloud Storage Recovery
 
-## TODO
+TODO
+----
+* IAM Role for S3 Service Account
+* Automatic provisioning of a Alert Manager configuration
 
-- IAM Role for S3 Service Account
-- Automatic provisioning of a Alert Manager configuration

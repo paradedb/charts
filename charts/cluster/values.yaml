@@ -44,7 +44,7 @@ recovery:
 
   ##
   # -- Backup Recovery Method
-  backupName: "" # Name of the backup to recover from. Required if method is `backup`.
+  backupName: ""  # Name of the backup to recover from. Required if method is `backup`.
 
   ##
   # -- The original cluster name when used in backups. Also known as serverName.
@@ -126,13 +126,14 @@ recovery:
         name: ""
         key: ""
 
+
 cluster:
   # -- Number of instances
   instances: 3
 
   # -- Name of the container image, supporting both tags (<image>:<tag>) and digests for deterministic and repeatable deployments:
   # <image>:<tag>@sha256:<digestValue>
-  imageName: "" # Default value depends on type (postgresql/postgis/timescaledb)
+  imageName: ""  # Default value depends on type (postgresql/postgis/timescaledb)
 
   # -- Reference to `ImageCatalog` of `ClusterImageCatalog`, if specified takes precedence over `cluster.imageName`
   imageCatalogRef: {}
@@ -166,8 +167,7 @@ cluster:
   # Please refer to https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/ for more information.
   # We strongly advise you use the same setting for limits and requests so that your cluster pods are given a Guaranteed QoS.
   # See: https://kubernetes.io/docs/concepts/workloads/pods/pod-qos/
-  resources:
-    {}
+  resources: {}
     # limits:
     #   cpu: 2000m
     #   memory: 8Gi
@@ -207,8 +207,7 @@ cluster:
   # -- This feature enables declarative management of existing roles, as well as the creation of new roles if they are not
   # already present in the database.
   # See: https://cloudnative-pg.io/documentation/current/declarative_role_management/
-  roles:
-    []
+  roles: []
     # - name: dante
     #   ensure: present
     #   comment: Dante Alighieri
@@ -228,8 +227,7 @@ cluster:
       # -- Whether to enable the PrometheusRule automated alerts
       enabled: true
       # -- Exclude specified rules
-      excludeRules:
-        []
+      excludeRules: []
         # - CNPGClusterZoneSpreadWarning
     # -- Custom Prometheus metrics
     customQueries: []
@@ -245,12 +243,10 @@ cluster:
 
   postgresql:
     # -- PostgreSQL configuration options (postgresql.conf)
-    parameters:
-      {}
+    parameters: {}
       # max_connections: 300
     # -- PostgreSQL Host Based Authentication rules (lines to be appended to the pg_hba.conf file)
-    pg_hba:
-      []
+    pg_hba: []
       # - host all all 10.244.0.0/16 md5
     pg_ident: []
       # - mymap   /^(.*)@mydomain\.com$      \1
@@ -260,8 +256,7 @@ cluster:
   # -- BootstrapInitDB is the configuration of the bootstrap process when initdb is used.
   # See: https://cloudnative-pg.io/documentation/current/bootstrap/
   # See: https://cloudnative-pg.io/documentation/current/cloudnative-pg.v1/#postgresql-cnpg-io-v1-bootstrapinitdb
-  initdb:
-    {}
+  initdb: {}
     # database: app
     # owner: "" # Defaults to the database name
     # secret:
@@ -276,13 +271,14 @@ cluster:
   additionalLabels: {}
   annotations: {}
 
+
 backups:
   # -- You need to configure backups manually, so backups are disabled by default.
   enabled: false
 
   # -- Overrides the provider specific default endpoint. Defaults to:
   # S3: https://s3.<region>.amazonaws.com"
-  endpointURL: "" # Leave empty if using the default S3 endpoint
+  endpointURL: ""  # Leave empty if using the default S3 endpoint
   # -- Specifies a CA bundle to validate a privately signed certificate.
   endpointCA:
     # -- Creates a secret with the given value if true, otherwise uses an existing secret.
@@ -340,7 +336,8 @@ backups:
     jobs: 2
 
   scheduledBackups:
-    - # -- Scheduled backup name
+    -
+      # -- Scheduled backup name
       name: daily-backup
       # -- Schedule in cron format
       schedule: "0 0 0 * * *"
@@ -378,7 +375,7 @@ pooler:
     # -- Whether to enable monitoring
     enabled: false
     podMonitor:
-      # -- Whether to enable the PodMonitor
+        # -- Whether to enable the PodMonitor
       enabled: true
 
   # -- Custom PgBouncer deployment template.
