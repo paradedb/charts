@@ -1,0 +1,31 @@
+{{- $alert := "CNPGClusterXIDWraparoundWarning" -}}
+{{- if not (has $alert .excludeRules) -}}
+alert: {{ $alert }}
+annotations:
+  summary: PostgreSQL database is approaching transaction ID wraparound
+  description: |-
+    Database "{{ .labels.datname }}" in cluster "{{ .namespace }}/{{ .cluster }}" has a
+    {{ .labels.age_kind }} age of {{ .valueHuman }}. PostgreSQL can stop accepting writes at
+    roughly 2.1 billion if vacuum cannot advance the freeze horizon.
+  runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterXIDWraparound.md
+expr: |
+  max by (namespace, datname, age_kind) (
+    label_replace(
+      cnpg_pg_database_xid_age{namespace="{{ .namespace }}",pod=~"{{ .podSelector }}"},
+      "age_kind", "xid", "__name__", ".*"
+    )
+    or
+    label_replace(
+      cnpg_pg_database_mxid_age{namespace="{{ .namespace }}",pod=~"{{ .podSelector }}"},
+      "age_kind", "mxid", "__name__", ".*"
+    )
+  ) > 1500000000
+for: 15m
+labels:
+  severity: warning
+  namespace: {{ .namespace }}
+  cnpg_cluster: {{ .cluster }}
+{{- range $key, $val := .additionalLabels }}
+  {{ $key }}: {{ $val | toString | quote }}
+{{- end }}
+{{- end -}}
