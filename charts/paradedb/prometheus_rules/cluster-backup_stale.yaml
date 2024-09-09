@@ -1,0 +1,20 @@
+{{- $alert := "CNPGBackupStale" -}}
+{{- if not (has $alert .excludeRules) -}}
+alert: {{ $alert }}
+annotations:
+  summary: ParadeDB CNPG Cluster has no recent successful backup
+  description: |-
+    CloudNativePG Cluster "{{ .namespace }}/{{ .cluster }}" last completed a successful backup {{ .value }} seconds ago.
+
+    Backups are expected nightly, so 26 hours is one missed run plus two hours of grace. Everything written since that backup is outside the recovery window.
+
+    This fires on the outcome regardless of cause, so it covers backups that are failing, a schedule that has stopped being reconciled, and backups that were switched off and forgotten.
+  runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGBackupStale.md
+expr: |
+  time() - max(cnpg_collector_last_available_backup_timestamp{namespace="{{ .namespace }}",pod=~"{{ .podSelector }}"}) > 26 * 3600
+for: 15m
+labels:
+  severity: critical
+  namespace: {{ .namespace }}
+  cnpg_cluster: {{ .cluster }}
+{{- end -}}
