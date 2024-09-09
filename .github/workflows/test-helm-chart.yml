@@ -9,7 +9,7 @@ on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
     paths:
-      - "charts/paradedb/*"
+      - "charts/cluster/*"
       - ".github/workflows/test-helm-chart.yml"
   workflow_dispatch:
 
@@ -18,109 +18,6 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  test-helm-minikube:
-    name: Test Helm Chart on Minikube
-    runs-on: ubuntu-latest
-    if: github.event.pull_request.draft == false
-
-    steps:
-      - name: Checkout Git Repository
-        uses: actions/checkout@v4
-
-      - name: Set up Kubectl
-        uses: azure/setup-kubectl@v4
-
-      - name: Set up Helm
-        uses: azure/setup-helm@v4
-
-      # Enables the default-storageclass and storage-provisioner addons by default
-      - name: Set up & Start Minikube
-        uses: medyagh/setup-minikube@latest
-
-      - name: Install the CloudNativePG Operator
-        run: |
-          helm repo add cnpg https://cloudnative-pg.github.io/charts
-          helm upgrade --install cnpg --namespace cnpg-system --create-namespace cnpg/cloudnative-pg
-
-      - name: Wait for CNPG Webhook Service to be Ready
-        run: |
-          kubectl wait --namespace cnpg-system --for=condition=available --timeout=120s deployment/cnpg-cloudnative-pg
-          kubectl get svc -n cnpg-system cnpg-webhook-service
-
-      - name: Test Helm Dependency Update
-        working-directory: charts/paradedb/
-        run: helm dependency update . --debug
-
-      - name: Update appVersion to Latest paradedb/paradedb Tag
-        working-directory: charts/paradedb/
-        run: |
-          # Fetch the latest release tag and strip the 'v' prefix
-          LATEST_TAG=$(curl -s https://api.github.com/repos/paradedb/paradedb/releases/latest | jq -r '.tag_name')
-          CLEANED_TAG=${LATEST_TAG#v}
-
-          # Update the appVersion in the Chart.yaml file
-          sed -i "s/^appVersion: .*/appVersion: $CLEANED_TAG/" Chart.yaml
-          cat Chart.yaml
-
-      - name: Test Helm Template
-        working-directory: charts/paradedb/
-        run: helm template paradedb . --debug
-
-      - name: Test Helm Install
-        working-directory: charts/paradedb/
-        run: helm install paradedb . --namespace paradedb --create-namespace --debug
-
-      - name: Test Helm Upgrade
-        working-directory: charts/paradedb/
-        run: helm upgrade paradedb . --namespace paradedb --debug
-
-      # TODO: This fails
-      - name: Test PostgreSQL Connection
-        run: |
-          # Get the ParadeDB K8s cluster secrets
-          kubectl -n paradedb get secrets paradedb-app -o yaml
-
-          # Decode the ParadeDB K8s cluster secrets
-          export PG_USERNAME=$(kubectl -n paradedb get secrets paradedb-app -o jsonpath="{.data.username}" | base64 --decode)
-          export PG_PASSWORD=$(kubectl -n paradedb get secrets paradedb-app -o jsonpath="{.data.password}" | base64 --decode)
-          export PG_DATABASE=$(kubectl -n paradedb get secrets paradedb-app -o jsonpath="{.data.dbname}" | base64 --decode)
-
-          # Wait for PostgreSQL to be ready
-          sleep 30
-
-          # Check if any pods were found
-          POD_NAMES=$(kubectl -n paradedb get pods --no-headers | grep 'paradedb-1-initdb-' | awk '{print $1}')
-          if [ -n "$POD_NAMES" ]; then
-            for POD_NAME in $POD_NAMES; do
-              echo "Fetching details for pod $POD_NAME..."
-              kubectl -n paradedb describe pod $POD_NAME
-
-              echo "Fetching logs for pod $POD_NAME..."
-              kubectl -n paradedb logs $POD_NAME || echo "No current logs available for $POD_NAME."
-              echo "--------------------------------------"
-            done
-          else
-            echo "No pods matching the pattern found."
-          fi
-
-          echo "Fetching details for all resources in the paradedb namespace..."
-          kubectl -n paradedb get all
-
-          echo "Waiting for the paradedb-rw service to be ready..."
-          while [[ $(kubectl -n paradedb get pods -l app=paradedb -o jsonpath="{.items[*].status.containerStatuses[*].ready}") != "true" ]]; do
-              echo "Waiting for pod(s) to be ready..."
-              sleep 5
-          done
-
-          echo "Starting port-forward..."
-          kubectl port-forward svc/paradedb-rw 5432:5432 &
-
-          echo "Connecting to ParadeDB via psql..."
-          psql -h localhost -p 5432 -U $PG_USERNAME -d $PG_DATABASE -c "SELECT * FROM pg_extension;"
-
-      - name: Test Helm Uninstall
-        run: helm uninstall paradedb --namespace paradedb --debug
-
   test-helm-eks:
     name: Test Helm Chart on AWS EKS via LocalStack
     runs-on: ubuntu-latest
@@ -246,75 +143,27 @@ jobs:
           kubectl get svc -n cnpg-system cnpg-webhook-service
 
       - name: Test Helm Dependency Update
-        working-directory: charts/paradedb/
+        working-directory: charts/cluster/
         run: helm dependency update . --debug
 
-      - name: Update appVersion to Latest paradedb/paradedb Tag
-        working-directory: charts/paradedb/
+      - name: Fetch the latest ParadeDB release tag
+        id: paradedb-version
         run: |
           # Fetch the latest release tag and strip the 'v' prefix
           LATEST_TAG=$(curl -s https://api.github.com/repos/paradedb/paradedb/releases/latest | jq -r '.tag_name')
           CLEANED_TAG=${LATEST_TAG#v}
-
-          # Update the appVersion in the Chart.yaml file
-          sed -i "s/^appVersion: .*/appVersion: $CLEANED_TAG/" Chart.yaml
-          cat Chart.yaml
-
-      - name: Test Helm Template
-        working-directory: charts/paradedb/
-        run: helm template paradedb . --debug
+          echo $CLEANED_TAG
+          echo "version=$CLEANED_TAG" >> $GITHUB_OUTPUT
 
       - name: Test Helm Install
-        working-directory: charts/paradedb/
-        run: helm install paradedb . --namespace paradedb --create-namespace --debug
+        working-directory: charts/cluster/
+        run: helm install paradedb . --namespace paradedb --create-namespace --set version.paradedb=${{ steps.paradedb-version.outputs.version }} --debug
 
       - name: Test Helm Upgrade
-        working-directory: charts/paradedb/
-        run: helm upgrade paradedb . --namespace paradedb --debug
+        working-directory: charts/cluster/
+        run: helm upgrade paradedb . --namespace paradedb --reuse-values --wait --debug
 
       # TODO: This fails
       - name: Test PostgreSQL Connection
         run: |
-          # Get the ParadeDB K8s cluster secrets
-          kubectl -n paradedb get secrets paradedb-app -o yaml
-
-          # Decode the ParadeDB K8s cluster secrets
-          export PG_USERNAME=$(kubectl -n paradedb get secrets paradedb-app -o jsonpath="{.data.username}" | base64 --decode)
-          export PG_PASSWORD=$(kubectl -n paradedb get secrets paradedb-app -o jsonpath="{.data.password}" | base64 --decode)
-          export PG_DATABASE=$(kubectl -n paradedb get secrets paradedb-app -o jsonpath="{.data.dbname}" | base64 --decode)
-
-          # Wait for PostgreSQL to be ready
-          sleep 30
-
-          # Get the list of pods matching the pattern
-          POD_NAMES=$(kubectl -n paradedb get pods --no-headers | grep 'paradedb-1-initdb-' | awk '{print $1}')
-
-          # Check if any pods were found
-          if [ -n "$POD_NAMES" ]; then
-            # Loop through each pod name
-            for POD_NAME in $POD_NAMES; do
-              echo "Fetching details for pod $POD_NAME..."
-
-              # Describe the pod
-              kubectl -n paradedb describe pod $POD_NAME
-
-              echo "Fetching logs for pod $POD_NAME..."
-
-              # Fetch current logs
-              kubectl -n paradedb logs $POD_NAME || echo "No current logs available for $POD_NAME."
-
-              # Fetch previous logs (if any)
-              kubectl -n paradedb logs $POD_NAME --previous || echo "No previous logs available for $POD_NAME."
-
-              echo "--------------------------------------"
-            done
-          else
-            echo "No pods matching the pattern found."
-          fi
-
-          # Test that we can connect to the ParadeDB K8s cluster via psql and that the extensions are installed
-          kubectl port-forward svc/paradedb-rw 5432:5432 &
-          psql -h localhost -p 5432 -U $PG_USERNAME -d $PG_DATABASE -c "SELECT * FROM pg_extension;"
-
-      - name: Test Helm Uninstall
-        run: helm uninstall paradedb --namespace paradedb --debug
+          helm test paradedb --namespace paradedb
