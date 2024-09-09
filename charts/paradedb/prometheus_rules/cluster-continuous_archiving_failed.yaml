@@ -1,0 +1,22 @@
+{{- $alert := "CNPGContinuousArchivingFailed" -}}
+{{- if not (has $alert .excludeRules) -}}
+alert: {{ $alert }}
+annotations:
+  summary: ParadeDB CNPG Cluster is failing to archive WAL
+  description: |-
+    CloudNativePG Cluster "{{ .namespace }}/{{ .cluster }}" has failed its most recent WAL archival attempt more recently than its last successful one.
+
+    Point-in-time recovery is frozen at the last archived segment. Everything written since then exists only on the instance's own volume, and the data volume keeps growing because PostgreSQL retains WAL it has not archived.
+
+    This is separate from the backup alerts, which look at base backups. The cluster can report Ready=True with a recent successful backup throughout.
+  runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGContinuousArchivingFailed.md
+expr: |
+  cnpg_pg_stat_archiver_last_failed_time{namespace="{{ .namespace }}",pod=~"{{ .podSelector }}"}
+  >
+  cnpg_pg_stat_archiver_last_archived_time{namespace="{{ .namespace }}",pod=~"{{ .podSelector }}"}
+for: 15m
+labels:
+  severity: critical
+  namespace: {{ .namespace }}
+  cnpg_cluster: {{ .cluster }}
+{{- end -}}
