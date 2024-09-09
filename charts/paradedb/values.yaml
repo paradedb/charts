@@ -299,7 +299,9 @@ cluster:
 
   postgresql:
     # -- PostgreSQL configuration options (postgresql.conf)
-    parameters: {}
+    parameters:
+      # Required by pg_cron
+      cron.database_name: postgres
       # max_connections: 300
     # -- Quorum-based Synchronous Replication
     synchronous: {}
