@@ -1,0 +1,69 @@
+{{- $alert := "CNPGClusterZoneSpreadWarning" -}}
+{{- if not (has $alert .excludeRules) -}}
+alert: {{ $alert }}
+annotations:
+  summary: ParadeDB CNPG Cluster has multiple instances in the same availability zone.
+  description: |-
+    ParadeDB CloudNativePG Cluster "{{ .namespace }}/{{ .cluster }}" has instances in the same availability zone.
+
+    A disaster in one availability zone will lead to a potential service disruption and/or data loss.
+  runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterZoneSpreadWarning.md
+expr: |
+  count(
+    (
+      max by (pod, node) (
+        kube_pod_info{namespace="{{ .namespace }}",pod=~"{{ .podSelector }}"}
+      )
+      and on (pod)
+      max by (pod) (
+        kube_pod_status_ready{namespace="{{ .namespace }}",pod=~"{{ .podSelector }}",condition="true"} == 1
+      )
+    )
+    * on (node) group_left(label_topology_kubernetes_io_zone)
+    max by (node, label_topology_kubernetes_io_zone) (
+      kube_node_labels{label_topology_kubernetes_io_zone!=""}
+    )
+  ) > count(
+    count by (label_topology_kubernetes_io_zone) (
+      (
+        max by (pod, node) (
+          kube_pod_info{namespace="{{ .namespace }}",pod=~"{{ .podSelector }}"}
+        )
+        and on (pod)
+        max by (pod) (
+          kube_pod_status_ready{namespace="{{ .namespace }}",pod=~"{{ .podSelector }}",condition="true"} == 1
+        )
+      )
+      * on (node) group_left(label_topology_kubernetes_io_zone)
+      max by (node, label_topology_kubernetes_io_zone) (
+        kube_node_labels{label_topology_kubernetes_io_zone!=""}
+      )
+    )
+  )
+  and on()
+  count(
+    count by (label_topology_kubernetes_io_zone) (
+      (
+        max by (pod, node) (
+          kube_pod_info{namespace="{{ .namespace }}",pod=~"{{ .podSelector }}"}
+        )
+        and on (pod)
+        max by (pod) (
+          kube_pod_status_ready{namespace="{{ .namespace }}",pod=~"{{ .podSelector }}",condition="true"} == 1
+        )
+      )
+      * on (node) group_left(label_topology_kubernetes_io_zone)
+      max by (node, label_topology_kubernetes_io_zone) (
+        kube_node_labels{label_topology_kubernetes_io_zone!=""}
+      )
+    )
+  ) < 3
+for: 5m
+labels:
+  severity: warning
+  namespace: {{ .namespace }}
+  cnpg_cluster: {{ .cluster }}
+{{- range $key, $val := .additionalLabels }}
+  {{ $key }}: {{ $val | toString | quote }}
+{{- end }}
+{{- end -}}

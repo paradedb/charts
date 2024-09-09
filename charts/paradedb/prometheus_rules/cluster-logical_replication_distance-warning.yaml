@@ -1,0 +1,25 @@
+{{- $alert := "CNPGClusterLogicalReplicationDistanceHigh" -}}
+{{- if not (has $alert .excludeRules) -}}
+alert: {{ $alert }}
+annotations:
+  summary: ParadeDB logical replication WAL-position distance is warning
+  description: |-
+    ParadeDB CNPG Cluster "{{ .namespace }}/{{ .cluster }}" reports a WAL-position difference of {{ .value }} GiB as the logical replication subscriber for subscription "{{ .labels.subname }}" in database "{{ .labels.datname }}".
+
+    This does not measure unapplied data. Check replication errors, worker health, and subscriber logs.
+  runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterLogicalReplicationDistance.md
+expr: |
+  max by (namespace, job, pod, datname, subname) (
+    cnpg_pg_stat_subscription_received_lsn{namespace="{{ .namespace }}",pod=~"{{ .podSelector }}"}
+    - cnpg_pg_stat_subscription_latest_end_lsn{namespace="{{ .namespace }}",pod=~"{{ .podSelector }}"}
+  ) / 1024^3 > 1
+for: 5m
+labels:
+  severity: warning
+  namespace: {{ .namespace }}
+  cnpg_cluster: {{ .cluster }}
+  alert_type: logical-replication
+{{- range $key, $val := .additionalLabels }}
+  {{ $key }}: {{ $val | toString | quote }}
+{{- end }}
+{{- end -}}
