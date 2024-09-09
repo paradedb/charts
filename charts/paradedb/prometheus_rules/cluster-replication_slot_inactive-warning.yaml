@@ -1,0 +1,27 @@
+{{- $alert := "CNPGReplicationSlotInactive" -}}
+{{- if not (has $alert .excludeRules) -}}
+alert: {{ $alert }}
+annotations:
+  summary: PostgreSQL replication slot is inactive and retaining WAL
+  description: |-
+    Replication slot "{{ .labels.slot_name }}" ({{ .labels.slot_type }}) on primary
+    "{{ .namespace }}/{{ .cluster }}/{{ .labels.pod }}" is inactive and retaining
+    {{ .value }} bytes of WAL.
+
+    PostgreSQL retains this WAL indefinitely while the slot cannot advance. If the consumer does
+    not recover or the abandoned slot is not removed, the WAL volume can fill and stop writes.
+  runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGReplicationSlotRetention.md
+expr: |
+  max by (namespace, pod, slot_name, slot_type) (
+    cnpg_pg_replication_slots_pg_wal_lsn_diff{namespace="{{ .namespace }}",pod=~"{{ .podSelector }}"}
+    and on (namespace, pod, slot_name, slot_type)
+      (cnpg_pg_replication_slots_active{namespace="{{ .namespace }}",pod=~"{{ .podSelector }}"} == 0)
+    and on (namespace, pod)
+      (cnpg_pg_replication_in_recovery{namespace="{{ .namespace }}",pod=~"{{ .podSelector }}"} == 0)
+  ) > 0
+for: 15m
+labels:
+  severity: warning
+  namespace: {{ .namespace }}
+  cnpg_cluster: {{ .cluster }}
+{{- end -}}
