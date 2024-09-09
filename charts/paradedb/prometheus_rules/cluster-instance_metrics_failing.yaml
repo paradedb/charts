@@ -1,0 +1,25 @@
+{{- $alert := "CNPGInstanceMetricsFailing" -}}
+{{- if not (has $alert .excludeRules) -}}
+alert: {{ $alert }}
+annotations:
+  summary: ParadeDB CNPG metrics collector is failing its queries
+  description: |-
+    ParadeDB CNPG instance "{{ .namespace }}/{{ .labels.pod }}" is answering on its metrics endpoint, but its most recent collection ended in an error, so part of what it should be publishing is missing.
+
+    This is the counterpart to CNPGInstanceMetricsAbsent. There the exporter is unreachable and the gap is obvious. Here it responds normally and only the queries behind individual metrics fail, so nothing reports the instance as down.
+
+    The alerts that read the missing series have no samples to evaluate and cannot fire. Their silence means nothing for this instance while this is active.
+
+    The usual cause is the collector being unable to reach the cluster's application database, which fails every default per-database query at once while the exporter itself stays healthy.
+  runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGInstanceMetricsFailing.md
+expr: |
+  cnpg_collector_last_collection_error{namespace="{{ .namespace }}",pod=~"{{ .podSelector }}"} == 1
+for: 15m
+labels:
+  severity: critical
+  namespace: {{ .namespace }}
+  cnpg_cluster: {{ .cluster }}
+{{- range $key, $val := .additionalLabels }}
+  {{ $key }}: {{ $val | toString | quote }}
+{{- end }}
+{{- end -}}

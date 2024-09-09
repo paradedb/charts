@@ -1,46 +1,128 @@
-# CloudNativePG Helm Charts
+<h1 align="center">
+  <a href="https://paradedb.com">
+    <picture align=center>
+      <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/paradedb/paradedb/main/docs/logo/paradedb-logo-dark-large.svg">
+      <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/paradedb/paradedb/main/docs/logo/paradedb-logo-light-large.svg">
+      <img alt="The ParadeDB logo." src="https://raw.githubusercontent.com/paradedb/paradedb/main/docs/logo/paradedb-logo-light-large.svg">
+    </picture>
+  </a>
+  <br>
+</h1>
 
-[![Stack Overflow](https://img.shields.io/badge/stackoverflow-cloudnative--pg-blue?logo=stackoverflow&logoColor=%23F48024&link=https%3A%2F%2Fstackoverflow.com%2Fquestions%2Ftagged%2Fcloudnative-pg)][stackoverflow]
-[![GitHub License](https://img.shields.io/github/license/cloudnative-pg/charts)][license]
+<p align="center">
+  <b>Search without a second system.</b><br/>
+  One Postgres for your application data, full-text search, vector retrieval, and aggregations.
+</p>
 
+<h3 align="center">
+  <a href="https://paradedb.com">Website</a> &bull;
+  <a href="https://www.paradedb.com/docs">Docs</a> &bull;
+  <a href="https://paradedb.com/slack">Community</a> &bull;
+  <a href="https://paradedb.com/blog/">Blog</a> &bull;
+  <a href="https://www.paradedb.com/docs/changelog/">Changelog</a>
+</h3>
 
-[![GitHub Release](https://img.shields.io/github/v/release/cloudnative-pg/charts?filter=cloudnative-pg-*)](https://github.com/cloudnative-pg/charts/tree/main/charts/cloudnative-pg)
-[![GitHub Release](https://img.shields.io/github/v/release/cloudnative-pg/charts?filter=cluster-*)](https://github.com/cloudnative-pg/charts/tree/main/charts/cluster)
+<p align="center">
+  <a href="https://artifacthub.io/packages/search?repo=paradedb"><img src="https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/paradedb" alt="Artifact Hub"></a>&nbsp;
+  <a href="https://hub.docker.com/r/paradedb/paradedb"><img src="https://img.shields.io/docker/pulls/paradedb/paradedb" alt="Docker Pulls"></a>&nbsp;
+  <a href="https://github.com/paradedb/charts/blob/main/LICENSE"><img src="https://img.shields.io/github/license/paradedb/charts?color=blue" alt="License"></a>&nbsp;
+  <a href="https://paradedb.com/slack"><img src="https://img.shields.io/badge/Community-Join%20Slack-purple?logo=slack" alt="Community"></a>&nbsp;
+  <a href="https://x.com/paradedb"><img src="https://img.shields.io/twitter/follow/paradedb" alt="Follow @paradedb"></a>
+</p>
 
+---
 
-## Operator chart
+# ParadeDB Helm Chart
 
-Helm chart to install the
-[CloudNativePG operator](https://cloudnative-pg.io), originally created and sponsored by
-[EDB](https://www.enterprisedb.com/) to manage PostgreSQL workloads on any supported Kubernetes cluster
-running in private, public, or hybrid cloud environments.
+[ParadeDB](https://github.com/paradedb/paradedb) adds Elastic-quality full-text search, vector retrieval, and aggregations to Postgres with the `pg_search` extension. Your application data and your search engine live in one database, with no second system to deploy and nothing to sync.
 
-**NOTE**: supports only the latest point release of the CloudNativePG operator.
+The ParadeDB Helm Chart is based on the official [CloudNativePG Helm Chart](https://cloudnative-pg.io/). CloudNativePG is a Kubernetes operator that manages the full lifecycle of a highly available PostgreSQL database cluster with a primary/standby architecture using Postgres streaming (physical) replication.
 
-Refer to the [Operator Chart documentation](charts/cloudnative-pg/README.md) for installation,
-advanced configuration and monitoring.
+Kubernetes, and specifically the CloudNativePG operator, is the recommended approach for deploying ParadeDB in production, with high availability. ParadeDB also provides a [Docker image](https://hub.docker.com/r/paradedb/paradedb) and [prebuilt binaries](https://github.com/paradedb/paradedb/releases) for Debian, Ubuntu, Red Hat Enterprise Linux, and macOS.
 
-## Barman Cloud CNPG-I plugin chart
+The ParadeDB Helm Chart supports Postgres 15+ and ships with Postgres 18 by default.
 
-Helm chart to install the CNPG-I Barman Cloud Plugin.
+The chart is also available on [Artifact Hub](https://artifacthub.io/packages/helm/paradedb/paradedb).
 
-Refer to the [Barman Cloud Plugin Chart documentation](charts/plugin-barman-cloud/README.md) for installation
-and advanced configuration.
+## Usage
 
-## Cluster chart
+First, install [Helm](https://helm.sh/docs/intro/install/). The following steps assume you have a Kubernetes cluster running v1.29+. If you are testing locally, we recommend using [Minikube](https://minikube.sigs.k8s.io/docs/start/).
 
-Helm chart to install a CloudNativePG database cluster.
+### Monitoring prerequisites
 
-Refer to the [Cluster Chart documentation](charts/cluster/README.md) for installation and advanced configuration options.
+The ParadeDB Helm chart supports monitoring via Prometheus and Grafana. To enable monitoring, install the [Prometheus CRDs](https://prometheus-community.github.io/helm-charts) before installing the CloudNativePG operator.
 
-## Contributing
+### Installing the CloudNativePG Operator
 
-Please read the [code of conduct](CODE-OF-CONDUCT.md) and the
-[guidelines](CONTRIBUTING.md) to contribute to the project.
+Skip this step if the CloudNativePG operator is already installed in your cluster. For advanced CloudNativePG configuration and monitoring, please refer to the [CloudNativePG documentation](https://cloudnative-pg.io/documentation/current/).
 
-## Copyright
+```bash
+helm repo add cnpg https://cloudnative-pg.github.io/charts
+helm upgrade --atomic --install cnpg \
+--create-namespace \
+--namespace cnpg-system \
+cnpg/cloudnative-pg
+```
 
-Helm charts for CloudNativePG are distributed under [Apache License 2.0](LICENSE).
+### Setting up a ParadeDB CNPG Cluster
 
-[stackoverflow]: https://stackoverflow.com/questions/tagged/cloudnative-pg
-[license]: https://github.com/cloudnative-pg/charts?tab=Apache-2.0-1-ov-file
+> [!IMPORTANT]
+> When deploying a cluster with more than one instance, you must use `type: paradedb-enterprise` to enable replication of ParadeDB indexes across instances.
+> Using ParadeDB Enterprise requires an access token. To request one, please [contact sales](mailto:sales@paradedb.com).
+
+Create a `values.yaml` and configure it to your requirements. Here is a basic example:
+
+```yaml
+type: paradedb
+mode: standalone
+
+version:
+  # -- PostgreSQL major version to use
+  postgresql: "18"
+  # -- ParadeDB version to use
+  paradedb: "0.25.6"
+
+cluster:
+  instances: 1
+  storage:
+    size: 256Mi
+```
+
+Then, launch the ParadeDB cluster.
+
+```bash
+helm repo add paradedb https://paradedb.github.io/charts
+helm upgrade --atomic --install paradedb \
+--namespace paradedb \
+--create-namespace \
+--values values.yaml \
+paradedb/paradedb
+```
+
+If `--values values.yaml` is omitted, the default values will be used. For advanced ParadeDB configuration and monitoring, please refer to the [ParadeDB Chart documentation](https://github.com/paradedb/charts/tree/dev/charts/paradedb#values).
+
+### Connecting to a ParadeDB CNPG Cluster
+
+You can launch a Bash shell inside a specific pod via:
+
+```bash
+kubectl exec --stdin --tty <pod-name> -n paradedb -- bash
+```
+
+The primary is called `paradedb-1`. The replicas are called `paradedb-2` onwards depending on the number of replicas you configured. You can connect to the ParadeDB database with `psql` via:
+
+```bash
+psql -d paradedb
+```
+
+## Development
+
+To test changes to the chart on a local Minikube cluster, follow the installation instructions above and replace the `helm upgrade` chart reference with the path to the modified chart directory.
+
+```bash
+helm upgrade --atomic --install paradedb --namespace paradedb --create-namespace ./charts/paradedb
+```
+
+## License
+
+Apache-2.0 License - see [LICENSE](LICENSE) for details.
