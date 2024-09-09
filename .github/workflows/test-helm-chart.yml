@@ -146,7 +146,7 @@ jobs:
         working-directory: charts/cluster/
         run: helm dependency update . --debug
 
-      - name: Update appVersion to Latest paradedb/paradedb Tag
+      - name: Fetch the latest ParadeDB release tag
         id: paradedb-version
         working-directory: charts/paradedb/
         run: |
@@ -154,7 +154,7 @@ jobs:
           LATEST_TAG=$(curl -s https://api.github.com/repos/paradedb/paradedb/releases/latest | jq -r '.tag_name')
           CLEANED_TAG=${LATEST_TAG#v}
           echo $CLEANED_TAG
-          echo "version=$($CLEANED_TAG)" >> $GITHUB_OUTPUT
+          echo "version=$CLEANED_TAG" >> $GITHUB_OUTPUT
 
       - name: Test Helm Install
         working-directory: charts/cluster/
