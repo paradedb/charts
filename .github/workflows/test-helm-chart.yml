@@ -9,7 +9,7 @@ on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
     paths:
-      - "charts/paradedb/*"
+      - "charts/cluster/*"
       - ".github/workflows/test-helm-chart.yml"
   workflow_dispatch:
 
