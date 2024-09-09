@@ -1,0 +1,21 @@
+{{- $alert := "CNPGClusterOffline" -}}
+{{- if not (has $alert .excludeRules) -}}
+alert: {{ $alert }}
+annotations:
+  summary: ParadeDB CNPG Cluster has no collector metrics
+  description: |-
+    ParadeDB CloudNativePG Cluster "{{ .namespace }}/{{ .cluster }}" has reported no collector metrics from any instance for five minutes.
+
+    The cluster may be unavailable, or its exporters or scrape configuration may be failing. Check instance readiness and database connectivity before treating this as a database outage.
+  runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterOffline.md
+expr: |
+  (count(cnpg_collector_up{namespace="{{ .namespace }}",pod=~"{{ .podSelector }}"}) OR on() vector(0)) == 0
+for: 5m
+labels:
+  severity: critical
+  namespace: {{ .namespace }}
+  cnpg_cluster: {{ .cluster }}
+{{- range $key, $val := .additionalLabels }}
+  {{ $key }}: {{ $val | toString | quote }}
+{{- end }}
+{{- end -}}

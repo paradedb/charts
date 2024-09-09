@@ -1,0 +1,23 @@
+{{- $alert := "CNPGClusterLowDiskSpaceCritical" -}}
+{{- if not (has $alert .excludeRules) -}}
+alert: {{ $alert }}
+annotations:
+  summary: ParadeDB CNPG Cluster is running out of disk space!
+  description: |-
+    ParadeDB CloudNativePG Cluster "{{ .namespace }}/{{ .cluster }}" volume "{{ .labels.persistentvolumeclaim }}" is {{ .valuePercent }} full.
+  runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterLowDiskSpace.md
+expr: |
+  max by (namespace, persistentvolumeclaim) (
+    1 - kubelet_volume_stats_available_bytes{namespace="{{ .namespace }}", persistentvolumeclaim=~"{{ .pvcSelector }}(-wal|-tbs.*)?"}
+      / kubelet_volume_stats_capacity_bytes{namespace="{{ .namespace }}", persistentvolumeclaim=~"{{ .pvcSelector }}(-wal|-tbs.*)?"}
+  ) > 0.9
+for: 5m
+labels:
+  severity: critical
+  namespace: {{ .namespace }}
+  cnpg_cluster: {{ .cluster }}
+  persistentvolumeclaim: {{ .labels.persistentvolumeclaim | quote }}
+{{- range $key, $val := .additionalLabels }}
+  {{ $key }}: {{ $val | toString | quote }}
+{{- end }}
+{{- end -}}

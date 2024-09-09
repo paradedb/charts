@@ -1,0 +1,220 @@
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  name: prometheus-rule-rendering
+spec:
+  steps:
+    - name: Render Prometheus alert rules
+      try:
+        - script:
+            content: |
+              set -eu
+
+              render() {
+                instances="$1"
+                shift
+                helm template "alerts-$instances" ../../ \
+                  --namespace alert-test \
+                  --set "cluster.instances=$instances" \
+                  --set cluster.monitoring.enabled=true \
+                  --set cluster.monitoring.prometheusRule.enabled=true \
+                  "$@" \
+                  --show-only templates/prometheus-rule.yaml
+              }
+
+              alert_rule() {
+                awk -v alert="$1" '
+                  $0 ~ "- alert: " alert { printing = 1 }
+                  printing && $0 ~ /- alert:/ && $0 !~ ("- alert: " alert) { exit }
+                  printing { print }
+                '
+              }
+
+              rendered="$(render 3)"
+              for rule in ../../prometheus_rules/*.yaml; do
+                alert="$(sed -n 's/.*$alert := "\([^"]*\)".*/\1/p' "$rule")"
+                if [ -z "$alert" ]; then
+                  echo "unable to find alert name in $rule"
+                  exit 1
+                fi
+                if ! printf '%s\n' "$rendered" | grep -Fq -- "- alert: $alert"; then
+                  echo "$alert from $rule was not rendered"
+                  exit 1
+                fi
+              done
+
+              printf '%s\n' "$rendered" | grep -Fq 'persistentvolumeclaim=~"alerts-3-paradedb-([1-9][0-9]*)(-wal|-tbs.*)?"'
+              printf '%s\n' "$rendered" | grep -Fq 'cnpg_pg_replication_in_recovery'
+              printf '%s\n' "$rendered" | alert_rule CNPGClusterXIDWraparoundWarning | grep -Fq 'cnpg_pg_database_xid_age'
+              printf '%s\n' "$rendered" | alert_rule CNPGClusterXIDWraparoundWarning | grep -Fq 'cnpg_pg_database_mxid_age'
+              printf '%s\n' "$rendered" | alert_rule CNPGClusterXIDWraparoundWarning | grep -Fq ') > 1500000000'
+              printf '%s\n' "$rendered" | alert_rule CNPGClusterXIDWraparoundCritical | grep -Fq ') > 2000000000'
+              printf '%s\n' "$rendered" | alert_rule CNPGClusterPrimaryFailing | grep -Fq 'kube_customresource_primary_failing_since_time'
+              printf '%s\n' "$rendered" | alert_rule CNPGClusterPrimaryFailing | grep -Fq 'group_left(current_primary, target_primary)'
+              printf '%s\n' "$rendered" | alert_rule CNPGClusterPrimaryFailing | grep -Fq 'for: 5m'
+              printf '%s\n' "$rendered" | alert_rule CNPGPoolerUnavailable | grep -Fq 'kube_deployment_status_replicas_available'
+              printf '%s\n' "$rendered" | alert_rule CNPGPoolerUnavailable | grep -Fq 'deployment=~"alerts-3-paradedb-pooler-.+"'
+              printf '%s\n' "$rendered" | alert_rule CNPGPoolerClientsWaiting | grep -Fq 'cnpg_pgbouncer_pools_cl_waiting'
+              printf '%s\n' "$rendered" | alert_rule CNPGPoolerClientsWaiting | grep -Fq 'database!="pgbouncer"'
+
+              printf '%s\n' "$rendered" | alert_rule ParadeDBIndexInvalid | grep -Fq 'cnpg_paradedb_invalid_indexes_count'
+              printf '%s\n' "$rendered" | alert_rule ParadeDBIndexInvalid | grep -Fq 'and on (namespace, pod)'
+              printf '%s\n' "$rendered" | alert_rule ParadeDBIndexInvalid | grep -Fq 'cnpg_pg_replication_in_recovery'
+              printf '%s\n' "$rendered" | alert_rule ParadeDBIndexInvalid | grep -Fq 'severity: warning'
+              printf '%s\n' "$rendered" | alert_rule ParadeDBIndexInvalid | grep -Fq 'for: 5m'
+              printf '%s\n' "$rendered" | alert_rule CNPGInstanceMetricsFailing | grep -Fq 'cnpg_errors_total'
+              missing_metrics="$(printf '%s\n' "$rendered" | alert_rule CNPGInstanceMetricsAbsent)"
+              printf '%s\n' "$missing_metrics" | grep -Fq 'unless on (namespace, pod)'
+              printf '%s\n' "$missing_metrics" | grep -Fq '} == 1)'
+              printf '%s\n' "$missing_metrics" | grep -Fq '} == 0)'
+              printf '%s\n' "$missing_metrics" | grep -Fq 'for: 10m'
+              if printf '%s\n' "$missing_metrics" | grep -Fq 'kube_pod_status_ready'; then
+                echo "missing metrics alert must not require kube-state-metrics"
+                exit 1
+              fi
+              if printf '%s\n' "$missing_metrics" | grep -Fq 'count_over_time'; then
+                echo "missing metrics detection must not expire with historical samples"
+                exit 1
+              fi
+              printf '%s\n' "$missing_metrics" | grep -Fq 'endpoint="metrics"'
+              invalid_excluded="$(render 3 --set 'cluster.monitoring.prometheusRule.excludeRules[0]=ParadeDBIndexInvalid')"
+              if printf '%s\n' "$invalid_excluded" | grep -Fq -- '- alert: ParadeDBIndexInvalid'; then
+                echo "excluded invalid index alert must not render"
+                exit 1
+              fi
+
+              for alert in CNPGClusterLogicalReplicationDistanceHigh CNPGClusterLogicalReplicationDistanceCritical; do
+                distance_rule="$(printf '%s\n' "$rendered" | alert_rule "$alert")"
+                printf '%s\n' "$distance_rule" | grep -Fq 'cnpg_pg_stat_subscription_received_lsn'
+                printf '%s\n' "$distance_rule" | grep -Fq 'cnpg_pg_stat_subscription_latest_end_lsn'
+                printf '%s\n' "$distance_rule" | grep -Fq 'datname, subname'
+                if printf '%s\n' "$distance_rule" | grep -Fq 'kube_customresource'; then
+                  echo "logical distance alert must not require custom-resource metrics"
+                  exit 1
+                fi
+                distance_excluded="$(render 3 --set "cluster.monitoring.prometheusRule.excludeRules[0]=$alert")"
+                if printf '%s\n' "$distance_excluded" | grep -Fq -- "- alert: $alert"; then
+                  echo "excluded logical distance alert must not render"
+                  exit 1
+                fi
+              done
+              printf '%s\n' "$rendered" | alert_rule CNPGClusterLogicalReplicationDistanceHigh | grep -Fq '/ 1024^3 > 1'
+              printf '%s\n' "$rendered" | alert_rule CNPGClusterLogicalReplicationDistanceHigh | grep -Fq 'for: 5m'
+              printf '%s\n' "$rendered" | alert_rule CNPGClusterLogicalReplicationDistanceCritical | grep -Fq '/ 1024^3 > 4'
+              printf '%s\n' "$rendered" | alert_rule CNPGClusterLogicalReplicationDistanceCritical | grep -Fq 'for: 2m'
+              printf '%s\n' "$rendered" | alert_rule CNPGBackupStale | grep -Fq '> 26 * 3600'
+              printf '%s\n' "$rendered" | alert_rule CNPGBackupStale | grep -Fq 'cnpg_collector_last_available_backup_timestamp|barman_cloud_cloudnative_pg_io_last_available_backup_timestamp'
+              printf '%s\n' "$rendered" | alert_rule CNPGBackupStale | grep -Fq '} > 0)'
+              weekly="$(render 3 --set cluster.monitoring.prometheusRule.backupStaleAfterHours=170)"
+              printf '%s\n' "$weekly" | alert_rule CNPGBackupStale | grep -Fq '> 170 * 3600'
+              if render 3 --set cluster.monitoring.prometheusRule.backupStaleAfterHours=0 >/dev/null 2>&1; then
+                echo "backup freshness threshold must be positive"
+                exit 1
+              fi
+              for alert in ParadeDBIndexInvalid CNPGClusterLogicalReplicationSubscriptionDisabled CNPGClusterLogicalReplicationWorkerDown; do
+                rule="$(printf '%s\n' "$rendered" | alert_rule "$alert")"
+                printf '%s\n' "$rule" | grep -Fq 'cnpg_pg_replication_in_recovery'
+                printf '%s\n' "$rule" | grep -Fq ') == 0'
+                if printf '%s\n' "$rule" | grep -Fq 'kube_customresource'; then
+                  echo "$alert must use exporter metrics to select the writable primary"
+                  exit 1
+                fi
+                excluded_rule="$(render 3 --set "cluster.monitoring.prometheusRule.excludeRules[0]=$alert")"
+                if printf '%s\n' "$excluded_rule" | grep -Fq -- "- alert: $alert"; then
+                  echo "$alert must respect excludeRules"
+                  exit 1
+                fi
+              done
+              for alert in CNPGClusterLowDiskSpaceWarning CNPGClusterLowDiskSpaceCritical; do
+                rule="$(printf '%s\n' "$rendered" | alert_rule "$alert")"
+                printf '%s\n' "$rule" | grep -Fq 'persistentvolumeclaim=~"alerts-3-paradedb-([1-9][0-9]*)(-wal|-tbs.*)?"'
+                printf '%s\n' "$rule" | grep -Fq 'max by (namespace, persistentvolumeclaim)'
+              done
+
+              printf '%s\n' "$rendered" | alert_rule CNPGClusterOffline | grep -Fq 'count(cnpg_collector_up'
+              printf '%s\n' "$rendered" | alert_rule CNPGClusterOffline | grep -Fq 'for: 5m'
+              offline_excluded="$(render 3 --set 'cluster.monitoring.prometheusRule.excludeRules[0]=CNPGClusterOffline')"
+              if printf '%s\n' "$offline_excluded" | grep -Fq -- '- alert: CNPGClusterOffline'; then
+                echo "excluded offline alert must not render"
+                exit 1
+              fi
+              version_rule="$(printf '%s\n' "$rendered" | alert_rule ParadeDBVersionMismatch)"
+              printf '%s\n' "$version_rule" | grep -Fq 'cnpg_paradedb_version_match'
+              printf '%s\n' "$version_rule" | grep -Fq 'installed_version, expected_version'
+              printf '%s\n' "$version_rule" | grep -Fq 'for: 15m'
+              if printf '%s\n' "$version_rule" | grep -Fq 'kube_customresource'; then
+                echo "version mismatch alert must not require CRD metrics"
+                exit 1
+              fi
+              version_excluded="$(render 3 --set 'cluster.monitoring.prometheusRule.excludeRules[0]=ParadeDBVersionMismatch')"
+              if printf '%s\n' "$version_excluded" | grep -Fq -- '- alert: ParadeDBVersionMismatch'; then
+                echo "excluded version mismatch alert must not render"
+                exit 1
+              fi
+              for image in paradedb/paradedb:0.26.0-pg18 paradedb/paradedb:custom-pg18; do
+                queries="$(helm template alerts-3 ../../ --set "cluster.imageName=$image" --show-only templates/monitoring-paradedb-index.yaml)"
+                printf '%s\n' "$queries" | grep -Fq 'a.default_version AS expected_version'
+                printf '%s\n' "$queries" | grep -Fq "e.extversion = a.default_version;"
+                if printf '%s\n' "$queries" | grep -Fq "extversion = '"; then
+                  echo "version guards must use image metadata rather than Helm version values"
+                  exit 1
+                fi
+              done
+
+              failed_backup="$(printf '%s\n' "$rendered" | alert_rule CNPGBackupFailed)"
+              printf '%s\n' "$failed_backup" | grep -Fq 'barman_cloud_cloudnative_pg_io_last_failed_backup_timestamp'
+              printf '%s\n' "$failed_backup" | grep -Fq '} > 0)'
+              printf '%s\n' "$failed_backup" | grep -Fq 'for: 15m'
+              failed_excluded="$(render 3 --set 'cluster.monitoring.prometheusRule.excludeRules[0]=CNPGBackupFailed')"
+              if printf '%s\n' "$failed_excluded" | grep -Fq -- '- alert: CNPGBackupFailed'; then
+                echo "excluded failed backup alert must not render"
+                exit 1
+              fi
+
+              zone_rule="$(printf '%s\n' "$rendered" | alert_rule CNPGClusterZoneSpreadWarning)"
+              printf '%s\n' "$zone_rule" | grep -Fq 'kube_pod_status_ready'
+              printf '%s\n' "$zone_rule" | grep -Fq 'condition="true"'
+              printf '%s\n' "$zone_rule" | grep -Fq 'label_topology_kubernetes_io_zone!=""'
+              printf '%s\n' "$zone_rule" | grep -Fq 'for: 5m'
+              zone_excluded="$(render 3 --set 'cluster.monitoring.prometheusRule.excludeRules[0]=CNPGClusterZoneSpreadWarning')"
+              if printf '%s\n' "$zone_excluded" | grep -Fq -- '- alert: CNPGClusterZoneSpreadWarning'; then
+                echo "excluded zone-spread alert must not render"
+                exit 1
+              fi
+
+              one_instance="$(render 1)"
+              if printf '%s\n' "$one_instance" | grep -Fq 'CNPGClusterHA'; then
+                echo "single-instance clusters must not render HA alerts"
+                exit 1
+              fi
+
+              two_instances="$(render 2)"
+              printf '%s\n' "$two_instances" | alert_rule CNPGClusterHACritical | grep -Fq ') < 1'
+              printf '%s\n' "$two_instances" | alert_rule CNPGClusterHAWarning | grep -Fq ') < 1'
+              printf '%s\n' "$rendered" | alert_rule CNPGClusterHACritical | grep -Fq ') < 1'
+              printf '%s\n' "$rendered" | alert_rule CNPGClusterHAWarning | grep -Fq ') < 2'
+
+              excluded="$(render 3 \
+                --set 'cluster.monitoring.prometheusRule.excludeRules[0]=CNPGReplicationSlotInactive' \
+                --set 'cluster.monitoring.prometheusRule.excludeRules[1]=CNPGReplicationSlotHighRetention' \
+                --set 'cluster.monitoring.prometheusRule.excludeRules[2]=CNPGClusterXIDWraparoundWarning' \
+                --set 'cluster.monitoring.prometheusRule.excludeRules[3]=CNPGClusterXIDWraparoundCritical' \
+                --set 'cluster.monitoring.prometheusRule.excludeRules[4]=CNPGClusterPrimaryFailing' \
+                --set 'cluster.monitoring.prometheusRule.excludeRules[5]=CNPGPoolerUnavailable' \
+                --set 'cluster.monitoring.prometheusRule.excludeRules[6]=CNPGPoolerClientsWaiting')"
+              if printf '%s\n' "$excluded" | grep -Fq 'CNPGReplicationSlot'; then
+                echo "excluded replication slot alerts must not render"
+                exit 1
+              fi
+              if printf '%s\n' "$excluded" | grep -Fq 'CNPGClusterXIDWraparound'; then
+                echo "excluded transaction ID wraparound alerts must not render"
+                exit 1
+              fi
+              if printf '%s\n' "$excluded" | grep -Fq 'CNPGClusterPrimaryFailing'; then
+                echo "excluded primary failing alert must not render"
+                exit 1
+              fi
+              if printf '%s\n' "$excluded" | grep -Fq 'CNPGPooler'; then
+                echo "excluded PgBouncer alerts must not render"
+                exit 1
+              fi
