@@ -1,0 +1,33 @@
+{{- $alert := "CNPGClusterLogicalReplicationSubscriptionDisabled" -}}
+{{- if not (has $alert .excludeRules) -}}
+alert: {{ $alert }}
+annotations:
+  summary: ParadeDB CNPG Cluster logical replication subscription is disabled
+  description: |-
+    CloudNativePG Cluster "{{ .namespace }}/{{ .cluster }}" subscription "{{ .labels.subname }}" is disabled and is replicating nothing.
+
+    This may be intentional (e.g. a subscription disabled for maintenance, or an ALTER SUBSCRIPTION ... DISABLE)
+    that was never reverted. Either way the lag alerts cannot fire for this subscription while it is
+    disabled, so nothing else will catch it.
+  runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterLogicalReplicationStopped.md
+expr: |
+  max by (namespace, cluster, pod, datname, subname) (
+    label_replace(cnpg_pg_stat_subscription_enabled{namespace="{{ .namespace }}",pod=~"{{ .podSelector }}"}, "cluster", "$1", "job", ".+/(.+)") == 0
+  )
+  and on (namespace, pod)
+  (
+    max by (namespace, pod) (
+      {__name__=~"cnpg_pg_replication_in_recovery|cnpg_paradedb_physical_replication_in_recovery",namespace="{{ .namespace }}",pod=~"{{ .podSelector }}"}
+    ) == 0
+  )
+for: 5m
+labels:
+  severity: warning
+  namespace: {{ .namespace }}
+  cnpg_cluster: {{ .cluster }}
+  alert_type: logical-replication
+  subname: "{{ .labels.subname }}"
+{{- range $key, $val := .additionalLabels }}
+  {{ $key }}: {{ $val | toString | quote }}
+{{- end }}
+{{- end -}}
