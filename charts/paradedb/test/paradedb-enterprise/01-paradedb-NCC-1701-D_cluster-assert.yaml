@@ -1,14 +1,6 @@
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
-<<<<<<<< HEAD:charts/paradedb/test/paradedb-enterprise/01-paradedb-NCC-1701-D_cluster-assert.yaml
   name: paradedb-ncc-1701-d
-========
-  name: pg-basebackup-paradedb
-<<<<<<< HEAD
->>>>>>>> 71565ae (ParadeDB Support (#1)):charts/paradedb/test/postgresql-pg_basebackup/02-pg_basebackup-cluster-assert.yaml
-=======
->>>>>>>> efadb31 (ParadeDB Support (#1)):charts/paradedb/test/postgresql-pg_basebackup/02-pg_basebackup-cluster-assert.yaml
->>>>>>> 89713e8 (ParadeDB Support (#1))
 status:
   readyInstances: 2
