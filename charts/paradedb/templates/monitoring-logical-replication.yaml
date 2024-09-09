@@ -1,0 +1,104 @@
+{{- if .Values.cluster.monitoring.instrumentation.logicalReplication }}
+{{- $pgVersion := include "cluster.postgresqlMajor" . | int -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "cluster.fullname" . }}-monitoring-logical-replication
+  namespace: {{ include "cluster.namespace" . }}
+  labels:
+    cnpg.io/reload: "true"
+    cnpg.io/cluster: {{ include "cluster.fullname" . }}
+    {{- include "cluster.labels" . | nindent 4 }}
+data:
+  custom-queries: |
+    # Subscriber-side health, restricted to subscriptions owned by the scraped database.
+    # A subscription can have multiple worker rows. Receipt age measures transport activity;
+    # received_lsn and latest_end_lsn do not establish committed apply progress.
+    pg_stat_subscription:
+      query: |
+        SELECT current_database() AS datname
+             , s.oid AS subid
+             , s.subname AS subname
+             , subenabled AS enabled
+             {{- if ge $pgVersion 17 }}
+             , worker_type
+             {{- end }}
+             , relid
+             , pg_wal_lsn_diff(received_lsn, '0/0') AS received_lsn
+             , last_msg_send_time
+             , last_msg_receipt_time
+             , pg_wal_lsn_diff(latest_end_lsn, '0/0') AS latest_end_lsn
+             , latest_end_time
+             {{- if ge $pgVersion 15 }}
+             , apply_error_count
+             , sync_error_count
+             , stats_reset
+             {{- end }}
+             , ss.pid
+             , CASE
+                 WHEN last_msg_receipt_time IS NOT NULL
+                 THEN EXTRACT(EPOCH FROM (NOW() - last_msg_receipt_time))
+                 ELSE NULL
+               END AS receipt_lag_seconds
+        FROM pg_subscription s
+        LEFT JOIN pg_stat_subscription ss ON s.oid = ss.subid
+        {{- if ge $pgVersion 15 }}
+        LEFT JOIN pg_stat_subscription_stats sss ON s.oid = sss.subid
+        {{- end }}
+        WHERE s.subdbid = (SELECT oid FROM pg_database WHERE datname = current_database());
+      target_databases: ["*"]
+      metrics:
+        - datname:
+            description: Name of the database
+            usage: LABEL
+        - subid:
+            description: ID of the subscription
+            usage: LABEL
+        - subname:
+            description: Name of the subscription
+            usage: LABEL
+        {{- if ge $pgVersion 17 }}
+        - worker_type:
+            description: Type of the worker
+            usage: LABEL
+        {{- end }}
+        - relid:
+            description: OID of the relation
+            usage: LABEL
+        - received_lsn:
+            description: Last written LSN received from the publisher
+            usage: GAUGE
+        - last_msg_send_time:
+            description: Timestamp of the last message sent
+            usage: GAUGE
+        - last_msg_receipt_time:
+            description: Timestamp of the last message receipt
+            usage: GAUGE
+        - latest_end_lsn:
+            description: Latest end LSN received
+            usage: GAUGE
+        - latest_end_time:
+            description: Timestamp associated with the latest reported WAL position
+            usage: GAUGE
+        - enabled:
+            description: Subscription status (enabled/disabled)
+            usage: GAUGE
+        {{- if ge $pgVersion 15 }}
+        - apply_error_count:
+            description: Number of times an error occurred while applying changes
+            usage: GAUGE
+        - sync_error_count:
+            description: Number of times an error occurred during the initial table synchronization
+            usage: GAUGE
+        - stats_reset:
+            description: Time at which these statistics were last reset
+            usage: GAUGE
+        {{- end }}
+        - pid:
+            description: Process ID of the subscription worker process
+            usage: GAUGE
+        - receipt_lag_seconds:
+            description: Seconds since last message receipt
+            usage: GAUGE
+{{- end }}
+

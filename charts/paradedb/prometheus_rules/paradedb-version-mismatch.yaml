@@ -1,0 +1,29 @@
+{{- $alert := "ParadeDBVersionMismatch" -}}
+{{- if not (has $alert .excludeRules) -}}
+alert: {{ $alert }}
+annotations:
+  summary: ParadeDB binary and extension catalog versions do not match
+  description: |-
+    The pg_search extension catalog in database "{{ .labels.datname }}" reports version "{{ .labels.installed_version }}", but this ParadeDB image expects "{{ .labels.expected_version }}".
+
+    Calls into pg_search can cause errors while these versions disagree. Index detail metrics that call extension functions are disabled until the mismatch is resolved; catalog-only index health metrics remain available.
+  runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/ParadeDBVersionMismatch.md
+expr: |
+  max by (namespace, pod, datname, installed_version, expected_version) (
+    cnpg_paradedb_version_match{namespace="{{ .namespace }}",pod=~"{{ .podSelector }}"} == 0
+  )
+  and on (namespace, pod)
+  (
+    max by (namespace, pod) (
+      {__name__=~"cnpg_pg_replication_in_recovery|cnpg_paradedb_physical_replication_in_recovery",namespace="{{ .namespace }}",pod=~"{{ .podSelector }}"}
+    ) == 0
+  )
+for: 15m
+labels:
+  severity: warning
+  namespace: {{ .namespace }}
+  cnpg_cluster: {{ .cluster }}
+{{- range $key, $val := .additionalLabels }}
+  {{ $key }}: {{ $val | toString | quote }}
+{{- end }}
+{{- end -}}
