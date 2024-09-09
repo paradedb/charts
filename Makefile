@@ -1,6 +1,6 @@
 .DEFAULT_GOAL := help
 
-# behave identically regardless of the caller's working directory
+# Behave identically regardless of the caller's working directory.
 PROJECT_DIR := $(shell dirname $(abspath $(lastword $(MAKEFILE_LIST))))
 LOCALBIN    ?= $(PROJECT_DIR)/bin
 # renovate: datasource=github-releases depName=norwoodj/helm-docs
@@ -20,16 +20,10 @@ docs: helm-docs ## Generate charts' docs using helm-docs
 	@$(HELM_DOCS) --skip-version-footer
 
 .PHONY: schema
-schema: cloudnative-pg-schema cluster-schema plugin-barman-cloud-schema ## Generate charts' schema using helm-schema
+schema: paradedb-schema ## Generate the ParadeDB chart schema using helm-schema
 
-cloudnative-pg-schema: helm-schema
-	@$(HELM_SCHEMA) $(HELM_SCHEMA_FLAGS) -c charts/cloudnative-pg
-
-cluster-schema: helm-schema
-	@$(HELM_SCHEMA) $(HELM_SCHEMA_FLAGS) -c charts/cluster
-
-plugin-barman-cloud-schema: helm-schema
-	@$(HELM_SCHEMA) $(HELM_SCHEMA_FLAGS) -c charts/plugin-barman-cloud
+paradedb-schema: helm-schema
+	@$(HELM_SCHEMA) $(HELM_SCHEMA_FLAGS) -c charts/paradedb
 
 .PHONY: helm-schema
 HELM_SCHEMA = $(LOCALBIN)/helm-schema
@@ -41,7 +35,7 @@ HELM_DOCS = $(LOCALBIN)/helm-docs
 helm-docs: ## Download helm-docs locally if necessary.
 	$(call go-install-tool,$(HELM_DOCS),github.com/norwoodj/helm-docs/cmd/helm-docs@$(HELM_DOCS_VERSION))
 
-# go-install-tool will 'go install' any package $2 and install it to $1.
+# go-install-tool will go install package $2 into path $1.
 define go-install-tool
 @[ -f $(1) ] || { \
 set -e ;\
