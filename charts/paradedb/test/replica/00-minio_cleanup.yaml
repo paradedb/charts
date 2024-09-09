@@ -1,0 +1,16 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: minio-cleanup
+spec:
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+      - name: minio-cleanup
+        image: quay.io/minio/mc:RELEASE.2025-08-13T08-35-41Z
+        command: ['sh', '-c']
+        args:
+         - |
+           mc alias set myminio https://minio.minio.svc.cluster.local minio minio123
+           mc rm --recursive --force myminio/mybucket/replica
