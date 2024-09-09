@@ -1,0 +1,39 @@
+type: paradedb
+mode: standalone
+cluster:
+  instances: 1
+  storage:
+    size: 256Mi
+  initdb:
+    # Logical replication replicates data, not DDL: the target table must already exist on the
+    # subscriber (with a matching definition) before the subscription performs its initial copy.
+    postInitApplicationSQL:
+      - CREATE TABLE IF NOT EXISTS t (id integer PRIMARY KEY, val text)
+backups:
+  enabled: false
+
+# Reach the external "publisher" cluster. In `standalone` mode this is only possible because the
+# chart now injects user-defined `externalClusters` into the Cluster spec.
+externalClusters:
+  - name: publisher
+    connectionParameters:
+      host: publisher-paradedb-rw
+      port: "5432"
+      user: postgres
+      dbname: paradedb
+      sslmode: require
+    password:
+      name: publisher-paradedb-superuser
+      key: password
+    sslKey:
+      name: publisher-paradedb-replication
+      key: tls.key
+    sslCert:
+      name: publisher-paradedb-replication
+      key: tls.crt
+
+subscriptions:
+  - name: mysub
+    dbname: paradedb
+    externalClusterName: publisher
+    publicationName: mypub
