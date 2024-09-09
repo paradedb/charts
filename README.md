@@ -1,9 +1,11 @@
 # ParadeDB Helm Chart
 
-Getting Started
----------------
+TODO.
+
+## Getting Started
 
 ### Installing the CloudNativePG Operator
+
 Skip this step if the CNPG operator is already installed in your cluster.
 
 ```console
