@@ -1,0 +1,41 @@
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  name: ha-alert-rendering
+spec:
+  steps:
+    - name: Render desired-state-aware HA alerts
+      try:
+        - script:
+            content: |
+              set -eu
+
+              render() {
+                helm template "ha-$1" ../../ \
+                  --set "cluster.instances=$1" \
+                  --set cluster.monitoring.enabled=true \
+                  --set cluster.monitoring.prometheusRule.enabled=true \
+                  --show-only templates/prometheus-rule.yaml
+              }
+
+              alert_rule() {
+                awk -v alert="$1" '
+                  $0 ~ "- alert: " alert { printing = 1 }
+                  printing && $0 ~ /- alert:/ && $0 !~ ("- alert: " alert) { exit }
+                  printing { print }
+                '
+              }
+
+              one_instance="$(render 1)"
+              if printf '%s\n' "$one_instance" | grep -q 'CNPGClusterHA'; then
+                echo "single-instance clusters must not render HA alerts"
+                exit 1
+              fi
+
+              two_instances="$(render 2)"
+              printf '%s\n' "$two_instances" | alert_rule CNPGClusterHACritical | grep -q ') < 1'
+              printf '%s\n' "$two_instances" | alert_rule CNPGClusterHAWarning | grep -q ') < 1'
+
+              three_instances="$(render 3)"
+              printf '%s\n' "$three_instances" | alert_rule CNPGClusterHACritical | grep -q ') < 1'
+              printf '%s\n' "$three_instances" | alert_rule CNPGClusterHAWarning | grep -q ') < 2'

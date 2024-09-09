@@ -1,0 +1,146 @@
+{{- if .Values.cluster.monitoring.instrumentation.paradedbIndex }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "cluster.fullname" . }}-monitoring-paradedb-index
+  namespace: {{ include "cluster.namespace" . }}
+  labels:
+    cnpg.io/reload: ""
+    {{- include "cluster.labels" . | nindent 4 }}
+data:
+  custom-queries: |
+    paradedb_index:
+      query: |
+        SELECT current_database() as datname
+             , i.schemaname AS schema
+             , i.tablename
+             , i.indexname AS relname
+             , pg_relation_size(i.indexrelid) AS relation_size
+             , i.num_segments AS segments_count
+             , i.total_docs
+             , COALESCE(s.deleted_docs, 0) AS deleted_docs
+             , COALESCE(s.max_docs, 0) AS max_docs
+             , CASE
+                 WHEN COALESCE(s.max_docs, 0) = 0 THEN 0::double precision
+                 ELSE s.deleted_docs::double precision / s.max_docs
+               END AS deleted_ratio
+        FROM pdb.indexes() i
+        LEFT JOIN LATERAL (
+          SELECT SUM(num_deleted)::bigint AS deleted_docs
+               , SUM(max_doc)::bigint AS max_docs
+          FROM pdb.index_segments(i.indexrelid)
+        ) s ON true;
+      target_databases: ["*"]
+      predicate_query: "SELECT 1 FROM pg_extension WHERE extname = 'pg_search' AND extversion = '{{ .Values.version.paradedb }}';"
+      metrics:
+        - datname:
+            description: Name of the database
+            usage: LABEL
+        - schema:
+            description: Schema within the database
+            usage: LABEL
+        - tablename:
+            description: Table the index is on
+            usage: LABEL
+        - relname:
+            description: Index name
+            usage: LABEL
+        - relation_size:
+            description: Full Relation size
+            usage: GAUGE
+        - segments_count:
+            description: Segment count
+            usage: GAUGE
+        - total_docs:
+            description: Total live documents across all segments
+            usage: GAUGE
+        - deleted_docs:
+            description: Total deleted documents across all segments
+            usage: GAUGE
+        - max_docs:
+            description: Total allocated document slots across all segments
+            usage: GAUGE
+        - deleted_ratio:
+            description: Fraction of allocated document slots that are deleted
+            usage: GAUGE
+    # Keep health separate from pdb.indexes() and pdb.index_segments(). An invalid or
+    # incomplete index must still be observable even when ParadeDB cannot inspect it.
+    paradedb_index_health:
+      query: |
+        SELECT current_database() AS datname
+             , n.nspname AS schema
+             , t.relname AS tablename
+             , c.relname AS relname
+             , i.indisvalid::int AS is_valid
+             , i.indisready::int AS is_ready
+        FROM pg_class c
+        JOIN pg_namespace n ON n.oid = c.relnamespace
+        JOIN pg_index i ON i.indexrelid = c.oid
+        JOIN pg_class t ON t.oid = i.indrelid
+        JOIN pg_am am ON am.oid = c.relam
+        WHERE n.nspname NOT IN ('pg_catalog', 'information_schema')
+          AND am.amname = 'paradedb';
+      target_databases: ["*"]
+      predicate_query: "SELECT 1 FROM pg_extension WHERE extname = 'pg_search' AND extversion = '{{ .Values.version.paradedb }}';"
+      metrics:
+        - datname:
+            description: Name of the database
+            usage: LABEL
+        - schema:
+            description: Schema within the database
+            usage: LABEL
+        - tablename:
+            description: Table the index is on
+            usage: LABEL
+        - relname:
+            description: Index name
+            usage: LABEL
+        - is_valid:
+            description: Whether the index is valid for queries
+            usage: GAUGE
+        - is_ready:
+            description: Whether the index is ready for inserts
+            usage: GAUGE
+    paradedb_index_document_distribution:
+      query: |
+        WITH buckets(range_order, document_range, min_docs, max_docs) AS (
+          VALUES (1, '<= 100K docs', NULL::bigint, 100000::bigint)
+               , (2, '100K-1M docs', 100000::bigint, 1000000::bigint)
+               , (3, '1M-10M docs', 1000000::bigint, 10000000::bigint)
+               , (4, '> 10M docs', 10000000::bigint, NULL::bigint)
+        )
+        SELECT current_database() as datname
+             , i.schemaname AS schema
+             , i.indexname AS relname
+             , b.range_order::text
+             , b.document_range
+             , COUNT(s.segment_idx) AS segment_count
+        FROM pdb.indexes() i
+        CROSS JOIN buckets b
+        LEFT JOIN LATERAL pdb.index_segments(i.indexrelid) s
+          ON (b.min_docs IS NULL OR s.num_docs > b.min_docs)
+         AND (b.max_docs IS NULL OR s.num_docs <= b.max_docs)
+        GROUP BY current_database(), i.schemaname, i.indexname, b.range_order, b.document_range
+        ORDER BY i.schemaname, i.indexname, b.range_order;
+      target_databases: ["*"]
+      predicate_query: "SELECT 1 FROM pg_extension WHERE extname = 'pg_search' AND extversion = '{{ .Values.version.paradedb }}';"
+      metrics:
+        - datname:
+            description: Name of the database
+            usage: LABEL
+        - schema:
+            description: Schema within the database
+            usage: LABEL
+        - relname:
+            description: Index name
+            usage: LABEL
+        - range_order:
+            description: Numeric display order for the document-count range
+            usage: LABEL
+        - document_range:
+            description: Number of live documents in each segment
+            usage: LABEL
+        - segment_count:
+            description: Number of segments in the document-count range
+            usage: GAUGE
+{{- end }}
