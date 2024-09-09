@@ -75,12 +75,12 @@ jobs:
           PGP_PASSPHRASE: "${{ secrets.PARADEDB_PGP_PASSPHRASE }}"
         run: |
           IFS=""
-          echo "$PGP_PRIVATE_KEY" | gpg --dearmor --verbose > $HOME/secring.gpg
-          echo "$PGP_PASSPHRASE" > $HOME/passphrase.txt
+          echo "$PGP_PRIVATE_KEY" | gpg --dearmor --verbose > /tmp/secring.gpg
+          echo "$PGP_PASSPHRASE" > /tmp/passphrase.txt
 
           # Tell chart-releaser-action where to find the key and its passphrase
-          echo "CR_KEYRING=$HOME/secring.gpg" >> "$GITHUB_ENV"
-          echo "CR_PASSPHRASE_FILE=$HOME/passphrase.txt" >> "$GITHUB_ENV"
+          echo "CR_KEYRING=/tmp/secring.gpg" >> "$GITHUB_ENV"
+          echo "CR_PASSPHRASE_FILE=/tmp/passphrase.txt" >> "$GITHUB_ENV"
 
       - name: Run chart-releaser
         uses: helm/chart-releaser-action@v1.6.0
@@ -103,3 +103,7 @@ jobs:
             /repos/paradedb/helm-charts/actions/variables/CHART_VERSION_PATCH \
             -f name='CHART_VERSION_PATCH' \
             -f value='${{ steps.set_versions.outputs.new_chart_version_patch }}'
+
+      - name: Securely Delete the PGP Key and Passphrase
+        if: always()
+        run: shred --remove=wipesync /tmp/secring.gpg /tmp/passphrase.txt
