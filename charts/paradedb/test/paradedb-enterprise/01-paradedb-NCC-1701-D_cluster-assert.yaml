@@ -1,10 +1,6 @@
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
-<<<<<<<< HEAD:charts/paradedb/test/paradedb-enterprise/01-paradedb-NCC-1701-D_cluster-assert.yaml
   name: paradedb-ncc-1701-d
-========
-  name: standalone-paradedb
->>>>>>>> e1a0584 (ParadeDB Support (#1)):charts/paradedb/test/postgresql-minio-backup-restore/01-standalone_cluster-assert.yaml
 status:
   readyInstances: 2
