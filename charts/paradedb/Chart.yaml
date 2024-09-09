@@ -31,15 +31,15 @@ sources:
 keywords:
   - paradedb
   - pg_search
+<<<<<<< HEAD
   - postgresql
   - postgres
   - database
   - full-text
-  - analytics
   - vector
   - zero-etl
-home: https://paradedb.com
-maintainers:
-  - name: ParadeDB
-    email: support@paradedb.com
-    url: https://paradedb.com
+=======
+  - pg_analytics
+  - postgresql
+  - postgres
+  - database
