@@ -1,0 +1,32 @@
+{{- $alert := "CNPGBackupFailed" -}}
+{{- if not (has $alert .excludeRules) -}}
+alert: {{ $alert }}
+annotations:
+  summary: ParadeDB CNPG Cluster's most recent backup failed
+  description: |-
+    CloudNativePG Cluster "{{ .namespace }}/{{ .cluster }}" has a failed backup newer than its last successful backup, or no recorded success.
+
+    Check recent Backup objects and the object store credentials. A successful backup clears this alert.
+  runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGBackupFailed.md
+expr: |
+  (
+    max({__name__=~"cnpg_collector_last_failed_backup_timestamp|barman_cloud_cloudnative_pg_io_last_failed_backup_timestamp",namespace="{{ .namespace }}",pod=~"{{ .podSelector }}"} > 0)
+    unless on()
+    max({__name__=~"cnpg_collector_last_available_backup_timestamp|barman_cloud_cloudnative_pg_io_last_available_backup_timestamp",namespace="{{ .namespace }}",pod=~"{{ .podSelector }}"} > 0)
+  )
+  or
+  (
+    max({__name__=~"cnpg_collector_last_failed_backup_timestamp|barman_cloud_cloudnative_pg_io_last_failed_backup_timestamp",namespace="{{ .namespace }}",pod=~"{{ .podSelector }}"} > 0)
+    > on()
+    max({__name__=~"cnpg_collector_last_available_backup_timestamp|barman_cloud_cloudnative_pg_io_last_available_backup_timestamp",namespace="{{ .namespace }}",pod=~"{{ .podSelector }}"} > 0)
+  )
+for: 15m
+labels:
+  severity: warning
+  namespace: {{ .namespace }}
+  cnpg_cluster: {{ .cluster }}
+  alert_type: backup
+{{- range $key, $val := .additionalLabels }}
+  {{ $key }}: {{ $val | toString | quote }}
+{{- end }}
+{{- end -}}
