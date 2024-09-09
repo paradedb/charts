@@ -1,25 +1,26 @@
-# workflows/test-helm-chart.yml
+# workflows/paradedb-test-eks.yml
 #
-# Test Helm Chart
-# Test the ParadeDB Helm chart against a local Minikube cluster and a local AWS EKS cluster.
+# ParadeDB Test EKS
+# Test the ParadeDB Helm chart against a local AWS EKS cluster via LocalStack. This test workflow is
+# specific to the ParadeDB cloudnative-pg/charts fork.
 
-name: Test Helm Chart
+name: ParadeDB Test EKS
 
 on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
     paths:
       - "charts/cluster/*"
-      - ".github/workflows/test-helm-chart.yml"
+      - ".github/workflows/paradedb-test-eks.yml"
   workflow_dispatch:
 
 concurrency:
-  group: test-helm-chart-${{ github.head_ref || github.ref }}
+  group: paradedb-test-eks-${{ github.head_ref || github.ref }}
   cancel-in-progress: true
 
 jobs:
-  test-helm-eks:
-    name: Test Helm Chart on AWS EKS via LocalStack
+  paradedb-test-eks:
+    name: Test ParadeDB Helm Chart on AWS EKS via LocalStack
     runs-on: ubuntu-latest
     if: github.event.pull_request.draft == false
 
@@ -82,56 +83,6 @@ jobs:
             kubectl wait --for=condition=ready node/$node --timeout=120s
           done
 
-      # This is required to mock the AWS EKS storage class
-      - name: Create StorageClass
-        run: |
-          cat <<EOF | kubectl apply -f -
-          apiVersion: storage.k8s.io/v1
-          kind: StorageClass
-          metadata:
-            name: manual
-          provisioner: kubernetes.io/no-provisioner
-          volumeBindingMode: Immediate
-          EOF
-          kubectl get storageclass
-
-      # This is required to mock the AWS EKS storage class
-      - name: Create PersistentVolume
-        run: |
-          cat <<EOF | kubectl apply -f -
-          apiVersion: v1
-          kind: PersistentVolume
-          metadata:
-            name: local-pv
-          spec:
-            capacity:
-              storage: 3Gi
-            accessModes:
-              - ReadWriteOnce
-            hostPath:
-              path: /tmp/data
-            storageClassName: manual
-          EOF
-          kubectl get pv
-
-      # This is required to mock the AWS EKS storage class
-      - name: Create PersistentVolumeClaim
-        run: |
-          cat <<EOF | kubectl apply -f -
-          apiVersion: v1
-          kind: PersistentVolumeClaim
-          metadata:
-            name: my-pvc
-          spec:
-            accessModes:
-              - ReadWriteOnce
-            resources:
-              requests:
-                storage: 3Gi
-            storageClassName: manual
-          EOF
-          kubectl get pvc
-
       - name: Install the CloudNativePG Operator
         run: |
           helm repo add cnpg https://cloudnative-pg.github.io/charts
@@ -163,7 +114,5 @@ jobs:
         working-directory: charts/cluster/
         run: helm upgrade paradedb . --namespace paradedb --reuse-values --wait --debug
 
-      # TODO: This fails
       - name: Test PostgreSQL Connection
-        run: |
-          helm test paradedb --namespace paradedb
+        run: helm test paradedb --namespace paradedb
