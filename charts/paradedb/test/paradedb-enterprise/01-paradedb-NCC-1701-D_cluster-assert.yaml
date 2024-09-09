@@ -5,6 +5,10 @@ metadata:
   name: paradedb-ncc-1701-d
 ========
   name: standalone-paradedb
+<<<<<<< HEAD
 >>>>>>>> 5851f4c (ParadeDB Support (#1)):charts/paradedb/test/postgresql-minio-backup-restore/01-standalone_cluster-assert.yaml
+=======
+>>>>>>>> 5671f14 (ParadeDB Support (#1)):charts/paradedb/test/postgresql-minio-backup-restore/01-standalone_cluster-assert.yaml
+>>>>>>> 5c67b83 (ParadeDB Support (#1))
 status:
   readyInstances: 2
