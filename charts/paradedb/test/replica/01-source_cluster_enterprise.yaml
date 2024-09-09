@@ -21,7 +21,7 @@ backups:
     encryption: ""
   s3:
     bucket: "mybucket"
-    path: "/replica/v1"
+    path: "/paradedb/v1"
     accessKey: "minio"
     secretKey: "minio123"
     region: "local"
