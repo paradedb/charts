@@ -1,0 +1,37 @@
+{{- $alert := "CNPGClusterLogicalReplicationLagging" -}}
+{{- if not (has $alert .excludeRules) -}}
+alert: {{ $alert }}
+annotations:
+  summary: ParadeDB CNPG Cluster logical replication lag warning
+  description: |
+    CloudNativePG Cluster "{{ .namespace }}/{{ .cluster }}" has logical replication lag of {{ .value }}s.
+
+    This indicates the subscription is receiving messages slower than expected, but may recover quickly.
+    Monitor for escalation to critical status.
+
+    Common causes:
+    - Network latency or temporary connectivity issues
+    - High load on publisher or subscriber
+    - Large transaction batches being processed
+  runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterLogicalReplicationLagging.md
+expr: |
+  (
+    max by (namespace, cluster, pod, datname, subname) (
+      label_replace(cnpg_pg_stat_subscription_receipt_lag_seconds{namespace="{{ .namespace }}",pod=~"{{ .podSelector }}"}, "cluster", "$1", "job", ".+/(.+)")
+    )
+    or
+    max by (namespace, cluster, pod, datname, subname) (
+      time() - label_replace(cnpg_pg_stat_subscription_last_msg_receipt_time{namespace="{{ .namespace }}",pod=~"{{ .podSelector }}"}, "cluster", "$1", "job", ".+/(.+)")
+    )
+  ) > 60
+for: 5m
+labels:
+  severity: warning
+  namespace: {{ .namespace }}
+  cnpg_cluster: {{ .cluster }}
+  alert_type: logical-replication
+  subname: "{{ .labels.subname }}"
+{{- range $key, $val := .additionalLabels }}
+  {{ $key }}: {{ $val | toString | quote }}
+{{- end }}
+{{- end -}}
