@@ -148,7 +148,6 @@ jobs:
 
       - name: Fetch the latest ParadeDB release tag
         id: paradedb-version
-        working-directory: charts/paradedb/
         run: |
           # Fetch the latest release tag and strip the 'v' prefix
           LATEST_TAG=$(curl -s https://api.github.com/repos/paradedb/paradedb/releases/latest | jq -r '.tag_name')
