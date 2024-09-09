@@ -32,7 +32,11 @@ jobs:
           fetch-depth: 0
 
       - name: Install Cosign
+<<<<<<< HEAD
         uses: sigstore/cosign-installer@d7d6bc7722e3daa8354c50bcb52f4837da5e9b6a # v3.8.1
+=======
+        uses: sigstore/cosign-installer@c56c2d3e59e4281cc41dea2217323ba5694b171e # v3.8.0
+>>>>>>> 1c72ce3 (ParadeDB Support (#1))
 
       # Added by ParadeDB: Authenticate to Docker Hub to avoid rate limits
       - name: Login to Docker Hub
