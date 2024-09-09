@@ -1,0 +1,27 @@
+{{- $alert := "CNPGPoolerClientsWaiting" -}}
+{{- if not (has $alert .excludeRules) -}}
+alert: {{ $alert }}
+annotations:
+  summary: Clients are waiting for PgBouncer server connections
+  description: |-
+    PgBouncer pod "{{ .labels.pod }}" for cluster "{{ .namespace }}/{{ .cluster }}" has
+    {{ .value }} clients waiting for a server connection. The queue has persisted for at
+    least five minutes and indicates customer-facing connection pressure.
+  runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGPooler.md
+expr: |
+  sum by (namespace, pod) (
+    cnpg_pgbouncer_pools_cl_waiting{
+      namespace="{{ .namespace }}",
+      pod=~"{{ .cluster }}-pooler-.+",
+      database!="pgbouncer"
+    }
+  ) > 0
+for: 5m
+labels:
+  severity: warning
+  namespace: {{ .namespace }}
+  cnpg_cluster: {{ .cluster }}
+{{- range $key, $val := .additionalLabels }}
+  {{ $key }}: {{ $val | toString | quote }}
+{{- end }}
+{{- end -}}
