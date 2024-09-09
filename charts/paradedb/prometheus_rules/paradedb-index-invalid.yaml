@@ -1,0 +1,39 @@
+{{- $alert := "ParadeDBIndexInvalid" -}}
+{{- if not (has $alert .excludeRules) -}}
+alert: {{ $alert }}
+annotations:
+  summary: ParadeDB cluster has {{ .value }} invalid indexes
+  description: |-
+    ParadeDB cluster "{{ .namespace }}/{{ .cluster }}" has {{ .value }} invalid or not-ready indexes across its databases on the writable primary.
+
+    Failed or cancelled concurrent index builds and reindexes can leave unusable indexes behind. Inspect the catalog-only index health metrics and pg_index to identify them. Check for active builds and a valid replacement before planning cleanup.
+  runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/ParadeDBIndexInvalid.md
+expr: |
+  sum(
+    max by (namespace, pod, datname) (
+      cnpg_paradedb_invalid_indexes_count{namespace="{{ .namespace }}",pod=~"{{ .podSelector }}"}
+    )
+    * on (namespace, pod) group_left()
+      max by (namespace, pod) (
+        label_replace(
+          kube_customresource_primary_info{
+            namespace="{{ .namespace }}", cluster="{{ .cluster }}",
+            customresource_group="postgresql.cnpg.io", customresource_kind="Cluster"
+          } == 1,
+          "pod", "$1", "current_primary", "(.*)"
+        )
+      )
+    unless on (namespace, pod)
+    max by (namespace, pod) (
+      cnpg_pg_replication_in_recovery{namespace="{{ .namespace }}",pod=~"{{ .podSelector }}"} == 1
+    )
+  ) > 0
+for: 5m
+labels:
+  severity: warning
+  namespace: {{ .namespace }}
+  cnpg_cluster: {{ .cluster }}
+{{- range $key, $val := .additionalLabels }}
+  {{ $key }}: {{ $val | toString | quote }}
+{{- end }}
+{{- end -}}

@@ -1,0 +1,26 @@
+type: paradedb
+mode: standalone
+cluster:
+  instances: 1
+  superuserSecret: publisher-paradedb-superuser
+  storage:
+    size: 256Mi
+  initdb:
+    # Create the table to publish at bootstrap so the declarative Publication
+    # (which targets `public.t` by name) can be reconciled before any data is written.
+    postInitApplicationSQL:
+      - CREATE TABLE IF NOT EXISTS t (id integer PRIMARY KEY, val text)
+backups:
+  enabled: false
+
+# Publish a single, explicitly named table (exercising the `target.objects` path). We avoid
+# `allTables` on purpose: a ParadeDB database also contains extension-managed tables such as
+# PostGIS' `spatial_ref_sys`, which would collide with the subscriber's own copy during sync.
+publications:
+  - name: mypub
+    dbname: paradedb
+    target:
+      objects:
+        - table:
+            name: t
+            schema: public

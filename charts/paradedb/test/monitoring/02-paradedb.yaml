@@ -1,0 +1,45 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: paradedb
+spec:
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+      - name: paradedb
+        image: alpine:3.19
+        command: ['sh', '-c']
+        env:
+          - name: DB_URI
+            valueFrom:
+              secretKeyRef:
+                name: monitoring-paradedb-app
+                key: uri
+        args:
+          - |
+            apk --no-cache add postgresql-client
+            set -e
+            psql $DB_URI -c "CALL paradedb.create_bm25_test_table(schema_name => 'public', table_name => 'mock_items');"
+            psql $DB_URI -c "CREATE INDEX search_idx ON mock_items USING paradedb (id, description, category, rating, in_stock, created_at, metadata, weight_range) WITH (key_field='id');"
+
+            # Leave a real, unbuilt concurrent index behind. A writer transaction
+            # allows the catalog entry to commit but blocks the build phase.
+            psql "$DB_URI" -v ON_ERROR_STOP=1 -c "CREATE TABLE broken_items (id bigint PRIMARY KEY, description text);"
+            psql "$DB_URI" -v ON_ERROR_STOP=1 -c "BEGIN; LOCK TABLE broken_items IN ROW EXCLUSIVE MODE; SELECT pg_sleep(10); COMMIT;" &
+            blocker=$!
+            locked=false
+            for attempt in $(seq 1 30); do
+              if [ "$(psql "$DB_URI" -Atc "SELECT count(*) FROM pg_locks WHERE relation = 'broken_items'::regclass AND mode = 'RowExclusiveLock' AND granted;")" = 1 ]; then
+                locked=true
+                break
+              fi
+              sleep 0.1
+            done
+            [ "$locked" = true ]
+            if PGOPTIONS='-c statement_timeout=2000' psql "$DB_URI" -v ON_ERROR_STOP=1 -c "CREATE INDEX CONCURRENTLY broken_search_idx ON broken_items USING paradedb (id, description) WITH (key_field='id');"; then
+              echo "expected the concurrent build to time out"
+              exit 1
+            fi
+            wait "$blocker"
+            [ "$(psql "$DB_URI" -Atc "SELECT count(*) FROM pg_index WHERE indexrelid = 'broken_search_idx'::regclass AND NOT indisvalid AND NOT indisready;")" = 1 ]
