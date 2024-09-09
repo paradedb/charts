@@ -1,0 +1,30 @@
+{{- $alert := "CNPGInstanceMetricsFailing" -}}
+{{- if not (has $alert .excludeRules) -}}
+alert: {{ $alert }}
+annotations:
+  summary: ParadeDB CNPG Cluster metrics collector is failing its queries
+  description: |-
+    ParadeDB CNPG instance "{{ .namespace }}/{{ .labels.pod }}" is answering on its metrics endpoint, but its latest collection failed. Some metrics may be missing.
+
+    Alerts that depend on missing metrics may not fire. Check database and replication health directly.
+
+    Check the collector logs and its connection to the cluster's application database.
+
+    ParadeDBIndexInvalid reports invalid or not-ready indexes separately.
+    Index detail queries must exclude these indexes before opening index storage.
+  runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGInstanceMetricsFailing.md
+expr: |
+  max by (namespace, pod) (
+    (cnpg_collector_last_collection_error{namespace="{{ .namespace }}",pod=~"{{ .podSelector }}"} == 1)
+    or
+    (cnpg_errors_total{namespace="{{ .namespace }}",pod=~"{{ .podSelector }}"} > 0)
+  )
+for: 15m
+labels:
+  severity: critical
+  namespace: {{ .namespace }}
+  cnpg_cluster: {{ .cluster }}
+{{- range $key, $val := .additionalLabels }}
+  {{ $key }}: {{ $val | toString | quote }}
+{{- end }}
+{{- end -}}

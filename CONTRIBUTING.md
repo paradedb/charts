@@ -1,10 +1,17 @@
-# Contributing to CloudNativePG
+# Contributing to ParadeDB Charts
 
-Thank you for your interest in contributing! 💖
+Open pull requests against `dev`. Keep changes focused and explain how you validated them.
+Follow the [Code of Conduct](CODE_OF_CONDUCT.md).
 
-To ensure consistency across the project, all CloudNativePG repositories follow
-a common set of guidelines regarding code of conduct, AI usage, and
-contribution workflows.
+The chart lives in `charts/paradedb`. Check changes locally with:
 
-Please review the [CloudNativePG Project contributing guidelines](https://github.com/cloudnative-pg/governance/blob/main/CONTRIBUTING.md)
-before searching for issues, reporting bugs, or submitting a pull request.
+```bash
+helm lint charts/paradedb
+helm template paradedb charts/paradedb
+```
+
+CI runs the Chainsaw integration tests in `charts/paradedb/test`, including rule rendering
+and monitoring resource checks. Update the relevant fixtures when changing chart behavior.
+
+Chart versions are managed by the release workflow. Leave `Chart.yaml` version bumps out
+of regular pull requests.
