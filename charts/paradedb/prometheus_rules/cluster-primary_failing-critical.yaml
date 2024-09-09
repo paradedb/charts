@@ -1,0 +1,37 @@
+{{- $alert := "CNPGClusterPrimaryFailing" -}}
+{{- if not (has $alert .excludeRules) -}}
+alert: {{ $alert }}
+annotations:
+  summary: CloudNativePG primary recovery is not completing
+  description: |-
+    Cluster "{{ .namespace }}/{{ .cluster }}" has reported a failing primary for more than
+    five minutes and has not recovered. Current primary: "{{ .labels.current_primary }}";
+    target primary: "{{ .labels.target_primary }}".
+  runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterPrimaryFailing.md
+expr: |
+  (
+    time() - max by (namespace, cluster, primary) (
+      kube_customresource_primary_failing_since_time{
+        customresource_group="postgresql.cnpg.io",
+        customresource_kind="Cluster",
+        namespace="{{ .namespace }}",
+        cluster="{{ .cluster }}"
+      }
+    ) > 300
+  )
+  * on (namespace, cluster) group_left(current_primary, target_primary)
+  kube_customresource_primary_info{
+    customresource_group="postgresql.cnpg.io",
+    customresource_kind="Cluster",
+    namespace="{{ .namespace }}",
+    cluster="{{ .cluster }}"
+  }
+for: 5m
+labels:
+  severity: critical
+  namespace: {{ .namespace }}
+  cnpg_cluster: {{ .cluster }}
+{{- range $key, $val := .additionalLabels }}
+  {{ $key }}: {{ $val | toString | quote }}
+{{- end }}
+{{- end -}}
