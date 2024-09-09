@@ -1,0 +1,195 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: pod-reader
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: pod-reader
+rules:
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get","list","watch"]
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: pod-reader-binding
+subjects:
+  - kind: ServiceAccount
+    name: pod-reader
+roleRef:
+  kind: Role
+  name: pod-reader
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: metrics-test
+spec:
+  backoffLimit: 0
+  template:
+    spec:
+      serviceAccountName: pod-reader
+      restartPolicy: Never
+      containers:
+      - name: metrics-test
+        image: alpine:3.19
+        command: ['sh', '-c']
+        env:
+          - name: DB_URI
+            valueFrom:
+              secretKeyRef:
+                name: monitoring-paradedb-app
+                key: uri
+          - name: NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+        args:
+          - |
+            apk --no-cache add curl kubectl postgresql-client
+            set -e
+            scrape() {
+              curl --fail --silent --show-error --insecure --connect-timeout 5 --max-time 15 "$POD_URL"
+            }
+            # The cluster enables monitoring.tls, so the metrics port serves HTTPS
+            # using the cluster's serving certificate. Scrape with -k since the job
+            # has no access to the cluster CA bundle.
+            POD_URL="https://$(kubectl -n $NAMESPACE get pods -l cnpg.io/podRole=instance -o jsonpath="{.items[0].status.podIP}"):9187/metrics"
+            echo "POD_URL: $POD_URL"
+
+            echo "pg_stat_subscription_received_lsn"
+            scrape | grep pg_stat_subscription_received_lsn
+            echo "pg_stat_subscription_last_msg_send_time"
+            scrape | grep pg_stat_subscription_last_msg_send_time
+            echo "pg_stat_subscription_last_msg_receipt_time"
+            scrape | grep pg_stat_subscription_last_msg_receipt_time
+            echo "pg_stat_subscription_latest_end_lsn"
+            scrape | grep pg_stat_subscription_latest_end_lsn
+            echo "pg_stat_subscription_latest_end_time"
+            scrape | grep pg_stat_subscription_latest_end_time
+            echo "pg_stat_subscription_enabled"
+            scrape | grep pg_stat_subscription_enabled
+            echo "pg_stat_subscription_apply_error_count"
+            scrape | grep pg_stat_subscription_apply_error_count
+            echo "pg_stat_subscription_sync_error_count"
+            scrape | grep pg_stat_subscription_sync_error_count
+            echo "pg_stat_subscription_stats_reset"
+            scrape | grep pg_stat_subscription_stats_reset
+            echo "pg_stat_subscription_pid"
+            scrape | grep pg_stat_subscription_pid
+
+            echo "paradedb_index_relation_size"
+            scrape | grep paradedb_index_relation_size
+            echo "paradedb_index_segments_count"
+            scrape | grep paradedb_index_segments_count
+            echo "paradedb_index_total_docs"
+            scrape | grep paradedb_index_total_docs
+            echo "paradedb_index_deleted_docs"
+            scrape | grep paradedb_index_deleted_docs
+            echo "paradedb_index_max_docs"
+            scrape | grep paradedb_index_max_docs
+            echo "paradedb_index_deleted_ratio"
+            scrape | grep paradedb_index_deleted_ratio
+            echo "paradedb_index_health_is_valid"
+            scrape | grep paradedb_index_health_is_valid
+            echo "paradedb_index_health_is_ready"
+            scrape | grep paradedb_index_health_is_ready
+            echo "paradedb_version_match"
+            scrape | grep 'cnpg_paradedb_version_match{.*} 1$'
+
+            echo "paradedb_index_document_distribution_segment_count"
+            scrape | grep 'paradedb_index_document_distribution_segment_count.*document_range="<= 100K docs"'
+            scrape | grep 'paradedb_index_document_distribution_segment_count.*document_range="100K-1M docs"'
+            scrape | grep 'paradedb_index_document_distribution_segment_count.*document_range="1M-10M docs"'
+            scrape | grep 'paradedb_index_document_distribution_segment_count.*document_range="> 10M docs"'
+
+            echo "pg_stat_activity_long_running_avg_duration"
+            scrape | grep pg_stat_activity_long_running_avg_duration
+            echo "pg_stat_activity_long_running_max_duration"
+            scrape | grep pg_stat_activity_long_running_max_duration
+            echo "pg_stat_activity_long_running_count"
+            scrape | grep pg_stat_activity_long_running_count
+            echo "pg_stat_activity_long_running_queries_bucket"
+            scrape | grep pg_stat_activity_long_running_queries_bucket
+
+            # An invalid index must remain visible in catalog health/count metrics
+            # while valid-index details still collect without errors.
+            scrape > /tmp/index-metrics.txt
+            grep -E '^cnpg_paradedb_invalid_indexes_count\{.*\} 1$' /tmp/index-metrics.txt
+            grep -E '^cnpg_paradedb_index_health_is_valid\{.*relname="broken_search_idx".*\} 0$' /tmp/index-metrics.txt
+            grep -E '^cnpg_paradedb_index_total_docs\{.*relname="search_idx"' /tmp/index-metrics.txt
+            if grep -E '^cnpg_paradedb_index_(relation_size|segments_count|total_docs|document_distribution_segment_count)\{.*relname="broken_search_idx"' /tmp/index-metrics.txt; then
+              echo "invalid index was included in storage inspection"
+              exit 1
+            fi
+            if grep '^cnpg_errors_total{' /tmp/index-metrics.txt | grep -E 'errorUserQueries="paradedb_index(_document_distribution)? on db'; then
+              echo "index metrics failed with an invalid index present"
+              exit 1
+            fi
+
+            # Keep a second concurrent build waiting on a writer. It must remain in
+            # catalog health metrics without increasing the leftover-index count.
+            psql "$DB_URI" -v ON_ERROR_STOP=1 -c "CREATE TABLE active_items (id bigint PRIMARY KEY, description text);"
+            cleanup() {
+              psql "$DB_URI" -c "SELECT pg_cancel_backend(pid) FROM pg_stat_activity WHERE application_name IN ('monitoring-build', 'monitoring-writer') AND pid <> pg_backend_pid();"
+            }
+            trap cleanup EXIT
+            PGAPPNAME=monitoring-writer PGOPTIONS='-c statement_timeout=120000' psql "$DB_URI" -v ON_ERROR_STOP=1 -c "BEGIN; LOCK TABLE active_items IN ROW EXCLUSIVE MODE; SELECT pg_sleep(120); COMMIT;" &
+            writer=$!
+            locked=false
+            for attempt in $(seq 1 20); do
+              if [ "$(psql "$DB_URI" -Atc "SELECT count(*) FROM pg_locks WHERE relation = 'active_items'::regclass AND mode = 'RowExclusiveLock' AND granted;")" = 1 ]; then
+                locked=true
+                break
+              fi
+              sleep 1
+            done
+            [ "$locked" = true ]
+            PGAPPNAME=monitoring-build PGOPTIONS='-c statement_timeout=120000' psql "$DB_URI" -v ON_ERROR_STOP=1 -c "CREATE INDEX CONCURRENTLY active_search_idx ON active_items USING paradedb (id, description) WITH (key_field='id');" &
+            builder=$!
+            # CNPG caches query results for 30 seconds; allow a full refresh.
+            observed=false
+            for attempt in $(seq 1 60); do
+              scrape > /tmp/active-metrics.txt
+              if grep -E '^cnpg_paradedb_index_health_is_valid\{.*relname="active_search_idx".*\} 0$' /tmp/active-metrics.txt &&
+                 grep -E '^cnpg_paradedb_invalid_indexes_count\{.*\} 1$' /tmp/active-metrics.txt &&
+                 [ "$(psql "$DB_URI" -Atc "SELECT count(*) FROM pg_stat_progress_create_index WHERE datname = current_database() AND index_relid = to_regclass('active_search_idx');")" = 1 ]; then
+                observed=true
+                break
+              fi
+              sleep 1
+            done
+            if [ "$observed" != true ]; then
+              echo "Timed out waiting for expected index metrics"
+              grep -E '^cnpg_(paradedb_index|paradedb_invalid|errors_total)' /tmp/*metrics.txt || true
+              exit 1
+            fi
+            # Once cancelled, the same index must be counted as a leftover.
+            psql "$DB_URI" -v ON_ERROR_STOP=1 -c "SELECT pg_cancel_backend(pid) FROM pg_stat_activity WHERE application_name = 'monitoring-build';"
+            if wait "$builder"; then
+              echo "expected the concurrent build to be cancelled"
+              exit 1
+            fi
+            # CNPG caches query results for 30 seconds; allow a full refresh.
+            observed=false
+            for attempt in $(seq 1 60); do
+              scrape > /tmp/cancelled-metrics.txt
+              if grep -E '^cnpg_paradedb_invalid_indexes_count\{.*\} 2$' /tmp/cancelled-metrics.txt; then
+                observed=true
+                break
+              fi
+              sleep 1
+            done
+            if [ "$observed" != true ]; then
+              echo "Timed out waiting for expected index metrics"
+              grep -E '^cnpg_(paradedb_index|paradedb_invalid|errors_total)' /tmp/*metrics.txt || true
+              exit 1
+            fi
+            cleanup
+            wait "$writer" || true
+            trap - EXIT

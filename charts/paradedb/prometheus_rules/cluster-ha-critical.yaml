@@ -1,0 +1,31 @@
+{{- $alert := "CNPGClusterHACritical" -}}
+{{- if and (gt (int .Values.cluster.instances) 1) (not (has $alert .excludeRules)) -}}
+alert: {{ $alert }}
+annotations:
+  summary: ParadeDB CNPG Cluster has no standby replicas!
+  description: |-
+    ParadeDB CloudNativePG Cluster "{{ .labels.job }}" has no ready standby replicas. The cluster is at a severe risk of data loss and downtime if the primary instance fails.
+
+    The primary instance is still online and able to serve queries, although connections to the `-ro` endpoint will fail. The `-r` endpoint is operating at reduced capacity and all traffic is being served by the primary.
+
+    This can happen during a normal fail-over or automated minor version upgrades in a cluster with 2 or less instances. The replaced instance may need some time to catch-up with the cluster primary instance.
+  runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterHA.md
+expr: |
+  max by (job) (
+    (
+      cnpg_pg_replication_streaming_replicas{namespace="{{ .namespace }}",pod=~"{{ .podSelector }}"}
+      -
+      cnpg_pg_replication_is_wal_receiver_up{namespace="{{ .namespace }}",pod=~"{{ .podSelector }}"}
+    )
+    unless on (namespace, pod)
+    (cnpg_pg_replication_in_recovery{namespace="{{ .namespace }}",pod=~"{{ .podSelector }}"} == 1)
+  ) < 1
+for: 5m
+labels:
+  severity: critical
+  namespace: {{ .namespace }}
+  cnpg_cluster: {{ .cluster }}
+{{- range $key, $val := .additionalLabels }}
+  {{ $key }}: {{ $val | toString | quote }}
+{{- end }}
+{{- end -}}
