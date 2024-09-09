@@ -1,0 +1,28 @@
+{{- $alert := "PostgreSQLLongRunningQueriesWarning" -}}
+{{- if and (not (has $alert .excludeRules)) .Values.cluster.monitoring.instrumentation.pgStatActivity -}}
+alert: {{ $alert }}
+annotations:
+  summary: ParadeDB CNPG Cluster has a long running query on its primary
+  description: |-
+    CloudNativePG Cluster "{{ .namespace }}/{{ .cluster }}" has a query on its primary instance that has been running for {{ .value }} seconds, more than the two hour threshold.
+
+    A long query is not a problem in itself, but a long transaction holds back xmin, so autovacuum cannot clean up dead tuples anywhere in the database, and it may hold locks that block DDL and anything queueing behind it.
+
+    Only the primary is read. Long running reads on a standby are expected.
+  runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/PostgreSQLLongRunningQueriesWarning.md
+expr: |
+  (
+    max by (namespace, pod) (
+      cnpg_pg_stat_activity_long_running_max_duration{namespace="{{ .namespace }}",pod=~"{{ .podSelector }}"}
+    )
+    unless on (namespace, pod)
+    (
+      cnpg_pg_replication_in_recovery{namespace="{{ .namespace }}",pod=~"{{ .podSelector }}"} == 1
+    )
+  ) > 7200
+for: 1m
+labels:
+  severity: warning
+  namespace: {{ .namespace }}
+  cnpg_cluster: {{ .cluster }}
+{{- end -}}
