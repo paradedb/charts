@@ -1,6 +1,6 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: paradedb-write
+  name: logical-replication
 status:
   succeeded: 1

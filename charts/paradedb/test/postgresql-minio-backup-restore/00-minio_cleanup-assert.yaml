@@ -1,6 +1,6 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: paradedb-write
+  name: minio-cleanup
 status:
   succeeded: 1
