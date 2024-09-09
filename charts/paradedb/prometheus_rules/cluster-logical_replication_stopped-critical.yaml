@@ -1,0 +1,41 @@
+{{- $alert := "CNPGClusterLogicalReplicationWorkerDown" -}}
+{{- if not (has $alert .excludeRules) -}}
+alert: {{ $alert }}
+annotations:
+  summary: ParadeDB CNPG Cluster logical replication subscription has no apply worker
+  description: |-
+    CloudNativePG Cluster "{{ .namespace }}/{{ .cluster }}" subscription "{{ .labels.subname }}" is enabled but has no apply worker running.
+
+    The subscription is meant to be replicating and is not. Data is diverging from the publisher for
+    as long as this persists, and the lag alerts cannot fire while the worker is absent.
+
+    Check the subscriber logs for repeated apply worker crashes, and the publisher for a dropped or
+    invalidated replication slot.
+  runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterLogicalReplicationStopped.md
+expr: |
+  (
+    max by (namespace, cluster, pod, datname, subname) (
+      label_replace(cnpg_pg_stat_subscription_enabled{namespace="{{ .namespace }}",pod=~"{{ .podSelector }}"}, "cluster", "$1", "job", ".+/(.+)") == 1
+    )
+    unless on (namespace, cluster, pod, datname, subname)
+    max by (namespace, cluster, pod, datname, subname) (
+      label_replace(cnpg_pg_stat_subscription_pid{namespace="{{ .namespace }}",pod=~"{{ .podSelector }}"}, "cluster", "$1", "job", ".+/(.+)") > 0
+    )
+  )
+  and on (namespace, pod)
+  (
+    max by (namespace, pod) (
+      {__name__=~"cnpg_pg_replication_in_recovery|cnpg_paradedb_physical_replication_in_recovery",namespace="{{ .namespace }}",pod=~"{{ .podSelector }}"}
+    ) == 0
+  )
+for: 5m
+labels:
+  severity: critical
+  namespace: {{ .namespace }}
+  cnpg_cluster: {{ .cluster }}
+  alert_type: logical-replication
+  subname: "{{ .labels.subname }}"
+{{- range $key, $val := .additionalLabels }}
+  {{ $key }}: {{ $val | toString | quote }}
+{{- end }}
+{{- end -}}
