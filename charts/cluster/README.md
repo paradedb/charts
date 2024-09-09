@@ -43,7 +43,7 @@ cnpg/cloudnative-pg
 ### Setting up a CNPG Cluster
 
 ```console
-helm repo add cnpg https://paradedb.github.io/charts
+helm repo add paradedb https://paradedb.github.io/charts
 helm upgrade --install paradedb \
 --namespace paradedb-database \
 --create-namespace \
