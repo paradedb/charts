@@ -1,6 +1,5 @@
 type: paradedb-enterprise
 mode: standalone
-<<<<<<< HEAD
 version:
   major: "17"
 <<<<<<< HEAD
@@ -14,11 +13,6 @@ version:
 >>>>>>> 9de7651 (chore: Upgrade to 0.15.0 (#80))
 cluster:
   instances: 2
-=======
-
-cluster:
-  instances: 1
->>>>>>> 73217c4 (ParadeDB Enterprise (#58))
   storage:
     size: 256Mi
   imagePullSecrets:
