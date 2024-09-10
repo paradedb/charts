@@ -1,28 +1,10 @@
 # CloudNativePG Cluster
 
+This README documents the Helm chart for deploying and managing [ParadeDB](https://github.com/paradedb/paradedb) on Kubernetes via [CloudNativePG](https://cloudnative-pg.io/), including advanced settings.
 
-A note on the chart's purpose
------------------------------
+Kubernetes, and specifically the CloudNativePG operator, is the recommended approach for deploying ParadeDB in production. ParadeDB also provides a [Docker image](https://hub.docker.com/r/paradedb/paradedb) and [prebuilt binaries](https://github.com/paradedb/paradedb/releases) for Debian, Ubuntu and Red Hat Enterprise Linux.
 
-This is an opinionated chart that is designed to provide a subset of simple, stable and safe configurations using the
-CloudNativePG operator. It is designed to provide a simple way to perform recovery operations to decrease your RTO.
-
-It is not designed to be a one size fits all solution. If you need a more complicated setup we strongly recommend that
-you either:
-
-* use the operator directly
-* create your own chart
-* use Kustomize to modify the chart's resources
-
-**_Note_** that the latter option carries it's own risks as the chart configuration may change, especially before it
-reaches a stable release.
-
-That being said, we welcome PRs that improve the chart, but please keep in mind that we don't plan to support every
-single configuration that the operator provides and we may reject PRs that add too much complexity and maintenance
-difficulty to the chart.
-
-Getting Started
----------------
+## Getting Started
 
 ### Installing the Operator
 
@@ -36,7 +18,7 @@ helm upgrade --install cnpg \
 cnpg/cloudnative-pg
 ```
 
-### Setting up a CNPG Cluster
+### Setting up a ParadeDB CNPG Cluster
 
 ```console
 helm repo add paradedb https://paradedb.github.io/charts
@@ -54,17 +36,12 @@ Cluster Configuration
 
 ### Database types
 
-
-
-Currently the chart supports two database types. These are configured via the `type` parameter. These are:
-* `postgresql` - A standard PostgreSQL database.
-* `postgis` - A PostgreSQL database with the PostGIS extension installed.
-
-Depending on the type the chart will use a different Docker image and fill in some initial setup, like extension installation.
+To use the ParadeDB Helm Chart, specify `paradedb` via the `type` parameter.
 
 ### Modes of operation
 
 The chart has three modes of operation. These are configured via the `mode` parameter:
+
 * `standalone` - Creates new or updates an existing CNPG cluster. This is the default mode.
 * `replica` - Creates a replica cluster from an existing CNPG cluster. **_Note_ that this mode is not yet supported.**
 * `recovery` - Recovers a CNPG cluster from a backup, object store or via pg_basebackup.
@@ -81,8 +58,10 @@ providers are supported:
 * Google Cloud Storage
 
 Additionally you can specify the following parameters:
+
 * `backups.retentionPolicy` - The retention policy for backups. Defaults to `30d`.
 * `backups.scheduledBackups` - An array of scheduled backups containing a name and a crontab schedule. Example:
+
 ```yaml
 backups:
   scheduledBackups:
@@ -104,7 +83,7 @@ Examples
 --------
 
 There are several configuration examples in the [examples](examples) directory. Refer to them for a basic setup and
-refer to  the [CloudNativePG Documentation](https://cloudnative-pg.io/documentation/current/) for more advanced configurations.
+refer to the [CloudNativePG Documentation](https://cloudnative-pg.io/documentation/current/) for more advanced configurations.
 
 ## Values
 
@@ -239,7 +218,7 @@ refer to  the [CloudNativePG Documentation](https://cloudnative-pg.io/documentat
 | recovery.s3.secretKey | string | `""` |  |
 | recovery.secret.create | bool | `true` | Whether to create a secret for the backup credentials |
 | recovery.secret.name | string | `""` | Name of the backup credentials secret |
-| type | string | `"postgresql"` | Type of the CNPG database. Available types: `paradedb` |
+| type | string | `"paradedb"` | Type of the CNPG database. Available types: `paradedb` |
 | version.paradedb | string | `"0.9.4"` | If using ParadeDB, specify the version |
 | version.postgresql | string | `"16"` | PostgreSQL major version to use |
 

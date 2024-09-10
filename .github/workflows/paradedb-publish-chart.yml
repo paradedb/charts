@@ -40,7 +40,7 @@ jobs:
 
       - name: Set Helm Chart Release Versions
         id: set_versions
-        working-directory: charts/charts/cluster/
+        working-directory: charts/cluster/
         env:
           GH_TOKEN: ${{ secrets.GHA_CREATE_RELEASE_PAT }}
         run: |
