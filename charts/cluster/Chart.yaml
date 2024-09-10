@@ -18,7 +18,7 @@ name: paradedb
 description: Deploys and manages a ParadeDB CloudNativePG cluster and its associated resources.
 icon: https://raw.githubusercontent.com/paradedb/paradedb/main/docs/logo/light.svg
 type: application
-version: 0.0.0
+version: 0.0.11
 sources:
   - https://github.com/paradedb/charts
 keywords:
