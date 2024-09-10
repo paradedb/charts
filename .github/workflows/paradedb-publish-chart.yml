@@ -1,11 +1,11 @@
-# workflows/publish-helm-chart.yml
+# workflows/publish-chart.yml
 #
-# Publish Helm Chart
+# ParadeDB Publish Chart
 # Publish the ParadeDB Helm chart to paradedb.github.io via GitHub Pages. This workflow also
-# triggers the creation of a GitHub Release and only happens once we trigger a workflow_dispatch
-# event, either manually or via creating a release in the `paradedb/paradedb` repository.
+# triggers the creation of a GitHub Release. It only runs on pushes to `main` or when we trigger
+# a workflow_dispatch event, either manually or via creating a release in the `paradedb/paradedb` repository.
 
-name: Publish Helm Charts
+name: ParadeDB Publish Helm Charts
 
 on:
   push:
@@ -19,11 +19,11 @@ on:
         default: ""
 
 concurrency:
-  group: publish-helm-chart-${{ github.head_ref || github.ref }}
+  group: paradedb-publish-chart-${{ github.head_ref || github.ref }}
   cancel-in-progress: true
 
 jobs:
-  publish-helm-chart:
+  paradedb-publish-chart:
     name: Publish ParadeDB Helm Charts to GitHub Pages
     runs-on: ubuntu-latest
     permissions:
@@ -40,7 +40,7 @@ jobs:
 
       - name: Set Helm Chart Release Versions
         id: set_versions
-        working-directory: charts/paradedb/
+        working-directory: charts/charts/cluster/
         env:
           GH_TOKEN: ${{ secrets.GHA_CREATE_RELEASE_PAT }}
         run: |
@@ -56,15 +56,11 @@ jobs:
           fi
           # Update appVersion to the GitHub Release version and version to the Helm Chart version
           sed -i "s/^appVersion: .*/appVersion: $APP_VERSION/" Chart.yaml
-          sed -i "s/^version: .*/version: ${{ vars.CHART_VERSION_MAJOR }}.${{ vars.CHART_VERSION_MINOR }}.${NEW_CHART_VERSION_PATCH}/" Chart.yaml
+          sed -i "s/^version: .*/version: ${{ vars.CHART_VERSION_MAJOR }}.${{ vars.CHART_VERSION_MINOR }}.${NEW_CHART_VERSION_PATCH}/" values.yaml
           cat Chart.yaml
 
           # Set output to update post-release
           echo "new_chart_version_patch=${NEW_CHART_VERSION_PATCH}" >> $GITHUB_OUTPUT
-
-      # The README needs to be in the same directory as the Chart.yaml file for ArtifactHub to display it
-      - name: Copy README.md for Packaging
-        run: cp README.md charts/paradedb/README.md
 
       # The GitHub repository secret `PARADEDB_PGP_PRIVATE_KEY` contains the private key
       # in ASCII-armored format. To export a (new) key, run this command:
@@ -81,6 +77,10 @@ jobs:
           # Tell chart-releaser-action where to find the key and its passphrase
           echo "CR_KEYRING=/tmp/secring.gpg" >> "$GITHUB_ENV"
           echo "CR_PASSPHRASE_FILE=/tmp/passphrase.txt" >> "$GITHUB_ENV"
+
+      - name: Add chart dependencies
+        run: |
+          helm repo add cnpg-grafana-dashboard https://cloudnative-pg.github.io/grafana-dashboards
 
       - name: Run chart-releaser
         uses: helm/chart-releaser-action@v1.6.0
@@ -100,7 +100,7 @@ jobs:
             --method PATCH \
             -H "Accept: application/vnd.github+json" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
-            /repos/paradedb/helm-charts/actions/variables/CHART_VERSION_PATCH \
+            /repos/paradedb/charts/actions/variables/CHART_VERSION_PATCH \
             -f name='CHART_VERSION_PATCH' \
             -f value='${{ steps.set_versions.outputs.new_chart_version_patch }}'
 
