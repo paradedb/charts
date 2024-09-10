@@ -247,4 +247,4 @@ refer to  the [CloudNativePG Documentation](https://cloudnative-pg.io/documentat
 
 | Name | Email | Url |
 | ---- | ------ | --- |
-| ParadeDB | <support@paradedb.com> | https://paradedb.com |
+| ParadeDB | <support@paradedb.com> | [paradedb.com](https://paradedb.com) |
