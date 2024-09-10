@@ -16,7 +16,7 @@
 apiVersion: v2
 name: paradedb
 description: Deploys and manages a ParadeDB CloudNativePG cluster and its associated resources.
-icon: https://raw.githubusercontent.com/cloudnative-pg/artwork/main/cloudnativepg-logo.svg
+icon: https://raw.githubusercontent.com/paradedb/paradedb/main/docs/logo/light.svg
 type: application
 version: 0.0.0
 sources:
