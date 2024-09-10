@@ -17,7 +17,7 @@
 
 ---
 
-[![Publish Helm Chart](https://github.com/paradedb/helm-charts/actions/workflows/publish-helm-chart.yml/badge.svg)](https://github.com/paradedb/helm-charts/actions/workflows/publish-helm-chart.yml)
+[![Publish Helm Chart](https://github.com/paradedb/charts/actions/workflows/paradedb-publish-chart.yml/badge.svg)](https://github.com/paradedb/charts/actions/workflows/paradedb-publish-chart.yml)
 [![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/paradedb)](https://artifacthub.io/packages/search?repo=paradedb)
 [![Docker Pulls](https://img.shields.io/docker/pulls/paradedb/paradedb)](https://hub.docker.com/r/paradedb/paradedb)
 [![License](https://img.shields.io/github/license/paradedb/paradedb?color=blue)](https://github.com/paradedb/paradedb?tab=AGPL-3.0-1-ov-file#readme)
@@ -26,9 +26,13 @@
 
 # ParadeDB Helm Chart
 
-TODO.
+This repository contains the Helm chart for deploying and managing [ParadeDB](https://github.com/paradedb/paradedb) on Kubernetes via [CloudNativePG](https://cloudnative-pg.io/).
+
+Kubernetes, and specifically the CloudNativePG operator, is the recommended approach for deploying ParadeDB in production. ParadeDB also provides a [Docker image](https://hub.docker.com/r/paradedb/paradedb) and [prebuilt binaries](https://github.com/paradedb/paradedb/releases) for Debian, Ubuntu and Red Hat Enterprise Linux.
 
 ## Getting Started
+
+First, install [Helm](https://helm.sh/docs/intro/install/). The following steps assume you have a Kubernetes cluster running v1.25+. If you are testing locally, we recommend using [Minikube](https://minikube.sigs.k8s.io/docs/start/?arch=%2Fmacos%2Farm64%2Fstable%2Fbinary+download).
 
 ### Installing the CloudNativePG Operator
 
@@ -42,7 +46,7 @@ helm upgrade --install cnpg \
 cnpg/cloudnative-pg
 ```
 
-### Setting up a CNPG Cluster
+### Setting up a ParadeDB CNPG Cluster
 
 ```console
 helm repo add paradedb https://paradedb.github.io/charts
@@ -53,7 +57,9 @@ helm upgrade --install paradedb \
 paradedb/cluster
 ```
 
-Refer to the [Cluster Chart documentation](charts/cluster/README.md) for advanced configuration options.
+Refer to the [CloudNativePG Cluster Chart documentation](charts/cluster/README.md) for advanced configuration options.
+
+TODO: How to retrieve the credentials
 
 ## License
 
