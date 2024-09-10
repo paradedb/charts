@@ -56,6 +56,7 @@ jobs:
           sed -i "s/^version: .*/version: ${{ vars.CHART_VERSION_MAJOR }}.${{ vars.CHART_VERSION_MINOR }}.${{ vars.CHART_VERSION_PATCH }}/" Chart.yaml
           echo "values.yaml:"
           cat values.yaml
+          echo "----------------------------------------"
           echo "Chart.yaml:"
           cat Chart.yaml
 

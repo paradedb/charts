@@ -5,11 +5,8 @@ fullnameOverride: ""
 
 ###
 # -- Type of the CNPG database. Available types:
-# * `postgresql`
-# * `postgis`
-# * `timescaledb`
 # * `paradedb`
-type: postgresql
+type: paradedb
 
 version:
   # -- PostgreSQL major version to use
