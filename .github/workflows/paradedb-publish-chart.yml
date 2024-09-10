@@ -1,11 +1,11 @@
-# workflows/publish-chart.yml
+# workflows/paradedb-publish-chart.yml
 #
 # ParadeDB Publish Chart
 # Publish the ParadeDB Helm chart to paradedb.github.io via GitHub Pages. This workflow also
 # triggers the creation of a GitHub Release. It only runs on pushes to `main` or when we trigger
-# a workflow_dispatch event, either manually or via creating a release in the `paradedb/paradedb` repository.
+# a workflow_dispatch event, either manually or via creating a release in `paradedb/paradedb`.
 
-name: ParadeDB Publish Helm Charts
+name: ParadeDB Publish Chart
 
 on:
   push:
@@ -44,9 +44,6 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GHA_CREATE_RELEASE_PAT }}
         run: |
-          # Increment the Helm Chart version patch number by one
-          NEW_CHART_VERSION_PATCH=$(( ${{ vars.CHART_VERSION_PATCH }} + 1 ))
-
           # If no appVersion is provided, we use the latest ParadeDB version
           if [ -z "${{ github.event.inputs.appVersion }}" ]; then
             LATEST_TAG=$(curl -s https://api.github.com/repos/paradedb/paradedb/tags | jq -r '.[0].name')
@@ -55,12 +52,15 @@ jobs:
             APP_VERSION=${{ github.event.inputs.appVersion }}
           fi
           # Update appVersion to the GitHub Release version and version to the Helm Chart version
-          sed -i "s/^appVersion: .*/appVersion: $APP_VERSION/" Chart.yaml
-          sed -i "s/^version: .*/version: ${{ vars.CHART_VERSION_MAJOR }}.${{ vars.CHART_VERSION_MINOR }}.${NEW_CHART_VERSION_PATCH}/" values.yaml
+          sed -i "s/^paradedb: .*/paradedb: $APP_VERSION/" values.yaml
+          sed -i "s/^version: .*/version: ${{ vars.CHART_VERSION_MAJOR }}.${{ vars.CHART_VERSION_MINOR }}.${{ vars.CHART_VERSION_PATCH }}/" Chart.yaml
+          echo "values.yaml:"
+          cat values.yaml
+          echo "Chart.yaml:"
           cat Chart.yaml
 
-          # Set output to update post-release
-          echo "new_chart_version_patch=${NEW_CHART_VERSION_PATCH}" >> $GITHUB_OUTPUT
+          # Set output to update post-release, increasing the Helm Chart version patch number by one to update in GitHub Actions Variables
+          echo "new_chart_version_patch=$(( ${{ vars.CHART_VERSION_PATCH }} + 1 ))" >> $GITHUB_OUTPUT
 
       # The GitHub repository secret `PARADEDB_PGP_PRIVATE_KEY` contains the private key
       # in ASCII-armored format. To export a (new) key, run this command:
@@ -78,9 +78,8 @@ jobs:
           echo "CR_KEYRING=/tmp/secring.gpg" >> "$GITHUB_ENV"
           echo "CR_PASSPHRASE_FILE=/tmp/passphrase.txt" >> "$GITHUB_ENV"
 
-      - name: Add chart dependencies
-        run: |
-          helm repo add cnpg-grafana-dashboard https://cloudnative-pg.github.io/grafana-dashboards
+      - name: Add Grafana Chart Dependencies
+        run: helm repo add cnpg-grafana-dashboard https://cloudnative-pg.github.io/grafana-dashboards
 
       - name: Run chart-releaser
         uses: helm/chart-releaser-action@v1.6.0
