@@ -6,7 +6,7 @@ fullnameOverride: ""
 ###
 # -- Type of the CNPG database. Available types:
 # * `paradedb`
-type: cluster
+type: postgresql
 
 version:
   # -- PostgreSQL major version to use
