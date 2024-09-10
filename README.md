@@ -59,8 +59,6 @@ paradedb/cluster
 
 Refer to the [CloudNativePG Cluster Chart documentation](charts/cluster/README.md) for advanced configuration options.
 
-TODO: How to retrieve the credentials
-
 ## License
 
 ParadeDB is licensed under the [GNU Affero General Public License v3.0](LICENSE) and as commercial software. For commercial licensing, please contact us at [sales@paradedb.com](mailto:sales@paradedb.com).
