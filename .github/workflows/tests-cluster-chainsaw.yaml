@@ -23,6 +23,10 @@ jobs:
           APP_VERSION=${LATEST_TAG#v}
           sed -i "s/^paradedb: .*/paradedb: $APP_VERSION/" values.yaml
           sed -i "s/^version: .*/version: ${{ vars.CHART_VERSION_MAJOR }}.${{ vars.CHART_VERSION_MINOR }}.${{ vars.CHART_VERSION_PATCH }}/" Chart.yaml
+          echo "values.yaml:"
+          cat values.yaml
+          echo "Chart.yaml:"
+          cat Chart.yaml
 
       - name: Setup kind
         uses: ./.github/actions/setup-kind
