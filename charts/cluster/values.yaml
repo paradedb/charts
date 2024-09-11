@@ -11,6 +11,11 @@ type: paradedb
 version:
   # -- PostgreSQL major version to use
   postgresql: "16"
+  # -- If using TimescaleDB, specify the version
+  timescaledb: "2.15"
+  # -- If using PostGIS, specify the version
+  postgis: "3.4"
+  # -- If using ParadeDB, specify the version
   # -- The ParadeDB version, set in the publish CI workflow from the latest paradedb/paradedb GitHub tag
   paradedb: "0.0.0"
 
@@ -126,7 +131,7 @@ cluster:
 
   # -- Name of the container image, supporting both tags (<image>:<tag>) and digests for deterministic and repeatable deployments:
   # <image>:<tag>@sha256:<digestValue>
-  imageName: ""  # Default value depends on type (paradedb)
+  imageName: ""  # Default value depends on type (postgresql/postgis/timescaledb)
 
   # -- Reference to `ImageCatalog` of `ClusterImageCatalog`, if specified takes precedence over `cluster.imageName`
   imageCatalogRef: {}
