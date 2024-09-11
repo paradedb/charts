@@ -6,7 +6,7 @@ fullnameOverride: ""
 ###
 # -- Type of the CNPG database. Available types:
 # * `paradedb`
-type: paradedb
+type: postgresql
 
 version:
   # -- PostgreSQL major version to use
@@ -16,6 +16,7 @@ version:
   # -- If using PostGIS, specify the version
   postgis: "3.4"
   # -- If using ParadeDB, specify the version
+  # -- The ParadeDB version, set in the publish CI workflow from the latest paradedb/paradedb GitHub tag
   paradedb: "0.0.0"
 
 ###

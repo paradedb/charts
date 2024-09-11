@@ -19,7 +19,7 @@ description: Deploys and manages a ParadeDB CloudNativePG cluster and its associ
 icon: https://raw.githubusercontent.com/paradedb/paradedb/main/docs/logo/light.svg
 type: application
 
-# The version of the chart, which gets set 
+# The Chart version, set in the publish CI workflow from GitHub Actions Variables
 version: 0.0.0
 
 sources:
