@@ -2,9 +2,9 @@
 {{- if not (has $alert .excludeRules) -}}
 alert: {{ $alert }}
 annotations:
-  summary: CNPG Instance maximum number of connections critical!
+  summary: ParadeDB Instance maximum number of connections critical!
   description: |-
-    CloudNativePG Cluster "{{ .namespace }}/{{ .cluster }}" instance {{ .labels.pod }} is using {{ .value }}% of
+    ParadeDB Cluster "{{ .namespace }}/{{ .cluster }}" instance {{ .labels.pod }} is using {{ .value }}% of
     the maximum number of connections.
   runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb-cluster/docs/runbooks/CNPGClusterHighConnectionsCritical.md
 expr: |
