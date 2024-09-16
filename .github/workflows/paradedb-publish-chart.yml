@@ -40,7 +40,7 @@ jobs:
 
       - name: Set Helm Chart Release Versions
         id: set_versions
-        working-directory: charts/cluster/
+        working-directory: charts/paradedb-cluster/
         env:
           GH_TOKEN: ${{ secrets.GHA_CREATE_RELEASE_PAT }}
         run: |

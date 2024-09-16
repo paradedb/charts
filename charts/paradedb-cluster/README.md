@@ -1,22 +1,18 @@
-# CloudNativePG Cluster
+# paradedb-cluster
 
-This README documents the Helm chart for deploying and managing [ParadeDB](https://github.com/paradedb/paradedb) on Kubernetes via [CloudNativePG](https://cloudnative-pg.io/), including advanced settings.
+![Version: 0.0.0](https://img.shields.io/badge/Version-0.0.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
 
-Kubernetes, and specifically the CloudNativePG operator, is the recommended approach for deploying ParadeDB in production. ParadeDB also provides a [Docker image](https://hub.docker.com/r/paradedb/paradedb) and [prebuilt binaries](https://github.com/paradedb/paradedb/releases) for Debian, Ubuntu and Red Hat Enterprise Linux.
+Deploys and manages a ParadeDB CloudNativePG cluster and its associated resources.
 
-## Getting Started
+**Homepage:** <https://paradedb.com>
 
-### Installing the Operator
+## Maintainers
 
-Skip this step if the CNPG operator is already installed in your cluster.
+| Name | Email | Url |
+| ---- | ------ | --- |
+| ParadeDB | <support@paradedb.com> |  |
 
-```console
-helm repo add cnpg https://cloudnative-pg.github.io/charts
-helm upgrade --install cnpg \
---namespace cnpg-system \
---create-namespace \
-cnpg/cloudnative-pg
-```
+## Source Code
 
 ### Setting up a ParadeDB CNPG Cluster
 
@@ -160,8 +156,8 @@ refer to the [CloudNativePG Documentation](https://cloudnative-pg.io/documentati
 | cluster.postgresUID | int | `-1` | The UID of the postgres user inside the image, defaults to 26 |
 | cluster.postgresql.parameters | object | `{}` | PostgreSQL configuration options (postgresql.conf) |
 | cluster.postgresql.pg_hba | list | `[]` | PostgreSQL Host Based Authentication rules (lines to be appended to the pg_hba.conf file) |
-| cluster.postgresql.pg_ident | list | `[]` | PostgreSQL User Name Maps rules (lines to be appended to the pg_ident.conf file) |
-| cluster.postgresql.shared_preload_libraries | list | `[]` | Lists of shared preload libraries to add to the default ones |
+| cluster.postgresql.pg_ident | list | `[]` |  |
+| cluster.postgresql.shared_preload_libraries | list | `[]` |  |
 | cluster.primaryUpdateMethod | string | `"switchover"` | Method to follow to upgrade the primary server during a rolling update procedure, after all replicas have been successfully updated. It can be switchover (default) or restart. |
 | cluster.primaryUpdateStrategy | string | `"unsupervised"` | Strategy to follow to upgrade the primary server during a rolling update procedure, after all replicas have been successfully updated: it can be automated (unsupervised - default) or manual (supervised) |
 | cluster.priorityClassName | string | `""` |  |
@@ -232,12 +228,9 @@ refer to the [CloudNativePG Documentation](https://cloudnative-pg.io/documentati
 | recovery.s3.secretKey | string | `""` |  |
 | recovery.secret.create | bool | `true` | Whether to create a secret for the backup credentials |
 | recovery.secret.name | string | `""` | Name of the backup credentials secret |
-| type | string | `"paradedb"` | Type of the CNPG database. Available types: `paradedb` |
-| version.paradedb | string | `"0.9.4"` | If using ParadeDB, specify the version |
+| type | string | `"paradedb"` | Type of the CNPG database. Available types: * `paradedb` |
+| version.paradedb | string | `"0.0.0"` | The ParadeDB version, set in the publish CI workflow from the latest paradedb/paradedb GitHub tag |
+| version.postgis | string | `"3.4"` | If using PostGIS, specify the version |
 | version.postgresql | string | `"16"` | PostgreSQL major version to use |
+| version.timescaledb | string | `"2.15"` | If using TimescaleDB, specify the version |
 
-## Maintainers
-
-| Name | Email | Url |
-| ---- | ------ | --- |
-| ParadeDB | <support@paradedb.com> | [paradedb.com](https://paradedb.com) |
