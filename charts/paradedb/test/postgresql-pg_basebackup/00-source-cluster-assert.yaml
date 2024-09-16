@@ -1,6 +1,6 @@
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
-  name: source-cluster
+  name: source-paradedb-cluster
 status:
   readyInstances: 1

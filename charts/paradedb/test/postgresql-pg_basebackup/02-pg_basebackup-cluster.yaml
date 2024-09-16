@@ -4,15 +4,15 @@ recovery:
   method: "pg_basebackup"
   pgBaseBackup:
     source:
-      host: "source-cluster-rw"
+      host: "source-paradedb-cluster-rw"
       database: "mygooddb"
       username: "streaming_replica"
       sslMode: "require"
       sslKeySecret:
-        name: source-cluster-replication
+        name: source-paradedb-cluster-replication
         key: tls.key
       sslCertSecret:
-        name: source-cluster-replication
+        name: source-paradedb-cluster-replication
         key: tls.crt
 
 cluster:

@@ -39,7 +39,7 @@ spec:
           - name: DB_URI
             valueFrom:
               secretKeyRef:
-                name: standalone-cluster-superuser
+                name: standalone-paradedb-cluster-superuser
                 key: uri
           - name: NAMESPACE
             valueFrom:

@@ -12,7 +12,7 @@ spec:
           - name: DB_URI
             valueFrom:
               secretKeyRef:
-                name: timescale-cluster-superuser
+                name: timescale-paradedb-cluster-superuser
                 key: uri
           - name: NAMESPACE
             valueFrom:
