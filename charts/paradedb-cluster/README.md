@@ -1,105 +1,20 @@
-# CloudNativePG Cluster
+# paradedb-cluster
 
-This README documents the Helm chart for deploying and managing [ParadeDB](https://github.com/paradedb/paradedb) on Kubernetes via [CloudNativePG](https://cloudnative-pg.io/), including advanced settings.
+![Version: 0.0.0](https://img.shields.io/badge/Version-0.0.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
 
-Kubernetes, and specifically the CloudNativePG operator, is the recommended approach for deploying ParadeDB in production. ParadeDB also provides a [Docker image](https://hub.docker.com/r/paradedb/paradedb) and [prebuilt binaries](https://github.com/paradedb/paradedb/releases) for Debian, Ubuntu and Red Hat Enterprise Linux.
+Deploys and manages a ParadeDB CloudNativePG cluster and its associated resources.
 
-## Getting Started
+**Homepage:** <https://paradedb.com>
 
-### Installing the Operator
+## Maintainers
 
-Skip this step if the CNPG operator is already installed in your cluster.
+| Name | Email | Url |
+| ---- | ------ | --- |
+| ParadeDB | <support@paradedb.com> |  |
 
-```console
-helm repo add cnpg https://cloudnative-pg.github.io/charts
-helm upgrade --install cnpg \
---namespace cnpg-system \
---create-namespace \
-cnpg/cloudnative-pg
-```
+## Source Code
 
-### Setting up a ParadeDB CNPG Cluster
-
-Create a `values.yaml` and configure it to your requirements. Here is a basic example:
-
-```yaml
-type: paradedb
-mode: standalone
-
-cluster:
-  instances: 2
-  storage:
-    size: 256Mi
-```
-
-You can refer to the other examples in the [`charts/cluster/examples`](https://github.com/paradedb/charts/tree/main/charts/cluster/examples) directory.
-
-```yaml
-
-```console
-helm repo add paradedb https://paradedb.github.io/charts
-helm upgrade --install paradedb \
---namespace paradedb-database \
---create-namespace \
---values values.yaml \
-paradedb/cluster
-```
-
-A more detailed guide can be found in the [Getting Started docs](<./docs/Getting Started.md>).
-
-Cluster Configuration
----------------------
-
-### Database types
-
-To use the ParadeDB Helm Chart, specify `paradedb` via the `type` parameter.
-
-### Modes of operation
-
-The chart has three modes of operation. These are configured via the `mode` parameter:
-
-* `standalone` - Creates new or updates an existing CNPG cluster. This is the default mode.
-* `replica` - Creates a replica cluster from an existing CNPG cluster. **_Note_ that this mode is not yet supported.**
-* `recovery` - Recovers a CNPG cluster from a backup, object store or via pg_basebackup.
-
-### Backup configuration
-
-CNPG implements disaster recovery via [Barman](https://pgbarman.org/). The following section configures the barman object
-store where backups will be stored. Barman performs backups of the cluster filesystem base backup and WALs. Both are
-stored in the specified location. The backup provider is configured via the `backups.provider` parameter. The following
-providers are supported:
-
-* S3 or S3-compatible stores, like MinIO
-* Microsoft Azure Blob Storage
-* Google Cloud Storage
-
-Additionally you can specify the following parameters:
-
-* `backups.retentionPolicy` - The retention policy for backups. Defaults to `30d`.
-* `backups.scheduledBackups` - An array of scheduled backups containing a name and a crontab schedule. Example:
-
-```yaml
-backups:
-  scheduledBackups:
-    - name: daily-backup
-      schedule: "0 0 0 * * *" # Daily at midnight
-      backupOwnerReference: self
-```
-
-Each backup adapter takes it's own set of parameters, listed in the [Configuration options](#Configuration-options) section
-below. Refer to the table for the full list of parameters and place the configuration under the appropriate key: `backup.s3`,
-`backup.azure`, or `backup.google`.
-
-Recovery
---------
-
-There is a separate document outlining the recovery procedure here: **[Recovery](docs/recovery.md)**
-
-Examples
---------
-
-There are several configuration examples in the [examples](examples) directory. Refer to them for a basic setup and
-refer to the [CloudNativePG Documentation](https://cloudnative-pg.io/documentation/current/) for more advanced configurations.
+* <https://github.com/paradedb/charts>
 
 ## Values
 
@@ -162,8 +77,8 @@ refer to the [CloudNativePG Documentation](https://cloudnative-pg.io/documentati
 | cluster.postgresUID | int | `-1` | The UID of the postgres user inside the image, defaults to 26 |
 | cluster.postgresql.parameters | object | `{}` | PostgreSQL configuration options (postgresql.conf) |
 | cluster.postgresql.pg_hba | list | `[]` | PostgreSQL Host Based Authentication rules (lines to be appended to the pg_hba.conf file) |
-| cluster.postgresql.pg_ident | list | `[]` | PostgreSQL User Name Maps rules (lines to be appended to the pg_ident.conf file) |
-| cluster.postgresql.shared_preload_libraries | list | `[]` | Lists of shared preload libraries to add to the default ones |
+| cluster.postgresql.pg_ident | list | `[]` |  |
+| cluster.postgresql.shared_preload_libraries | list | `[]` |  |
 | cluster.primaryUpdateMethod | string | `"switchover"` | Method to follow to upgrade the primary server during a rolling update procedure, after all replicas have been successfully updated. It can be switchover (default) or restart. |
 | cluster.primaryUpdateStrategy | string | `"unsupervised"` | Strategy to follow to upgrade the primary server during a rolling update procedure, after all replicas have been successfully updated: it can be automated (unsupervised - default) or manual (supervised) |
 | cluster.priorityClassName | string | `""` |  |
@@ -234,12 +149,9 @@ refer to the [CloudNativePG Documentation](https://cloudnative-pg.io/documentati
 | recovery.s3.secretKey | string | `""` |  |
 | recovery.secret.create | bool | `true` | Whether to create a secret for the backup credentials |
 | recovery.secret.name | string | `""` | Name of the backup credentials secret |
-| type | string | `"paradedb"` | Type of the CNPG database. Available types: `paradedb` |
-| version.paradedb | string | `"0.9.4"` | If using ParadeDB, specify the version |
+| type | string | `"paradedb"` | Type of the CNPG database. Available types: * `paradedb` |
+| version.paradedb | string | `"0.0.0"` | The ParadeDB version, set in the publish CI workflow from the latest paradedb/paradedb GitHub tag |
+| version.postgis | string | `"3.4"` | If using PostGIS, specify the version |
 | version.postgresql | string | `"16"` | PostgreSQL major version to use |
+| version.timescaledb | string | `"2.15"` | If using TimescaleDB, specify the version |
 
-## Maintainers
-
-| Name | Email | Url |
-| ---- | ------ | --- |
-| ParadeDB | <support@paradedb.com> | [paradedb.com](https://paradedb.com) |
