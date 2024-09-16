@@ -4,7 +4,7 @@ metadata:
   name: post-init-backup
 spec:
   cluster:
-    name: timescale-cluster
+    name: timescale-paradedb-cluster
   method: barmanObjectStore
 status:
   phase: completed

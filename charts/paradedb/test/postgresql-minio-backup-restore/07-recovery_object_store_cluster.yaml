@@ -8,7 +8,7 @@ cluster:
 
 recovery:
   method: object_store
-  clusterName: "standalone-cluster"
+  clusterName: "standalone-paradedb-cluster"
   provider: s3
   endpointURL: "https://minio.minio.svc.cluster.local"
   endpointCA:

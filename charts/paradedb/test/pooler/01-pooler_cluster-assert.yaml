@@ -1,17 +1,17 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: pooler-cluster-pooler-rw
+  name: pooler-paradedb-cluster-pooler-rw
 status:
   readyReplicas: 2
 ---
 apiVersion: postgresql.cnpg.io/v1
 kind: Pooler
 metadata:
-  name: pooler-cluster-pooler-rw
+  name: pooler-paradedb-cluster-pooler-rw
 spec:
   cluster:
-    name: pooler-cluster
+    name: pooler-paradedb-cluster
   instances: 2
   pgbouncer:
     poolMode: transaction
