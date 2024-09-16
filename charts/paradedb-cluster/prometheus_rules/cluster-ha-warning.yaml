@@ -2,9 +2,9 @@
 {{- if not (has $alert .excludeRules) -}}
 alert: {{ $alert }}
 annotations:
-  summary: CNPG Cluster less than 2 standby replicas.
+  summary: ParadeDB Cluster less than 2 standby replicas.
   description: |-
-    CloudNativePG Cluster "{{ .labels.job }}" has only {{ .value }} standby replicas, putting
+    ParadeDB Cluster "{{ .labels.job }}" has only {{ .value }} standby replicas, putting
     your cluster at risk if another instance fails. The cluster is still able to operate normally, although
     the `-ro` and `-r` endpoints operate at reduced capacity.
 
