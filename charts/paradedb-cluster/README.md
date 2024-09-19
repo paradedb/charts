@@ -55,7 +55,6 @@ To use the ParadeDB Helm Chart, specify `paradedb` via the `type` parameter.
 ### Modes of operation
 
 The chart has three modes of operation. These are configured via the `mode` parameter:
-
 * `standalone` - Creates new or updates an existing CNPG cluster. This is the default mode.
 * `replica` - Creates a replica cluster from an existing CNPG cluster. **_Note_ that this mode is not yet supported.**
 * `recovery` - Recovers a CNPG cluster from a backup, object store or via pg_basebackup.
@@ -72,10 +71,8 @@ providers are supported:
 * Google Cloud Storage
 
 Additionally you can specify the following parameters:
-
 * `backups.retentionPolicy` - The retention policy for backups. Defaults to `30d`.
 * `backups.scheduledBackups` - An array of scheduled backups containing a name and a crontab schedule. Example:
-
 ```yaml
 backups:
   scheduledBackups:
@@ -97,7 +94,7 @@ Examples
 --------
 
 There are several configuration examples in the [examples](examples) directory. Refer to them for a basic setup and
-refer to the [CloudNativePG Documentation](https://cloudnative-pg.io/documentation/current/) for more advanced configurations.
+refer to  the [CloudNativePG Documentation](https://cloudnative-pg.io/documentation/current/) for more advanced configurations.
 
 ## Values
 
@@ -160,8 +157,8 @@ refer to the [CloudNativePG Documentation](https://cloudnative-pg.io/documentati
 | cluster.postgresUID | int | `-1` | The UID of the postgres user inside the image, defaults to 26 |
 | cluster.postgresql.parameters | object | `{}` | PostgreSQL configuration options (postgresql.conf) |
 | cluster.postgresql.pg_hba | list | `[]` | PostgreSQL Host Based Authentication rules (lines to be appended to the pg_hba.conf file) |
-| cluster.postgresql.pg_ident | list | `[]` | PostgreSQL User Name Maps rules (lines to be appended to the pg_ident.conf file) |
-| cluster.postgresql.shared_preload_libraries | list | `[]` | Lists of shared preload libraries to add to the default ones |
+| cluster.postgresql.pg_ident | list | `[]` |  |
+| cluster.postgresql.shared_preload_libraries | list | `[]` |  |
 | cluster.primaryUpdateMethod | string | `"switchover"` | Method to follow to upgrade the primary server during a rolling update procedure, after all replicas have been successfully updated. It can be switchover (default) or restart. |
 | cluster.primaryUpdateStrategy | string | `"unsupervised"` | Strategy to follow to upgrade the primary server during a rolling update procedure, after all replicas have been successfully updated: it can be automated (unsupervised - default) or manual (supervised) |
 | cluster.priorityClassName | string | `""` |  |
@@ -232,12 +229,15 @@ refer to the [CloudNativePG Documentation](https://cloudnative-pg.io/documentati
 | recovery.s3.secretKey | string | `""` |  |
 | recovery.secret.create | bool | `true` | Whether to create a secret for the backup credentials |
 | recovery.secret.name | string | `""` | Name of the backup credentials secret |
-| type | string | `"paradedb"` | Type of the CNPG database. Available types: `paradedb` |
-| version.paradedb | string | `"0.9.4"` | If using ParadeDB, specify the version |
+| type | string | `"paradedb"` | Type of the CNPG database. Available types: * `paradedb` |
+| version.paradedb | string | `"0.0.0"` | The ParadeDB version, set in the publish CI workflow from the latest paradedb/paradedb GitHub tag |
+| version.postgis | string | `"3.4"` | If using PostGIS, specify the version |
 | version.postgresql | string | `"16"` | PostgreSQL major version to use |
+| version.timescaledb | string | `"2.15"` | If using TimescaleDB, specify the version |
 
 ## Maintainers
 
 | Name | Email | Url |
 | ---- | ------ | --- |
-| ParadeDB | <support@paradedb.com> | [paradedb.com](https://paradedb.com) |
+| ParadeDB | <support@paradedb.com> | <https://paradedb.com> |
+
