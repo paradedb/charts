@@ -20,6 +20,22 @@ cnpg/cloudnative-pg
 
 ### Setting up a ParadeDB CNPG Cluster
 
+Create a `values.yaml` and configure it to your requirements. Here is a basic example:
+
+```yaml
+type: paradedb
+mode: standalone
+
+cluster:
+  instances: 2
+  storage:
+    size: 256Mi
+```
+
+You can refer to the other examples in the [`charts/cluster/examples`](https://github.com/paradedb/charts/tree/main/charts/cluster/examples) directory.
+
+```yaml
+
 ```console
 helm repo add paradedb https://paradedb.github.io/charts
 helm upgrade --install paradedb \
