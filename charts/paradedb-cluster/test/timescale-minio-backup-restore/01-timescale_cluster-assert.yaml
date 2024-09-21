@@ -1,6 +1,6 @@
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
-  name: timescale-cluster
+  name: timescale-paradedb-cluster
 status:
   readyInstances: 2
