@@ -1,7 +1,5 @@
 type: paradedb
 mode: standalone
-version:
-  paradedb: 0.9.4
 
 cluster:
   instances: 2
@@ -21,7 +19,7 @@ backups:
     encryption: ""
   s3:
     bucket: "mybucket"
-    path: "/paradedb/v1"
+    path: "/paradedb-minio-backup-restore/v1"
     accessKey: "minio"
     secretKey: "minio123"
     region: "local"
