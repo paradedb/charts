@@ -25,11 +25,11 @@ spec:
               helm upgrade \
                 --install \
                 --namespace $NAMESPACE \
-                --values ./01-paradedb.yaml \
+                --values ./01-paradedb_cluster.yaml \
                 --wait \
                 paradedb ../../
         - assert:
-            file: ./01-paradedb-assert.yaml
+            file: ./01-paradedb_cluster-assert.yaml
       catch:
         - describe:
             apiVersion: postgresql.cnpg.io/v1
