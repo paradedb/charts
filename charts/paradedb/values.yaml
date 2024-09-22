@@ -11,7 +11,6 @@ type: paradedb
 version:
   # -- PostgreSQL major version to use
   postgresql: "16"
-  # -- If using ParadeDB, specify the version
   # -- The ParadeDB version, set in the publish CI workflow from the latest paradedb/paradedb GitHub tag
   # -- We default to v0.10.0 for testing and local development
   paradedb: "0.10.0"
