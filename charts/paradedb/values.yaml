@@ -17,7 +17,8 @@ version:
   postgis: "3.4"
   # -- If using ParadeDB, specify the version
   # -- The ParadeDB version, set in the publish CI workflow from the latest paradedb/paradedb GitHub tag
-  paradedb: "0.0.0"
+  # -- We default to v0.10.0 for testing and local development
+  paradedb: "0.10.0"
 
 ###
 # -- Cluster mode of operation. Available modes:

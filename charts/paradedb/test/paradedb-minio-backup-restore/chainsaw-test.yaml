@@ -1,5 +1,5 @@
 ##
-# This test sets up a ParadeDB cluster with MinIO backups and ensures that ParadeDB extensions are installed and
+# This test sets up a ParadeDB CNPG Cluster with MinIO backups and ensures that ParadeDB extensions are installed and
 # PITR recovery is enabled and working.
 apiVersion: chainsaw.kyverno.io/v1alpha1
 kind: Test
@@ -17,7 +17,7 @@ spec:
             file: ./00-minio_cleanup.yaml
         - assert:
             file: ./00-minio_cleanup-assert.yaml
-    - name: Install a standalone ParadeDB cluster
+    - name: Install a standalone ParadeDB CNPG Cluster
       try:
         - script:
             content: |

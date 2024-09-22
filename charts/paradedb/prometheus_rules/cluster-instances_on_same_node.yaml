@@ -2,9 +2,9 @@
 {{- if not (has $alert .excludeRules) -}}
 alert: {{ $alert }}
 annotations:
-  summary: ParadeDB Cluster instances are located on the same node.
+  summary: ParadeDB CNPG Cluster instances are located on the same node.
   description: |-
-    ParadeDB Cluster "{{ .namespace }}/{{ .cluster }}" has {{ .value }}
+    ParadeDB CNPG Cluster "{{ .namespace }}/{{ .cluster }}" has {{ .value }}
     instances on the same node {{ .labels.node }}.
 
     A failure or scheduled downtime of a single node will lead to a potential service disruption and/or data loss.
