@@ -2,9 +2,9 @@
 {{- if not (has $alert .excludeRules) -}}
 alert: {{ $alert }}
 annotations:
-  summary: ParadeDB Cluster has no standby replicas!
+  summary: ParadeDB CNPG Cluster has no standby replicas!
   description: |-
-    ParadeDB Cluster "{{ .labels.job }}" has no ready standby replicas. Your cluster at a severe
+    ParadeDB CNPG Cluster "{{ .labels.job }}" has no ready standby replicas. Your cluster at a severe
     risk of data loss and downtime if the primary instance fails.
 
     The primary instance is still online and able to serve queries, although connections to the `-ro` endpoint

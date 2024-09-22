@@ -60,7 +60,7 @@ cluster:
     size: 256Mi
 ```
 
-You can refer to the other examples in the [`charts/cluster/examples`](https://github.com/paradedb/charts/tree/main/charts/cluster/examples) directory.
+You can refer to the other examples in the [`charts/paradedb/examples`](https://github.com/paradedb/charts/tree/main/charts/paradedb/examples) directory.
 
 ```console
 helm repo add paradedb https://paradedb.github.io/charts

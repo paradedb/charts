@@ -32,7 +32,7 @@ cluster:
     size: 256Mi
 ```
 
-You can refer to the other examples in the [`charts/cluster/examples`](https://github.com/paradedb/charts/tree/main/charts/cluster/examples) directory.
+You can refer to the other examples in the [`charts/paradedb/examples`](https://github.com/paradedb/charts/tree/main/charts/paradedb/examples) directory.
 
 ```console
 helm repo add paradedb https://paradedb.github.io/charts
@@ -157,8 +157,8 @@ refer to  the [CloudNativePG Documentation](https://cloudnative-pg.io/documentat
 | cluster.postgresUID | int | `-1` | The UID of the postgres user inside the image, defaults to 26 |
 | cluster.postgresql.parameters | object | `{}` | PostgreSQL configuration options (postgresql.conf) |
 | cluster.postgresql.pg_hba | list | `[]` | PostgreSQL Host Based Authentication rules (lines to be appended to the pg_hba.conf file) |
-| cluster.postgresql.pg_ident | list | `[]` |  |
-| cluster.postgresql.shared_preload_libraries | list | `[]` |  |
+| cluster.postgresql.pg_ident | list | `[]` | PostgreSQL User Name Maps rules (lines to be appended to the pg_ident.conf file) |
+| cluster.postgresql.shared_preload_libraries | list | `[]` | Lists of shared preload libraries to add to the default ones |
 | cluster.primaryUpdateMethod | string | `"switchover"` | Method to follow to upgrade the primary server during a rolling update procedure, after all replicas have been successfully updated. It can be switchover (default) or restart. |
 | cluster.primaryUpdateStrategy | string | `"unsupervised"` | Strategy to follow to upgrade the primary server during a rolling update procedure, after all replicas have been successfully updated: it can be automated (unsupervised - default) or manual (supervised) |
 | cluster.priorityClassName | string | `""` |  |
@@ -230,7 +230,7 @@ refer to  the [CloudNativePG Documentation](https://cloudnative-pg.io/documentat
 | recovery.secret.create | bool | `true` | Whether to create a secret for the backup credentials |
 | recovery.secret.name | string | `""` | Name of the backup credentials secret |
 | type | string | `"paradedb"` | Type of the CNPG database. Available types: * `paradedb` |
-| version.paradedb | string | `"0.0.0"` | The ParadeDB version, set in the publish CI workflow from the latest paradedb/paradedb GitHub tag |
+| version.paradedb | string | `"0.10.0"` | The ParadeDB version, set in the publish CI workflow from the latest paradedb/paradedb GitHub tag |
 | version.postgis | string | `"3.4"` | If using PostGIS, specify the version |
 | version.postgresql | string | `"16"` | PostgreSQL major version to use |
 | version.timescaledb | string | `"2.15"` | If using TimescaleDB, specify the version |
