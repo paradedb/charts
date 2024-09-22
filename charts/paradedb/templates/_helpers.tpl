@@ -52,13 +52,6 @@ app.kubernetes.io/part-of: cloudnative-pg
 {{- end }}
 
 {{/*
-Whether we need to use TimescaleDB defaults
-*/}}
-{{- define "cluster.useTimescaleDBDefaults" -}}
-{{ and (eq .Values.type "timescaledb") .Values.imageCatalog.create (empty .Values.cluster.imageCatalogRef.name) (empty .Values.imageCatalog.images) (empty .Values.cluster.imageName) }}
-{{- end -}}
-
-{{/*
 Get the PostgreSQL major version from .Values.version.postgresql
 */}}
 {{- define "cluster.postgresqlMajor" -}}
@@ -74,8 +67,6 @@ If a custom imageName is available, use it, otherwise use the defaults based on 
         {{- .Values.cluster.imageName -}}
     {{- else if eq .Values.type "postgresql" -}}
         {{- printf "ghcr.io/cloudnative-pg/postgresql:%s" .Values.version.postgresql -}}
-    {{- else if eq .Values.type "postgis" -}}
-        {{- printf "ghcr.io/cloudnative-pg/postgis:%s-%s" .Values.version.postgresql .Values.version.postgis -}}
     {{- else if eq .Values.type "paradedb" -}}
         {{- printf "paradedb/paradedb:%s-v%s" .Values.version.postgresql .Values.version.paradedb -}}
     {{- else -}}
@@ -99,12 +90,6 @@ imageCatalogRef:
   kind: ImageCatalog
   name: {{ include "cluster.fullname" . }}
   major: {{ include "cluster.postgresqlMajor" . }}
-{{- else if eq (include "cluster.useTimescaleDBDefaults" .) "true" -}}
-imageCatalogRef:
-  apiGroup: postgresql.cnpg.io
-  kind: ImageCatalog
-  name: {{ include "cluster.fullname" . }}-timescaledb-ha
-  major: {{ include "cluster.postgresqlMajor" . }}
 {{- else }}
 imageName: {{ include "cluster.imageName" . }}
 {{- end }}
@@ -116,8 +101,6 @@ Postgres UID
 {{- define "cluster.postgresUID" -}}
   {{- if ge (int .Values.cluster.postgresUID) 0 -}}
     {{- .Values.cluster.postgresUID }}
-  {{- else if and (eq (include "cluster.useTimescaleDBDefaults" .) "true") (eq .Values.type "timescaledb") -}}
-    {{- 1000 -}}
   {{- else -}}
     {{- 26 -}}
   {{- end -}}
@@ -129,8 +112,6 @@ Postgres GID
 {{- define "cluster.postgresGID" -}}
   {{- if ge (int .Values.cluster.postgresGID) 0 -}}
     {{- .Values.cluster.postgresGID }}
-  {{- else if and (eq (include "cluster.useTimescaleDBDefaults" .) "true") (eq .Values.type "timescaledb") -}}
-    {{- 1000 -}}
   {{- else -}}
     {{- 26 -}}
   {{- end -}}
