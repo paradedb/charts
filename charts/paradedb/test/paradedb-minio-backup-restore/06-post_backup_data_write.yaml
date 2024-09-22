@@ -12,7 +12,7 @@ spec:
           - name: DB_URI
             valueFrom:
               secretKeyRef:
-                name: parade-paradedb-superuser
+                name: paradedb-cluster-superuser
                 key: uri
           - name: NAMESPACE
             valueFrom:
