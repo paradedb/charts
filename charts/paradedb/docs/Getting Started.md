@@ -30,7 +30,7 @@ via a GitOps solution or directly via Helm is up to you. The following sections 
 
 Currently the chart supports two database types. These are configured via the `type` parameter. These are:
 * `postgresql` - A standard PostgreSQL database.
-* `postgis` - A PostgreSQL database with the PostGIS extension installed.
+* `paradedb` - Postgres for Search and Analytics
 
 Depending on the type the chart will use a different Docker image and fill in some initial setup, like extension installation.
 

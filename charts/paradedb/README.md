@@ -231,9 +231,7 @@ refer to  the [CloudNativePG Documentation](https://cloudnative-pg.io/documentat
 | recovery.secret.name | string | `""` | Name of the backup credentials secret |
 | type | string | `"paradedb"` | Type of the CNPG database. Available types: * `paradedb` |
 | version.paradedb | string | `"0.10.0"` | The ParadeDB version, set in the publish CI workflow from the latest paradedb/paradedb GitHub tag |
-| version.postgis | string | `"3.4"` | If using PostGIS, specify the version |
 | version.postgresql | string | `"16"` | PostgreSQL major version to use |
-| version.timescaledb | string | `"2.15"` | If using TimescaleDB, specify the version |
 
 ## Maintainers
 

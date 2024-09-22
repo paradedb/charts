@@ -2,7 +2,7 @@ type: postgresql
 mode: standalone
 version:
   major: "16"
-  timescaledb: "2.15"
+  paradedb: "0.10.0"
 cluster:
   instances: 1
 backups:

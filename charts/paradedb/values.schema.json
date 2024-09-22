@@ -588,16 +588,10 @@
         "version": {
             "type": "object",
             "properties": {
-                "paradedb": {
-                    "type": "string"
-                },
-                "postgis": {
-                    "type": "string"
-                },
                 "postgresql": {
                     "type": "string"
                 },
-                "timescaledb": {
+                "paradedb": {
                     "type": "string"
                 }
             }

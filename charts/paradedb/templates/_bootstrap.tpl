@@ -11,14 +11,7 @@ bootstrap:
     owner: {{ tpl .Values.cluster.initdb.owner . }}
     {{- end }}
     postInitApplicationSQL:
-      {{- if eq .Values.type "postgis" }}
-      - CREATE EXTENSION IF NOT EXISTS postgis;
-      - CREATE EXTENSION IF NOT EXISTS postgis_topology;
-      - CREATE EXTENSION IF NOT EXISTS fuzzystrmatch;
-      - CREATE EXTENSION IF NOT EXISTS postgis_tiger_geocoder;
-      {{- else if eq .Values.type "timescaledb" }}
-      - CREATE EXTENSION IF NOT EXISTS timescaledb;
-      {{- else if eq .Values.type "paradedb" }}
+      {{- if eq .Values.type "paradedb" }}
       - CREATE EXTENSION IF NOT EXISTS pg_search;
       - CREATE EXTENSION IF NOT EXISTS pg_analytics;
       - CREATE EXTENSION IF NOT EXISTS pg_ivm;

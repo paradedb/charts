@@ -53,9 +53,7 @@ spec:
   {{ end }}
   postgresql:
     shared_preload_libraries:
-      {{- if eq .Values.type "timescaledb" }}
-      - timescaledb
-      {{- else if eq .Values.type "paradedb" }}
+      {{- if eq .Values.type "paradedb" }}
       - pg_search
       - pg_analytics
       - pg_cron
