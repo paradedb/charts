@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: paradedb-write
+  name: data-write
 spec:
   template:
     spec:
@@ -12,7 +12,7 @@ spec:
           - name: DB_URI
             valueFrom:
               secretKeyRef:
-                name: paradedb-paradedb-app
+                name: standalone-paradedb-superuser
                 key: uri
         image: alpine:3.19
         command: ['sh', '-c']
