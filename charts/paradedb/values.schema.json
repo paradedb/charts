@@ -588,10 +588,10 @@
         "version": {
             "type": "object",
             "properties": {
-                "paradedb": {
+                "postgresql": {
                     "type": "string"
                 },
-                "postgresql": {
+                "paradedb": {
                     "type": "string"
                 }
             }
