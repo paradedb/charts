@@ -12,7 +12,7 @@ spec:
           - name: DB_URI
             valueFrom:
               secretKeyRef:
-                name: paradedb
+                name: paradedb-paradedb1
                 key: uri
         image: alpine:3.19
         command: ['sh', '-c']
