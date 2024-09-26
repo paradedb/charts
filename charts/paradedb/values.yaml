@@ -90,7 +90,7 @@ recovery:
   # See https://cloudnative-pg.io/documentation/1.22/bootstrap/#bootstrap-from-a-live-cluster-pg_basebackup
   pgBaseBackup:
     # -- Name of the database used by the application. Default: `paradedb`.
-    database: paradedb1
+    database: paradedb
     # -- Name of the owner of the database in the instance to be used by applications. Defaults to the value of the `database` key.
     secret: ""
     # -- Name of the secret containing the initial credentials for the owner of the user database. If empty a new secret will be created from scratch
@@ -99,7 +99,7 @@ recovery:
       host: ""
       port: 5432
       username: ""
-      database: "paradedb1"
+      database: "paradedb"
       sslMode: "verify-full"
       passwordSecret:
         # -- Whether to create a secret for the password
