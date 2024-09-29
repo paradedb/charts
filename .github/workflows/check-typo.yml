@@ -29,4 +29,3 @@ jobs:
         with:
           check_filenames: true
           ignore_words_file: .codespellignore
-
