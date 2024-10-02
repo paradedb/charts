@@ -77,6 +77,20 @@ If `--values values.yaml` is omitted, the default values will be used. For addit
 
 A more detailed guide on launching the cluster can be found in the [Getting Started docs](<./charts/paradedb/docs/Getting Started.md>). To get started with ParadeDB, we suggest you follow the [quickstart guide](/documentation/getting-started/quickstart).
 
+### Connecting to a ParadeDB CNPG Cluster
+
+The command to connect to the primary instance of the cluster will be printed in your terminal. If you do not modify any settings, it will be:
+
+```bash
+kubectl --namespace paradedb-database exec --stdin --tty services/paradedb-rw -- bash
+```
+
+This will launch a shell inside the instance. You can connect via `psql` with:
+
+```bash
+psql -d paradedb
+```
+
 ## License
 
 ParadeDB is licensed under the [GNU Affero General Public License v3.0](LICENSE) and as commercial software. For commercial licensing, please contact us at [sales@paradedb.com](mailto:sales@paradedb.com).
