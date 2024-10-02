@@ -230,7 +230,7 @@ refer to  the [CloudNativePG Documentation](https://cloudnative-pg.io/documentat
 | recovery.secret.create | bool | `true` | Whether to create a secret for the backup credentials |
 | recovery.secret.name | string | `""` | Name of the backup credentials secret |
 | type | string | `"paradedb"` | Type of the CNPG database. Available types: * `paradedb` |
-| version.paradedb | string | `"0.10.3"` | We default to v0.10.0 for testing and local development |
+| version.paradedb | string | `"0.10.3"` | We default to v0.10.3 for testing and local development |
 | version.postgresql | string | `"16"` | PostgreSQL major version to use |
 
 ## Maintainers
