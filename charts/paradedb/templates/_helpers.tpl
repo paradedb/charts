@@ -101,6 +101,8 @@ Postgres UID
 {{- define "cluster.postgresUID" -}}
   {{- if ge (int .Values.cluster.postgresUID) 0 -}}
     {{- .Values.cluster.postgresUID }}
+  {{- else if eq .Values.type "paradedb" -}}
+    {{- 999 -}}
   {{- else -}}
     {{- 26 -}}
   {{- end -}}
