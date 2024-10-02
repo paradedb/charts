@@ -47,7 +47,7 @@ helm upgrade --install paradedb \
 paradedb/paradedb
 ```
 
-If `--values values.yaml` is omitted, the default values will be used. For additional configuration options for the `values.yaml` file, please refer to the [ParadeDB Helm Chart documentation](https://artifacthub.io/packages/helm/paradedb/paradedb#values). For advanced cluster configration options, please refer to the [CloudNativePG Cluster Chart documentation](charts/paradedb/README.md).
+If `--values values.yaml` is omitted, the default values will be used. For additional configuration options for the `values.yaml` file, please refer to the [ParadeDB Helm Chart documentation](https://artifacthub.io/packages/helm/paradedb/paradedb#values). For advanced cluster configuration options, please refer to the [CloudNativePG Cluster Chart documentation](charts/paradedb/README.md).
 
 A more detailed guide on launching the cluster can be found in the [Getting Started docs](<./docs/Getting Started.md>). To get started with ParadeDB, we suggest you follow the [quickstart guide](/documentation/getting-started/quickstart).
 
