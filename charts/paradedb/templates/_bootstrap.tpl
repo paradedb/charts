@@ -18,7 +18,6 @@ bootstrap:
       - CREATE EXTENSION IF NOT EXISTS vector;
       - CREATE EXTENSION IF NOT EXISTS postgis;
       - CREATE EXTENSION IF NOT EXISTS postgis_topology;
-      - \c
       - CREATE EXTENSION IF NOT EXISTS fuzzystrmatch;
       - CREATE EXTENSION IF NOT EXISTS postgis_tiger_geocoder;
       - ALTER DATABASE "{{ default "paradedb" .Values.cluster.initdb.database }}" SET search_path TO public,paradedb;
