@@ -2,6 +2,9 @@
 {{- if eq .Values.mode "standalone" }}
 bootstrap:
   initdb:
+    {{- if eq .Values.type "paradedb" }}
+    - CREATE EXTENSION IF NOT EXISTS pg_cron;
+    {{- end }}
     {{- with .Values.cluster.initdb }}
         {{- with (omit . "postInitApplicationSQL" "postInitTemplateSQL" "owner") }}
             {{- . | toYaml | nindent 4 }}
@@ -16,6 +19,15 @@ bootstrap:
       - CREATE EXTENSION IF NOT EXISTS pg_analytics;
       - CREATE EXTENSION IF NOT EXISTS pg_ivm;
       - CREATE EXTENSION IF NOT EXISTS vector;
+      - CREATE EXTENSION IF NOT EXISTS postgis;
+      - CREATE EXTENSION IF NOT EXISTS postgis_topology;
+      {{/*
+      Reconnect to update pg_setting.resetval
+      See https://github.com/postgis/docker-postgis/issues/288
+      */}}
+      - \c
+      - CREATE EXTENSION IF NOT EXISTS fuzzystrmatch;
+      - CREATE EXTENSION IF NOT EXISTS postgis_tiger_geocoder;
       - ALTER DATABASE "{{ default "paradedb" .Values.cluster.initdb.database }}" SET search_path TO public,paradedb;
       {{- end }}
       {{- with .Values.cluster.initdb }}
