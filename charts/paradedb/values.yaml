@@ -260,6 +260,7 @@ cluster:
     # options: []
     # encoding: UTF8
     # postInitSQL:
+    #   - CREATE EXTENSION IF NOT EXISTS vector;
     # postInitApplicationSQL: []
     # postInitTemplateSQL: []
 
