@@ -3,17 +3,22 @@
 bootstrap:
   initdb:
     {{- with .Values.cluster.initdb }}
-        {{- with (omit . "postInitApplicationSQL" "postInitTemplateSQL" "owner") }}
+        {{- with (omit . "postInitSQL" "postInitApplicationSQL" "postInitTemplateSQL" "owner") }}
             {{- . | toYaml | nindent 4 }}
         {{- end }}
     {{- end }}
     {{- if .Values.cluster.initdb.owner }}
     owner: {{ tpl .Values.cluster.initdb.owner . }}
     {{- end }}
-    {{- if eq .Values.type "paradedb" }}
     postInitSQL:
+      {{- if eq .Values.type "paradedb" }}
       - CREATE EXTENSION IF NOT EXISTS pg_cron;
-    {{- end }}
+      {{- end }}
+      {{- with .Values.cluster.initdb }}
+        {{- range .postInitSQL }}
+          {{- printf "- %s" . | nindent 6 }}
+        {{- end -}}
+      {{- end }}
     postInitApplicationSQL:
       {{- if eq .Values.type "paradedb" }}
       - CREATE EXTENSION IF NOT EXISTS pg_search;

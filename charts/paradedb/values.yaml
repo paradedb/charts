@@ -237,7 +237,9 @@ cluster:
 
   postgresql:
     # -- PostgreSQL configuration options (postgresql.conf)
-    parameters: {}
+    parameters:
+      # Required by pg_cron
+      cron.database_name: postgres
       # max_connections: 300
     # -- PostgreSQL Host Based Authentication rules (lines to be appended to the pg_hba.conf file)
     pg_hba: []
@@ -248,8 +250,6 @@ cluster:
     # -- Lists of shared preload libraries to add to the default ones
     shared_preload_libraries: []
       # - pgaudit
-    # Required by pg_cron
-    cron.database_name: postgres
 
   # -- BootstrapInitDB is the configuration of the bootstrap process when initdb is used.
   # See: https://cloudnative-pg.io/documentation/current/bootstrap/
@@ -261,7 +261,7 @@ cluster:
     #   name: "" # Name of the secret containing the initial credentials for the owner of the user database. If empty a new secret will be created from scratch
     # options: []
     # encoding: UTF8
-    # postInitSQL:
+    # postInitSQL: []
     # postInitApplicationSQL: []
     # postInitTemplateSQL: []
 
