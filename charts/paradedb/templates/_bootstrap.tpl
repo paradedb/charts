@@ -2,6 +2,9 @@
 {{- if eq .Values.mode "standalone" }}
 bootstrap:
   initdb:
+    {{- if eq .Values.type "paradedb" }}
+    - CREATE EXTENSION IF NOT EXISTS pg_cron;
+    {{- end }}
     {{- with .Values.cluster.initdb }}
         {{- with (omit . "postInitApplicationSQL" "postInitTemplateSQL" "owner") }}
             {{- . | toYaml | nindent 4 }}
