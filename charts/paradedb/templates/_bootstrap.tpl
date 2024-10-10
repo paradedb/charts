@@ -2,9 +2,6 @@
 {{- if eq .Values.mode "standalone" }}
 bootstrap:
   initdb:
-    {{- if eq .Values.type "paradedb" }}
-    - CREATE EXTENSION IF NOT EXISTS pg_cron;
-    {{- end }}
     {{- with .Values.cluster.initdb }}
         {{- with (omit . "postInitApplicationSQL" "postInitTemplateSQL" "owner") }}
             {{- . | toYaml | nindent 4 }}
@@ -12,6 +9,10 @@ bootstrap:
     {{- end }}
     {{- if .Values.cluster.initdb.owner }}
     owner: {{ tpl .Values.cluster.initdb.owner . }}
+    {{- end }}
+    {{- if eq .Values.type "paradedb" }}
+    postInitSQL:
+      - CREATE EXTENSION IF NOT EXISTS pg_cron;
     {{- end }}
     postInitApplicationSQL:
       {{- if eq .Values.type "paradedb" }}
