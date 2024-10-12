@@ -93,10 +93,10 @@ psql -d paradedb
 
 ## Development
 
-To test changes to the Chart on a local Minikube cluster, follow the instructions from [Getting Started](#getting-started), replacing the `helm upgrade` step by the path to the modified `Chart.yaml`.
+To test changes to the Chart on a local Minikube cluster, follow the instructions from [Getting Started](#getting-started), replacing the `helm upgrade` step by the path to the directory of the modified `Chart.yaml`.
 
 ```bash
-helm upgrade --install paradedb --namespace paradedb-database --create-namespace charts/paradedb/Chart.yaml
+helm upgrade --install paradedb --namespace paradedb-database --create-namespace ./charts/paradedb
 ```
 
 ## License
