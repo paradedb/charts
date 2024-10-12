@@ -34,11 +34,8 @@ jobs:
       - name: Set up Helm
         uses: azure/setup-helm@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-
       - name: Start LocalStack
-        uses: LocalStack/setup-localstack@v0.2.2
+        uses: LocalStack/setup-localstack@v0.2.3
         with:
           image-tag: "latest"
           install-awslocal: "true"
