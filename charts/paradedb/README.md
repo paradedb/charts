@@ -65,6 +65,14 @@ This will launch a shell inside the instance. You can connect via `psql` with:
 psql -d paradedb
 ```
 
+## Development
+
+To test changes to the Chart on a local Minikube cluster, follow the instructions from [Getting Started](#getting-started), replacing the `helm upgrade` step by the path to the modified `Chart.yaml`.
+
+```bash
+helm upgrade --install paradedb --namespace paradedb-database --create-namespace charts/paradedb/Chart.yaml
+```
+
 Cluster Configuration
 ---------------------
 
@@ -258,3 +266,7 @@ refer to  the [CloudNativePG Documentation](https://cloudnative-pg.io/documentat
 | Name | Email | Url |
 | ---- | ------ | --- |
 | ParadeDB | <support@paradedb.com> | <https://paradedb.com> |
+
+## License
+
+ParadeDB is licensed under the [GNU Affero General Public License v3.0](LICENSE) and as commercial software. For commercial licensing, please contact us at [sales@paradedb.com](mailto:sales@paradedb.com).
