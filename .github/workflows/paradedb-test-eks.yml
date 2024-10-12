@@ -36,11 +36,9 @@ jobs:
 
       - name: Install LocalStack CLI
         run: |
-          python -m venv localstack_venv
-          source localstack_venv/bin/activate
-          python -m pip install --upgrade pip
+          python -m pip install --upgrade pip --break-system-packages
           pip install localstack awscli-local[ver1]
-    
+
       - name: Start LocalStack
         uses: LocalStack/setup-localstack@v0.2.3
         with:
@@ -50,7 +48,6 @@ jobs:
           use-pro: "true"
         env:
           LOCALSTACK_AUTH_TOKEN: ${{ secrets.LOCALSTACK_AUTH_TOKEN }}
-          PATH: ${{ github.workspace }}/localstack_venv/bin:${{ env.PATH }}
 
       - name: Configure AWS CLI for LocalStack
         run: |
