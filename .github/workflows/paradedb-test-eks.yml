@@ -37,7 +37,7 @@ jobs:
       - name: Install LocalStack CLI
         run: |
           python -m pip install --upgrade pip --break-system-packages
-          pip install localstack awscli-local[ver1]
+          pip install localstack awscli-local[ver1] --break-system-packages
 
       - name: Start LocalStack
         uses: LocalStack/setup-localstack@v0.2.3
