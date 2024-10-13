@@ -42,6 +42,10 @@ bootstrap:
       - CREATE EXTENSION IF NOT EXISTS pg_analytics;
       - CREATE EXTENSION IF NOT EXISTS pg_ivm;
       - CREATE EXTENSION IF NOT EXISTS vector;
+      - CREATE EXTENSION IF NOT EXISTS postgis;
+      - CREATE EXTENSION IF NOT EXISTS postgis_topology;
+      - CREATE EXTENSION IF NOT EXISTS fuzzystrmatch;
+      - CREATE EXTENSION IF NOT EXISTS postgis_tiger_geocoder;
       - ALTER DATABASE template1 SET search_path TO public,paradedb;
       {{- end }}
       {{- with .Values.cluster.initdb }}
