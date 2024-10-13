@@ -3,19 +3,32 @@
 bootstrap:
   initdb:
     {{- with .Values.cluster.initdb }}
-        {{- with (omit . "postInitApplicationSQL" "postInitTemplateSQL" "owner") }}
+        {{- with (omit . "postInitSQL" "postInitApplicationSQL" "postInitTemplateSQL" "owner") }}
             {{- . | toYaml | nindent 4 }}
         {{- end }}
     {{- end }}
     {{- if .Values.cluster.initdb.owner }}
     owner: {{ tpl .Values.cluster.initdb.owner . }}
     {{- end }}
+    postInitSQL:
+      {{- if eq .Values.type "paradedb" }}
+      - CREATE EXTENSION IF NOT EXISTS pg_cron;
+      {{- end }}
+      {{- with .Values.cluster.initdb }}
+        {{- range .postInitSQL }}
+          {{- printf "- %s" . | nindent 6 }}
+        {{- end -}}
+      {{- end }}
     postInitApplicationSQL:
       {{- if eq .Values.type "paradedb" }}
       - CREATE EXTENSION IF NOT EXISTS pg_search;
       - CREATE EXTENSION IF NOT EXISTS pg_analytics;
       - CREATE EXTENSION IF NOT EXISTS pg_ivm;
       - CREATE EXTENSION IF NOT EXISTS vector;
+      - CREATE EXTENSION IF NOT EXISTS postgis;
+      - CREATE EXTENSION IF NOT EXISTS postgis_topology;
+      - CREATE EXTENSION IF NOT EXISTS fuzzystrmatch;
+      - CREATE EXTENSION IF NOT EXISTS postgis_tiger_geocoder;
       - ALTER DATABASE "{{ default "paradedb" .Values.cluster.initdb.database }}" SET search_path TO public,paradedb;
       {{- end }}
       {{- with .Values.cluster.initdb }}
@@ -29,6 +42,10 @@ bootstrap:
       - CREATE EXTENSION IF NOT EXISTS pg_analytics;
       - CREATE EXTENSION IF NOT EXISTS pg_ivm;
       - CREATE EXTENSION IF NOT EXISTS vector;
+      - CREATE EXTENSION IF NOT EXISTS postgis;
+      - CREATE EXTENSION IF NOT EXISTS postgis_topology;
+      - CREATE EXTENSION IF NOT EXISTS fuzzystrmatch;
+      - CREATE EXTENSION IF NOT EXISTS postgis_tiger_geocoder;
       - ALTER DATABASE template1 SET search_path TO public,paradedb;
       {{- end }}
       {{- with .Values.cluster.initdb }}
