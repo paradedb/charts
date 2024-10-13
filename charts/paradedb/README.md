@@ -10,15 +10,34 @@ The chart is also available on [ArtifactHub](https://artifacthub.io/packages/hel
 
 First, install [Helm](https://helm.sh/docs/intro/install/). The following steps assume you have a Kubernetes cluster running v1.25+. If you are testing locally, we recommend using [Minikube](https://minikube.sigs.k8s.io/docs/start/).
 
+### Installing the Prometheus Stack
+
+The ParadeDB Helm chart supports monitoring via Prometheus and Grafana. This is enabled by default, so you need to have the Prometheus CRDs installed before installing the CNPG operator.
+
+If you do not wish to monitor your ParadeDB Kubernetes cluster, skip this step, but make sure to omit the `monitoring` parameters when installing the operator and set `cluster.monitoring.enabled: false` when installing the cluster.
+
+If you do not yet have the Prometheus installed on your Kubernetes cluster, you can install it with:
+
+```bash
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm upgrade --install prometheus-community \
+--namespace prometheus-community \
+--create-namespace \
+--values https://raw.githubusercontent.com/cloudnative-pg/cloudnative-pg/main/docs/src/samples/monitoring/kube-stack-config.yaml \
+prometheus-community/kube-prometheus-stack
+```
+
 ### Installing the CloudNativePG Operator
 
 Skip this step if the CNPG operator is already installed in your cluster.
 
-```console
+```bash
 helm repo add cnpg https://cloudnative-pg.github.io/charts
 helm upgrade --install cnpg \
 --namespace cnpg-system \
 --create-namespace \
+--set monitoring.podMonitorEnabled=true \
+--set monitoring.grafanaDashboard.create=true \
 cnpg/cloudnative-pg
 ```
 
@@ -31,7 +50,7 @@ type: paradedb
 mode: standalone
 
 cluster:
-  instances: 2
+  instances: 3
   storage:
     size: 256Mi
 ```
@@ -41,13 +60,13 @@ Then, launch the ParadeDB cluster.
 ```bash
 helm repo add paradedb https://paradedb.github.io/charts
 helm upgrade --install paradedb \
---namespace paradedb-database \
+--namespace paradedb \
 --create-namespace \
 --values values.yaml \
 paradedb/paradedb
 ```
 
-If `--values values.yaml` is omitted, the default values will be used. For additional configuration options for the `values.yaml` file, please refer to the [ParadeDB Helm Chart documentation](https://artifacthub.io/packages/helm/paradedb/paradedb#values). For advanced cluster configuration options, please refer to the [CloudNativePG Cluster Chart documentation](charts/paradedb/README.md).
+If `--values values.yaml` is omitted, the default values will be used. For additional configuration options for the `values.yaml` file, including configuring backups and PgBouncer, please refer to the [ParadeDB Helm Chart documentation](https://artifacthub.io/packages/helm/paradedb/paradedb#values). For advanced cluster configuration options, please refer to the [CloudNativePG Cluster Chart documentation](charts/paradedb/README.md).
 
 A more detailed guide on launching the cluster can be found in the [Getting Started docs](<./docs/Getting Started.md>). To get started with ParadeDB, we suggest you follow the [quickstart guide](/documentation/getting-started/quickstart).
 
@@ -56,7 +75,7 @@ A more detailed guide on launching the cluster can be found in the [Getting Star
 The command to connect to the primary instance of the cluster will be printed in your terminal. If you do not modify any settings, it will be:
 
 ```bash
-kubectl --namespace paradedb-database exec --stdin --tty services/paradedb-rw -- bash
+kubectl --namespace paradedb exec --stdin --tty services/paradedb-rw -- bash
 ```
 
 This will launch a shell inside the instance. You can connect via `psql` with:
@@ -65,16 +84,26 @@ This will launch a shell inside the instance. You can connect via `psql` with:
 psql -d paradedb
 ```
 
+### Connecting to the Grafana Dashboard
+
+To connect to the Grafana dashboard for your cluster, we suggested port forwarding the Kubernetes service running Grafana to localhost:
+
+```bash
+kubectl --namespace prometheus-community port-forward svc/prometheus-community-grafana 3000:80
+```
+
+You can the naccess the Grafana dasbhoard at [http://localhost:3000/](http://localhost:3000/) using the credentials `admin` as username and `prom-operator` as password. These default credentials are
+defined in the [`kube-stack-config.yaml`](https://raw.githubusercontent.com/cloudnative-pg/cloudnative-pg/main/docs/src/samples/monitoring/kube-stack-config.yaml) file used as the `values.yaml` file in [Installing the Prometheus CRDs](#installing-the-prometheus-crds) and can be modified by providing your own `values.yaml` file.
+
 ## Development
 
 To test changes to the Chart on a local Minikube cluster, follow the instructions from [Getting Started](#getting-started), replacing the `helm upgrade` step by the path to the directory of the modified `Chart.yaml`.
 
 ```bash
-helm upgrade --install paradedb --namespace paradedb-database --create-namespace ./charts/paradedb
+helm upgrade --install paradedb --namespace paradedb --create-namespace ./charts/paradedb
 ```
 
-Cluster Configuration
----------------------
+## Cluster Configuration
 
 ### Database types
 
@@ -83,6 +112,7 @@ To use the ParadeDB Helm Chart, specify `paradedb` via the `type` parameter.
 ### Modes of operation
 
 The chart has three modes of operation. These are configured via the `mode` parameter:
+
 * `standalone` - Creates new or updates an existing CNPG cluster. This is the default mode.
 * `replica` - Creates a replica cluster from an existing CNPG cluster. **_Note_ that this mode is not yet supported.**
 * `recovery` - Recovers a CNPG cluster from a backup, object store or via pg_basebackup.
@@ -99,8 +129,10 @@ providers are supported:
 * Google Cloud Storage
 
 Additionally you can specify the following parameters:
+
 * `backups.retentionPolicy` - The retention policy for backups. Defaults to `30d`.
 * `backups.scheduledBackups` - An array of scheduled backups containing a name and a crontab schedule. Example:
+
 ```yaml
 backups:
   scheduledBackups:
@@ -113,13 +145,11 @@ Each backup adapter takes it's own set of parameters, listed in the [Configurati
 below. Refer to the table for the full list of parameters and place the configuration under the appropriate key: `backup.s3`,
 `backup.azure`, or `backup.google`.
 
-Recovery
---------
+## Recovery
 
 There is a separate document outlining the recovery procedure here: **[Recovery](docs/recovery.md)**
 
-Examples
---------
+## Examples
 
 There are several configuration examples in the [examples](examples) directory. Refer to them for a basic setup and
 refer to  the [CloudNativePG Documentation](https://cloudnative-pg.io/documentation/current/) for more advanced configurations.
@@ -177,13 +207,13 @@ refer to  the [CloudNativePG Documentation](https://cloudnative-pg.io/documentat
 | cluster.instances | int | `3` | Number of instances |
 | cluster.logLevel | string | `"info"` | The instances' log level, one of the following values: error, warning, info (default), debug, trace |
 | cluster.monitoring.customQueries | list | `[]` | Custom Prometheus metrics |
-| cluster.monitoring.enabled | bool | `false` | Whether to enable monitoring |
+| cluster.monitoring.enabled | bool | `true` | Whether to enable monitoring |
 | cluster.monitoring.podMonitor.enabled | bool | `true` | Whether to enable the PodMonitor |
 | cluster.monitoring.prometheusRule.enabled | bool | `true` | Whether to enable the PrometheusRule automated alerts |
 | cluster.monitoring.prometheusRule.excludeRules | list | `[]` | Exclude specified rules |
 | cluster.postgresGID | int | `-1` | The GID of the postgres user inside the image, defaults to 26 |
 | cluster.postgresUID | int | `-1` | The UID of the postgres user inside the image, defaults to 26 |
-| cluster.postgresql.parameters | object | `{}` | PostgreSQL configuration options (postgresql.conf) |
+| cluster.postgresql.parameters | object | `{"cron.database_name":"postgres"}` | PostgreSQL configuration options (postgresql.conf) |
 | cluster.postgresql.pg_hba | list | `[]` | PostgreSQL Host Based Authentication rules (lines to be appended to the pg_hba.conf file) |
 | cluster.postgresql.pg_ident | list | `[]` | PostgreSQL User Name Maps rules (lines to be appended to the pg_ident.conf file) |
 | cluster.postgresql.shared_preload_libraries | list | `[]` | Lists of shared preload libraries to add to the default ones |
@@ -205,7 +235,7 @@ refer to  the [CloudNativePG Documentation](https://cloudnative-pg.io/documentat
 | nameOverride | string | `""` | Override the name of the chart |
 | pooler.enabled | bool | `false` | Whether to enable PgBouncer |
 | pooler.instances | int | `3` | Number of PgBouncer instances |
-| pooler.monitoring.enabled | bool | `false` | Whether to enable monitoring |
+| pooler.monitoring.enabled | bool | `true` | Whether to enable monitoring |
 | pooler.monitoring.podMonitor.enabled | bool | `true` | Whether to enable the PodMonitor |
 | pooler.parameters | object | `{"default_pool_size":"25","max_client_conn":"1000"}` | PgBouncer configuration parameters |
 | pooler.poolMode | string | `"transaction"` | PgBouncer pooling mode |
