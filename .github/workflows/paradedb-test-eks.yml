@@ -21,7 +21,7 @@ concurrency:
 jobs:
   paradedb-test-eks:
     name: Test ParadeDB Helm Chart on AWS EKS via LocalStack
-    runs-on: depot-ubuntu-latest-4
+    runs-on: depot-ubuntu-22.04-4 # The LocalStack GitHub Action is not compatible with Ubuntu 24.04 as of writing
     if: github.event.pull_request.draft == false
 
     steps:
