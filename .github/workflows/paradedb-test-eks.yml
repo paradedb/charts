@@ -114,5 +114,8 @@ jobs:
         working-directory: charts/paradedb/
         run: helm upgrade paradedb . --namespace paradedb --reuse-values --wait --debug
 
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+
       - name: Test PostgreSQL Connection
         run: helm test paradedb --namespace paradedb
