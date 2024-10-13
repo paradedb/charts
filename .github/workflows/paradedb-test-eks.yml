@@ -21,7 +21,7 @@ concurrency:
 jobs:
   paradedb-test-eks:
     name: Test ParadeDB Helm Chart on AWS EKS via LocalStack
-    runs-on: depot-ubuntu-24.04-4
+    runs-on: ubuntu-22.04
     if: github.event.pull_request.draft == false
 
     steps:
