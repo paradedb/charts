@@ -206,9 +206,15 @@ refer to  the [CloudNativePG Documentation](https://cloudnative-pg.io/documentat
 | cluster.initdb | object | `{"database":"paradedb"}` | BootstrapInitDB is the configuration of the bootstrap process when initdb is used. See: https://cloudnative-pg.io/documentation/current/bootstrap/ See: https://cloudnative-pg.io/documentation/current/cloudnative-pg.v1/#postgresql-cnpg-io-v1-bootstrapinitdb |
 | cluster.instances | int | `3` | Number of instances |
 | cluster.logLevel | string | `"info"` | The instances' log level, one of the following values: error, warning, info (default), debug, trace |
+| cluster.monitoring.customQueries | list | `[]` | Custom Prometheus metrics Will be stored in the ConfigMap |
+| cluster.monitoring.customQueriesSecret | list | `[]` | The list of secrets containing the custom queries |
+| cluster.monitoring.disableDefaultQueries | bool | `false` | Whether the default queries should be injected. Set it to true if you don't want to inject default queries into the cluster. |
+| cluster.monitoring.enabled | bool | `false` | Whether to enable monitoring |
 | cluster.monitoring.customQueries | list | `[]` | Custom Prometheus metrics |
 | cluster.monitoring.enabled | bool | `true` | Whether to enable monitoring |
 | cluster.monitoring.podMonitor.enabled | bool | `true` | Whether to enable the PodMonitor |
+| cluster.monitoring.podMonitor.metricRelabelings | list | `[]` | The list of metric relabelings for the PodMonitor. Applied to samples before ingestion. |
+| cluster.monitoring.podMonitor.relabelings | list | `[]` | The list of relabelings for the PodMonitor. Applied to samples before scraping. |
 | cluster.monitoring.prometheusRule.enabled | bool | `true` | Whether to enable the PrometheusRule automated alerts |
 | cluster.monitoring.prometheusRule.excludeRules | list | `[]` | Exclude specified rules |
 | cluster.postgresGID | int | `-1` | The GID of the postgres user inside the image, defaults to 26 |
@@ -233,14 +239,7 @@ refer to  the [CloudNativePG Documentation](https://cloudnative-pg.io/documentat
 | imageCatalog.images | list | `[]` | List of images to be provisioned in an image catalog. |
 | mode | string | `"standalone"` | Cluster mode of operation. Available modes: * `standalone` - default mode. Creates new or updates an existing CNPG cluster. * `replica` - Creates a replica cluster from an existing CNPG cluster. # TODO * `recovery` - Same as standalone but creates a cluster from a backup, object store or via pg_basebackup. |
 | nameOverride | string | `""` | Override the name of the chart |
-| pooler.enabled | bool | `false` | Whether to enable PgBouncer |
-| pooler.instances | int | `3` | Number of PgBouncer instances |
-| pooler.monitoring.enabled | bool | `true` | Whether to enable monitoring |
-| pooler.monitoring.podMonitor.enabled | bool | `true` | Whether to enable the PodMonitor |
-| pooler.parameters | object | `{"default_pool_size":"25","max_client_conn":"1000"}` | PgBouncer configuration parameters |
-| pooler.poolMode | string | `"transaction"` | PgBouncer pooling mode |
-| pooler.template | object | `{}` | Custom PgBouncer deployment template. Use to override image, specify resources, etc. |
-| pooler.type | string | `"rw"` | PgBouncer type of service to forward traffic to. |
+| poolers | list | `[]` | List of PgBouncer poolers |
 | recovery.azure.connectionString | string | `""` |  |
 | recovery.azure.containerName | string | `""` |  |
 | recovery.azure.inheritFromAzureAD | bool | `false` |  |
@@ -290,6 +289,18 @@ refer to  the [CloudNativePG Documentation](https://cloudnative-pg.io/documentat
 | type | string | `"paradedb"` | Type of the CNPG database. Available types: * `paradedb` |
 | version.paradedb | string | `"0.11.0"` | We default to v0.11.0 for testing and local development |
 | version.postgresql | string | `"16"` | PostgreSQL major version to use |
+| poolers[].name | string | `` | Name of the pooler resource |
+| poolers[].instances | number | `1` | The number of replicas we want |
+| poolers[].type | [PoolerType][PoolerType] | `rw` | Type of service to forward traffic to. Default: `rw`. |
+| poolers[].poolMode | [PgBouncerPoolMode][PgBouncerPoolMode] | `session` | The pool mode. Default: `session`. |
+| poolers[].authQuerySecret | [LocalObjectReference][LocalObjectReference] | `{}` | The credentials of the user that need to be used for the authentication query. |
+| poolers[].authQuery | string | `{}` | The credentials of the user that need to be used for the authentication query. |
+| poolers[].parameters | map[string]string | `{}` | Additional parameters to be passed to PgBouncer - please check the CNPG documentation for a list of options you can configure |
+| poolers[].template | [PodTemplateSpec][PodTemplateSpec] | `{}` | The template of the Pod to be created |
+| poolers[].template | [ServiceTemplateSpec][ServiceTemplateSpec] | `{}` | Template for the Service to be created |
+| poolers[].pg_hba | []string | `{}` | PostgreSQL Host Based Authentication rules (lines to be appended to the pg_hba.conf file) |
+| poolers[].monitoring.enabled | bool | `false` | Whether to enable monitoring for the Pooler. |
+| poolers[].monitoring.podMonitor.enabled | bool | `true` | Create a podMonitor for the Pooler. |
 
 ## Maintainers
 
