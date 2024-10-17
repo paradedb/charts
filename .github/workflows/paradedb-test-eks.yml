@@ -88,10 +88,31 @@ jobs:
           helm repo add cnpg https://cloudnative-pg.github.io/charts
           helm upgrade --install cnpg --namespace cnpg-system --create-namespace cnpg/cloudnative-pg
 
-      - name: Wait for CNPG Webhook Service to be Ready
+      - name: Wait for the CNPG Webhook Service to be Ready
         run: |
           kubectl wait --namespace cnpg-system --for=condition=available --timeout=120s deployment/cnpg-cloudnative-pg
           kubectl get svc -n cnpg-system cnpg-webhook-service
+
+      - name: Install the Prometheus Operator
+        run: |
+          helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+          helm upgrade --install prometheus-community \
+          --namespace prometheus-community \
+          --create-namespace \
+          --values https://raw.githubusercontent.com/cloudnative-pg/cloudnative-pg/main/docs/src/samples/monitoring/kube-stack-config.yaml \
+          prometheus-community/kube-prometheus-stack
+
+      - name: Wait for the Prometheus Operator Components to be Ready
+        run: |
+          kubectl wait --namespace prometheus-community --for=condition=available --timeout=120s deployment/prometheus-community-grafana
+          kubectl wait --namespace prometheus-community --for=condition=available --timeout=120s deployment/prometheus-community-kube-operator
+          kubectl wait --namespace prometheus-community --for=condition=available --timeout=120s deployment/prometheus-community-kube-state-metrics
+          kubectl get svc -n prometheus-community prometheus-community-grafana
+          kubectl get svc -n prometheus-community prometheus-community-kube-alertmanager
+          kubectl get svc -n prometheus-community prometheus-community-kube-operator
+          kubectl get svc -n prometheus-community prometheus-community-kube-prometheus
+          kubectl get svc -n prometheus-community prometheus-community-kube-state-metrics
+          kubectl get svc -n prometheus-community prometheus-operated
 
       - name: Test Helm Dependency Update
         working-directory: charts/paradedb/
@@ -116,3 +137,10 @@ jobs:
 
       - name: Test PostgreSQL Connection
         run: helm test paradedb --namespace paradedb
+
+      # Useful for debugging
+      - name: Log CRDs and Services
+        if: always()
+        run: |
+          kubectl get crds
+          kubectl get svc
