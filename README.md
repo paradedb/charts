@@ -1,4 +1,30 @@
-# ParadeDB CloudNativePG Cluster
+<h1 align="center">
+  <img src="https://raw.githubusercontent.com/paradedb/paradedb/dev/docs/logo/readme.svg" alt="ParadeDB" width="368px">
+<br>
+</h1>
+
+<p align="center">
+    <b>Postgres for Search and Analytics</b> <br />
+</p>
+
+<h3 align="center">
+  <a href="https://paradedb.com">Website</a> &bull;
+  <a href="https://docs.paradedb.com">Docs</a> &bull;
+  <a href="https://join.slack.com/t/paradedbcommunity/shared_invite/zt-2lkzdsetw-OiIgbyFeiibd1DG~6wFgTQ">Community</a> &bull;
+  <a href="https://paradedb.com/blog/">Blog</a> &bull;
+  <a href="https://docs.paradedb.com/changelog/">Changelog</a>
+</h3>
+
+---
+
+[![Publish Helm Chart](https://github.com/paradedb/charts/actions/workflows/paradedb-publish-chart.yml/badge.svg)](https://github.com/paradedb/charts/actions/workflows/paradedb-publish-chart.yml)
+[![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/paradedb)](https://artifacthub.io/packages/search?repo=paradedb)
+[![Docker Pulls](https://img.shields.io/docker/pulls/paradedb/paradedb)](https://hub.docker.com/r/paradedb/paradedb)
+[![License](https://img.shields.io/github/license/paradedb/paradedb?color=blue)](https://github.com/paradedb/paradedb?tab=AGPL-3.0-1-ov-file#readme)
+[![Slack URL](https://img.shields.io/badge/Join%20Slack-purple?logo=slack&link=https%3A%2F%2Fjoin.slack.com%2Ft%2Fparadedbcommunity%2Fshared_invite%2Fzt-2lkzdsetw-OiIgbyFeiibd1DG~6wFgTQ)](https://join.slack.com/t/paradedbcommunity/shared_invite/zt-2lkzdsetw-OiIgbyFeiibd1DG~6wFgTQ)
+[![X URL](https://img.shields.io/twitter/url?url=https%3A%2F%2Ftwitter.com%2Fparadedb&label=Follow%20%40paradedb)](https://x.com/paradedb)
+
+# ParadeDB Helm Chart
 
 The [ParadeDB](https://github.com/paradedb/paradedb) Helm Chart is based on the official [CloudNativePG Helm Chart](https://cloudnative-pg.io/). CloudNativePG is a Kubernetes operator that manages the full lifecycle of a highly available PostgreSQL database cluster with a primary/standby architecture using Postgres streaming replication.
 
@@ -10,13 +36,22 @@ The chart is also available on [ArtifactHub](https://artifacthub.io/packages/hel
 
 First, install [Helm](https://helm.sh/docs/intro/install/). The following steps assume you have a Kubernetes cluster running v1.25+. If you are testing locally, we recommend using [Minikube](https://minikube.sigs.k8s.io/docs/start/).
 
-### Installing the Prometheus Stack
+### Installing the CloudNativePG Operator
 
-The ParadeDB Helm chart supports monitoring via Prometheus and Grafana. This is enabled by default, so you need to have the Prometheus CRDs installed before installing the CNPG operator.
+Skip this step if the CNPG operator is already installed in your cluster.
 
-If you do not wish to monitor your ParadeDB Kubernetes cluster, skip this step, but make sure to omit the `monitoring` parameters when installing the operator and set `cluster.monitoring.enabled: false` when installing the cluster.
+```bash
+helm repo add cnpg https://cloudnative-pg.github.io/charts
+helm upgrade --install cnpg \
+--namespace cnpg-system \
+--create-namespace \
+cnpg/cloudnative-pg
+```
 
-If you do not yet have the Prometheus installed on your Kubernetes cluster, you can install it with:
+### Installing the Prometheus CRDs
+
+The ParadeDB Helm chart supports monitoring via Prometheus and Grafana. This is enabled by default, and therefore the Prometheus CRDs are required for
+the chart to launch. If you do not yet have the Prometheus CRDs installed on your Kubernetes cluster, you can install them via:
 
 ```bash
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
@@ -27,19 +62,7 @@ helm upgrade --install prometheus-community \
 prometheus-community/kube-prometheus-stack
 ```
 
-### Installing the CloudNativePG Operator
-
-Skip this step if the CNPG operator is already installed in your cluster.
-
-```bash
-helm repo add cnpg https://cloudnative-pg.github.io/charts
-helm upgrade --install cnpg \
---namespace cnpg-system \
---create-namespace \
---set monitoring.podMonitorEnabled=true \
---set monitoring.grafanaDashboard.create=true \
-cnpg/cloudnative-pg
-```
+If you do not wish to monitor your ParadeDB Kubernetes cluster, you can set `enabled: false` under `monitoring:` in [charts/paradedb/values.yaml](./charts/paradedb/values.yaml) and skip this step.
 
 ### Setting up a ParadeDB CNPG Cluster
 
@@ -53,6 +76,10 @@ cluster:
   instances: 3
   storage:
     size: 256Mi
+  monitoring:
+    enabled: true
+    podMonitor:
+      enabled: true
 ```
 
 Then, launch the ParadeDB cluster.
@@ -68,7 +95,7 @@ paradedb/paradedb
 
 If `--values values.yaml` is omitted, the default values will be used. For additional configuration options for the `values.yaml` file, including configuring backups and PgBouncer, please refer to the [ParadeDB Helm Chart documentation](https://artifacthub.io/packages/helm/paradedb/paradedb#values). For advanced cluster configuration options, please refer to the [CloudNativePG Cluster Chart documentation](charts/paradedb/README.md).
 
-A more detailed guide on launching the cluster can be found in the [Getting Started docs](<./docs/Getting Started.md>). To get started with ParadeDB, we suggest you follow the [quickstart guide](/documentation/getting-started/quickstart).
+A more detailed guide on launching the cluster can be found in the [Getting Started docs](<./charts/paradedb/docs/Getting Started.md>). To get started with ParadeDB, we suggest you follow the [quickstart guide](/documentation/getting-started/quickstart).
 
 ### Connecting to a ParadeDB CNPG Cluster
 
@@ -83,6 +110,16 @@ This will launch a shell inside the instance. You can connect via `psql` with:
 ```bash
 psql -d paradedb
 ```
+
+### Connecting to the Prometheus Console
+
+To connect to the Prometheus console for your cluster, we suggest port forwarding the Kubernetes service running Prometheus to localhost:
+
+```bash
+kubectl --namespace prometheus-community port-forward svc/prometheus-community-kube-prometheus 9090
+```
+
+You can then access the Prometheus console at [http://localhost:9090/](http://localhost:9090/). A more detailed guide on monitoring the cluster can be found in the [CloudNativePG documentation](https://cloudnative-pg.io/documentation/current/monitoring/).
 
 ### Connecting to the Grafana Dashboard
 
@@ -102,200 +139,6 @@ To test changes to the Chart on a local Minikube cluster, follow the instruction
 ```bash
 helm upgrade --install paradedb --namespace paradedb --create-namespace ./charts/paradedb
 ```
-
-## Cluster Configuration
-
-### Database types
-
-To use the ParadeDB Helm Chart, specify `paradedb` via the `type` parameter.
-
-### Modes of operation
-
-The chart has three modes of operation. These are configured via the `mode` parameter:
-
-* `standalone` - Creates new or updates an existing CNPG cluster. This is the default mode.
-* `replica` - Creates a replica cluster from an existing CNPG cluster. **_Note_ that this mode is not yet supported.**
-* `recovery` - Recovers a CNPG cluster from a backup, object store or via pg_basebackup.
-
-### Backup configuration
-
-CNPG implements disaster recovery via [Barman](https://pgbarman.org/). The following section configures the barman object
-store where backups will be stored. Barman performs backups of the cluster filesystem base backup and WALs. Both are
-stored in the specified location. The backup provider is configured via the `backups.provider` parameter. The following
-providers are supported:
-
-* S3 or S3-compatible stores, like MinIO
-* Microsoft Azure Blob Storage
-* Google Cloud Storage
-
-Additionally you can specify the following parameters:
-
-* `backups.retentionPolicy` - The retention policy for backups. Defaults to `30d`.
-* `backups.scheduledBackups` - An array of scheduled backups containing a name and a crontab schedule. Example:
-
-```yaml
-backups:
-  scheduledBackups:
-    - name: daily-backup
-      schedule: "0 0 0 * * *" # Daily at midnight
-      backupOwnerReference: self
-```
-
-Each backup adapter takes it's own set of parameters, listed in the [Configuration options](#Configuration-options) section
-below. Refer to the table for the full list of parameters and place the configuration under the appropriate key: `backup.s3`,
-`backup.azure`, or `backup.google`.
-
-## Recovery
-
-There is a separate document outlining the recovery procedure here: **[Recovery](docs/recovery.md)**
-
-## Examples
-
-There are several configuration examples in the [examples](examples) directory. Refer to them for a basic setup and
-refer to  the [CloudNativePG Documentation](https://cloudnative-pg.io/documentation/current/) for more advanced configurations.
-
-## Values
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| backups.azure.connectionString | string | `""` |  |
-| backups.azure.containerName | string | `""` |  |
-| backups.azure.inheritFromAzureAD | bool | `false` |  |
-| backups.azure.path | string | `"/"` |  |
-| backups.azure.serviceName | string | `"blob"` |  |
-| backups.azure.storageAccount | string | `""` |  |
-| backups.azure.storageKey | string | `""` |  |
-| backups.azure.storageSasToken | string | `""` |  |
-| backups.data.compression | string | `"gzip"` | Data compression method. One of `` (for no compression), `gzip`, `bzip2` or `snappy`. |
-| backups.data.encryption | string | `"AES256"` | Whether to instruct the storage provider to encrypt data files. One of `` (use the storage container default), `AES256` or `aws:kms`. |
-| backups.data.jobs | int | `2` | Number of data files to be archived or restored in parallel. |
-| backups.destinationPath | string | `""` | Overrides the provider specific default path. Defaults to: S3: s3://<bucket><path> Azure: https://<storageAccount>.<serviceName>.core.windows.net/<containerName><path> Google: gs://<bucket><path> |
-| backups.enabled | bool | `false` | You need to configure backups manually, so backups are disabled by default. |
-| backups.endpointCA | object | `{"create":false,"key":"","name":"","value":""}` | Specifies a CA bundle to validate a privately signed certificate. |
-| backups.endpointCA.create | bool | `false` | Creates a secret with the given value if true, otherwise uses an existing secret. |
-| backups.endpointURL | string | `""` | Overrides the provider specific default endpoint. Defaults to: S3: https://s3.<region>.amazonaws.com" |
-| backups.google.applicationCredentials | string | `""` |  |
-| backups.google.bucket | string | `""` |  |
-| backups.google.gkeEnvironment | bool | `false` |  |
-| backups.google.path | string | `"/"` |  |
-| backups.provider | string | `"s3"` | One of `s3`, `azure` or `google` |
-| backups.retentionPolicy | string | `"30d"` | Retention policy for backups |
-| backups.s3.accessKey | string | `""` |  |
-| backups.s3.bucket | string | `""` |  |
-| backups.s3.path | string | `"/"` |  |
-| backups.s3.region | string | `""` |  |
-| backups.s3.secretKey | string | `""` |  |
-| backups.scheduledBackups[0].backupOwnerReference | string | `"self"` | Backup owner reference |
-| backups.scheduledBackups[0].method | string | `"barmanObjectStore"` | Backup method, can be `barmanObjectStore` (default) or `volumeSnapshot` |
-| backups.scheduledBackups[0].name | string | `"daily-backup"` | Scheduled backup name |
-| backups.scheduledBackups[0].schedule | string | `"0 0 0 * * *"` | Schedule in cron format |
-| backups.secret.create | bool | `true` | Whether to create a secret for the backup credentials |
-| backups.secret.name | string | `""` | Name of the backup credentials secret |
-| backups.wal.compression | string | `"gzip"` | WAL compression method. One of `` (for no compression), `gzip`, `bzip2` or `snappy`. |
-| backups.wal.encryption | string | `"AES256"` | Whether to instruct the storage provider to encrypt WAL files. One of `` (use the storage container default), `AES256` or `aws:kms`. |
-| backups.wal.maxParallel | int | `1` | Number of WAL files to be archived or restored in parallel. |
-| cluster.additionalLabels | object | `{}` |  |
-| cluster.affinity | object | `{"topologyKey":"topology.kubernetes.io/zone"}` | Affinity/Anti-affinity rules for Pods. See: https://cloudnative-pg.io/documentation/current/cloudnative-pg.v1/#postgresql-cnpg-io-v1-AffinityConfiguration |
-| cluster.annotations | object | `{}` |  |
-| cluster.certificates | object | `{}` | The configuration for the CA and related certificates. See: https://cloudnative-pg.io/documentation/current/cloudnative-pg.v1/#postgresql-cnpg-io-v1-CertificatesConfiguration |
-| cluster.enableSuperuserAccess | bool | `true` | When this option is enabled, the operator will use the SuperuserSecret to update the postgres user password. If the secret is not present, the operator will automatically create one. When this option is disabled, the operator will ignore the SuperuserSecret content, delete it when automatically created, and then blank the password of the postgres user by setting it to NULL. |
-| cluster.imageCatalogRef | object | `{}` | Reference to `ImageCatalog` of `ClusterImageCatalog`, if specified takes precedence over `cluster.imageName` |
-| cluster.imageName | string | `""` | Name of the container image, supporting both tags (<image>:<tag>) and digests for deterministic and repeatable deployments: <image>:<tag>@sha256:<digestValue> |
-| cluster.imagePullPolicy | string | `"IfNotPresent"` | Image pull policy. One of Always, Never or IfNotPresent. If not defined, it defaults to IfNotPresent. Cannot be updated. More info: https://kubernetes.io/docs/concepts/containers/images#updating-images |
-| cluster.imagePullSecrets | list | `[]` | The list of pull secrets to be used to pull the images. See: https://cloudnative-pg.io/documentation/current/cloudnative-pg.v1/#postgresql-cnpg-io-v1-LocalObjectReference |
-| cluster.initdb | object | `{"database":"paradedb"}` | BootstrapInitDB is the configuration of the bootstrap process when initdb is used. See: https://cloudnative-pg.io/documentation/current/bootstrap/ See: https://cloudnative-pg.io/documentation/current/cloudnative-pg.v1/#postgresql-cnpg-io-v1-bootstrapinitdb |
-| cluster.instances | int | `3` | Number of instances |
-| cluster.logLevel | string | `"info"` | The instances' log level, one of the following values: error, warning, info (default), debug, trace |
-| cluster.monitoring.customQueries | list | `[]` | Custom Prometheus metrics |
-| cluster.monitoring.enabled | bool | `true` | Whether to enable monitoring |
-| cluster.monitoring.podMonitor.enabled | bool | `true` | Whether to enable the PodMonitor |
-| cluster.monitoring.prometheusRule.enabled | bool | `true` | Whether to enable the PrometheusRule automated alerts |
-| cluster.monitoring.prometheusRule.excludeRules | list | `[]` | Exclude specified rules |
-| cluster.postgresGID | int | `-1` | The GID of the postgres user inside the image, defaults to 26 |
-| cluster.postgresUID | int | `-1` | The UID of the postgres user inside the image, defaults to 26 |
-| cluster.postgresql.parameters | object | `{"cron.database_name":"postgres"}` | PostgreSQL configuration options (postgresql.conf) |
-| cluster.postgresql.pg_hba | list | `[]` | PostgreSQL Host Based Authentication rules (lines to be appended to the pg_hba.conf file) |
-| cluster.postgresql.pg_ident | list | `[]` | PostgreSQL User Name Maps rules (lines to be appended to the pg_ident.conf file) |
-| cluster.postgresql.shared_preload_libraries | list | `[]` | Lists of shared preload libraries to add to the default ones |
-| cluster.primaryUpdateMethod | string | `"switchover"` | Method to follow to upgrade the primary server during a rolling update procedure, after all replicas have been successfully updated. It can be switchover (default) or restart. |
-| cluster.primaryUpdateStrategy | string | `"unsupervised"` | Strategy to follow to upgrade the primary server during a rolling update procedure, after all replicas have been successfully updated: it can be automated (unsupervised - default) or manual (supervised) |
-| cluster.priorityClassName | string | `""` |  |
-| cluster.resources | object | `{}` | Resources requirements of every generated Pod. Please refer to https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/ for more information. We strongly advise you use the same setting for limits and requests so that your cluster pods are given a Guaranteed QoS. See: https://kubernetes.io/docs/concepts/workloads/pods/pod-qos/ |
-| cluster.roles | list | `[]` | This feature enables declarative management of existing roles, as well as the creation of new roles if they are not already present in the database. See: https://cloudnative-pg.io/documentation/current/declarative_role_management/ |
-| cluster.storage.size | string | `"8Gi"` |  |
-| cluster.storage.storageClass | string | `""` |  |
-| cluster.superuserSecret | string | `""` |  |
-| cluster.walStorage.enabled | bool | `false` |  |
-| cluster.walStorage.size | string | `"1Gi"` |  |
-| cluster.walStorage.storageClass | string | `""` |  |
-| fullnameOverride | string | `""` | Override the full name of the chart |
-| imageCatalog.create | bool | `true` | Whether to provision an image catalog. If imageCatalog.images is empty this option will be ignored. |
-| imageCatalog.images | list | `[]` | List of images to be provisioned in an image catalog. |
-| mode | string | `"standalone"` | Cluster mode of operation. Available modes: * `standalone` - default mode. Creates new or updates an existing CNPG cluster. * `replica` - Creates a replica cluster from an existing CNPG cluster. # TODO * `recovery` - Same as standalone but creates a cluster from a backup, object store or via pg_basebackup. |
-| nameOverride | string | `""` | Override the name of the chart |
-| pooler.enabled | bool | `false` | Whether to enable PgBouncer |
-| pooler.instances | int | `3` | Number of PgBouncer instances |
-| pooler.monitoring.enabled | bool | `true` | Whether to enable monitoring |
-| pooler.monitoring.podMonitor.enabled | bool | `true` | Whether to enable the PodMonitor |
-| pooler.parameters | object | `{"default_pool_size":"25","max_client_conn":"1000"}` | PgBouncer configuration parameters |
-| pooler.poolMode | string | `"transaction"` | PgBouncer pooling mode |
-| pooler.template | object | `{}` | Custom PgBouncer deployment template. Use to override image, specify resources, etc. |
-| pooler.type | string | `"rw"` | PgBouncer type of service to forward traffic to. |
-| recovery.azure.connectionString | string | `""` |  |
-| recovery.azure.containerName | string | `""` |  |
-| recovery.azure.inheritFromAzureAD | bool | `false` |  |
-| recovery.azure.path | string | `"/"` |  |
-| recovery.azure.serviceName | string | `"blob"` |  |
-| recovery.azure.storageAccount | string | `""` |  |
-| recovery.azure.storageKey | string | `""` |  |
-| recovery.azure.storageSasToken | string | `""` |  |
-| recovery.backupName | string | `""` | Backup Recovery Method |
-| recovery.clusterName | string | `""` | The original cluster name when used in backups. Also known as serverName. |
-| recovery.destinationPath | string | `""` | Overrides the provider specific default path. Defaults to: S3: s3://<bucket><path> Azure: https://<storageAccount>.<serviceName>.core.windows.net/<containerName><path> Google: gs://<bucket><path> |
-| recovery.endpointCA | object | `{"create":false,"key":"","name":"","value":""}` | Specifies a CA bundle to validate a privately signed certificate. |
-| recovery.endpointCA.create | bool | `false` | Creates a secret with the given value if true, otherwise uses an existing secret. |
-| recovery.endpointURL | string | `""` | Overrides the provider specific default endpoint. Defaults to: S3: https://s3.<region>.amazonaws.com" Leave empty if using the default S3 endpoint |
-| recovery.google.applicationCredentials | string | `""` |  |
-| recovery.google.bucket | string | `""` |  |
-| recovery.google.gkeEnvironment | bool | `false` |  |
-| recovery.google.path | string | `"/"` |  |
-| recovery.method | string | `"backup"` | Available recovery methods: * `backup` - Recovers a CNPG cluster from a CNPG backup (PITR supported) Needs to be on the same cluster in the same namespace. * `object_store` - Recovers a CNPG cluster from a barman object store (PITR supported). * `pg_basebackup` - Recovers a CNPG cluster viaa streaming replication protocol. Useful if you want to        migrate databases to CloudNativePG, even from outside Kubernetes. # TODO |
-| recovery.pgBaseBackup.database | string | `"paradedb"` | Name of the database used by the application. Default: `paradedb`. |
-| recovery.pgBaseBackup.owner | string | `""` | Name of the secret containing the initial credentials for the owner of the user database. If empty a new secret will be created from scratch |
-| recovery.pgBaseBackup.secret | string | `""` | Name of the owner of the database in the instance to be used by applications. Defaults to the value of the `database` key. |
-| recovery.pgBaseBackup.source.database | string | `"paradedb"` |  |
-| recovery.pgBaseBackup.source.host | string | `""` |  |
-| recovery.pgBaseBackup.source.passwordSecret.create | bool | `false` | Whether to create a secret for the password |
-| recovery.pgBaseBackup.source.passwordSecret.key | string | `"password"` | The key in the secret containing the password |
-| recovery.pgBaseBackup.source.passwordSecret.name | string | `""` | Name of the secret containing the password |
-| recovery.pgBaseBackup.source.passwordSecret.value | string | `""` | The password value to use when creating the secret |
-| recovery.pgBaseBackup.source.port | int | `5432` |  |
-| recovery.pgBaseBackup.source.sslCertSecret.key | string | `""` |  |
-| recovery.pgBaseBackup.source.sslCertSecret.name | string | `""` |  |
-| recovery.pgBaseBackup.source.sslKeySecret.key | string | `""` |  |
-| recovery.pgBaseBackup.source.sslKeySecret.name | string | `""` |  |
-| recovery.pgBaseBackup.source.sslMode | string | `"verify-full"` |  |
-| recovery.pgBaseBackup.source.sslRootCertSecret.key | string | `""` |  |
-| recovery.pgBaseBackup.source.sslRootCertSecret.name | string | `""` |  |
-| recovery.pgBaseBackup.source.username | string | `""` |  |
-| recovery.pitrTarget.time | string | `""` | Time in RFC3339 format |
-| recovery.provider | string | `"s3"` | One of `s3`, `azure` or `google` |
-| recovery.s3.accessKey | string | `""` |  |
-| recovery.s3.bucket | string | `""` |  |
-| recovery.s3.path | string | `"/"` |  |
-| recovery.s3.region | string | `""` |  |
-| recovery.s3.secretKey | string | `""` |  |
-| recovery.secret.create | bool | `true` | Whether to create a secret for the backup credentials |
-| recovery.secret.name | string | `""` | Name of the backup credentials secret |
-| type | string | `"paradedb"` | Type of the CNPG database. Available types: * `paradedb` |
-| version.paradedb | string | `"0.11.0"` | We default to v0.11.0 for testing and local development |
-| version.postgresql | string | `"16"` | PostgreSQL major version to use |
-
-## Maintainers
-
-| Name | Email | Url |
-| ---- | ------ | --- |
-| ParadeDB | <support@paradedb.com> | <https://paradedb.com> |
 
 ## License
 
