@@ -163,12 +163,6 @@ refer to  the [CloudNativePG Documentation](https://cloudnative-pg.io/documentat
 
 
 {{ template "chart.valuesSection" . }}
-
-
-{{ template "chart.maintainersSection" . }}
-
-
-{{ template "helm-docs.versionFooter" . }}
 | poolers[].name                                      | string                                       | ``                                               | Name of the pooler resource                                                                                                                                                                                                                                                                                                                                                                                                                |
 | poolers[].instances                                 | number                                       | `1`                                              | The number of replicas we want                                                                                                                                                                                                                                                                                                                                                                                                             |
 | poolers[].type                                      | [PoolerType][PoolerType]                     | `rw`                                             | Type of service to forward traffic to. Default: `rw`.                                                                                                                                                                                                                                                                                                                                                                                      |
@@ -181,6 +175,11 @@ refer to  the [CloudNativePG Documentation](https://cloudnative-pg.io/documentat
 | poolers[].pg_hba                                    | []string                                     | `{}`                                             | PostgreSQL Host Based Authentication rules (lines to be appended to the pg_hba.conf file)                                                                                                                                                                                                                                                                                                                                                  |
 | poolers[].monitoring.enabled                        | bool                                         | `false`                                          | Whether to enable monitoring for the Pooler.                                                                                                                                                                                                                                                                                                                                                                                               |
 | poolers[].monitoring.podMonitor.enabled             | bool                                         | `true`                                           | Create a podMonitor for the Pooler.                                                                                                                                                                                                                                                                                                                                                                                                        |
+
+{{ template "chart.maintainersSection" . }}
+
+
+{{ template "helm-docs.versionFooter" . }}
 
 ## License
 
