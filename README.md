@@ -76,10 +76,6 @@ cluster:
   instances: 3
   storage:
     size: 256Mi
-  monitoring:
-    enabled: true
-    podMonitor:
-      enabled: true
 ```
 
 Then, launch the ParadeDB cluster.
@@ -110,16 +106,6 @@ This will launch a shell inside the instance. You can connect via `psql` with:
 ```bash
 psql -d paradedb
 ```
-
-### Connecting to the Prometheus Console
-
-To connect to the Prometheus console for your cluster, we suggest port forwarding the Kubernetes service running Prometheus to localhost:
-
-```bash
-kubectl --namespace prometheus-community port-forward svc/prometheus-community-kube-prometheus 9090
-```
-
-You can then access the Prometheus console at [http://localhost:9090/](http://localhost:9090/). A more detailed guide on monitoring the cluster can be found in the [CloudNativePG documentation](https://cloudnative-pg.io/documentation/current/monitoring/).
 
 ### Connecting to the Grafana Dashboard
 
