@@ -12,36 +12,40 @@ First, install [Helm](https://helm.sh/docs/intro/install/). The following steps 
 
 ### Installing the Prometheus Stack
 
-The ParadeDB Helm chart supports monitoring via Prometheus and Grafana. This is enabled by default, so you need to have the Prometheus CRDs installed before installing the CNPG operator.
-
-If you do not wish to monitor your ParadeDB Kubernetes cluster, skip this step, but make sure to omit the `monitoring` parameters when installing the operator and set `cluster.monitoring.enabled: false` when installing the cluster.
-
-If you do not yet have the Prometheus installed on your Kubernetes cluster, you can install it with:
+The ParadeDB Helm chart supports monitoring via Prometheus and Grafana. To enable this, you need to have the Prometheus CRDs installed before installing the CloudNativePG operator. If you do not yet have the Prometheus CRDs installed on your Kubernetes cluster, you can install it with:
 
 ```bash
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
-helm upgrade --install prometheus-community \
---namespace prometheus-community \
+helm upgrade --atomic --install prometheus-community \
 --create-namespace \
+--namespace prometheus-community \
 --values https://raw.githubusercontent.com/cloudnative-pg/cloudnative-pg/main/docs/src/samples/monitoring/kube-stack-config.yaml \
 prometheus-community/kube-prometheus-stack
 ```
 
 ### Installing the CloudNativePG Operator
 
-Skip this step if the CNPG operator is already installed in your cluster.
+Skip this step if the CloudNativePG operator is already installed in your cluster. If you do not wish to monitor your cluster, omit the `--set` commands.
 
 ```bash
 helm repo add cnpg https://cloudnative-pg.github.io/charts
-helm upgrade --install cnpg \
---namespace cnpg-system \
+helm upgrade --atomic --install cnpg \
 --create-namespace \
+--namespace cnpg-system \
 --set monitoring.podMonitorEnabled=true \
 --set monitoring.grafanaDashboard.create=true \
 cnpg/cloudnative-pg
 ```
 
 ### Setting up a ParadeDB CNPG Cluster
+
+
+
+This is enabled by default, so you need to have the Prometheus CRDs installed before installing the CloudNativePG operator.
+
+If you do not wish to monitor your ParadeDB Kubernetes cluster, skip this step, but make sure to omit the `monitoring` parameters when installing the operator and set `cluster.monitoring.enabled: false` when installing the cluster.
+
+
 
 Create a `values.yaml` and configure it to your requirements. Here is a basic example:
 
