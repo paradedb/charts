@@ -91,10 +91,7 @@ jobs:
       - name: Install the Prometheus Operator
         run: |
           helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
-          helm upgrade --atomic --install prometheus-community \
-          --namespace prometheus-community \
-          --create-namespace \
-          prometheus-crds prometheus-community/prometheus-operator-crds
+          helm upgrade --atomic --install prometheus-community --namespace prometheus-community --create-namespace prometheus-community/prometheus-operator-crds
 
       - name: Test Helm Dependency Update
         working-directory: charts/paradedb/
