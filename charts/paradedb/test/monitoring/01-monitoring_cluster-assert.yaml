@@ -39,8 +39,7 @@ metadata:
 spec:
   selector:
     matchLabels:
-<<<<<<< HEAD:charts/cluster/test/monitoring/01-monitoring_cluster-assert.yaml
-      cnpg.io/cluster: monitoring-cluster
+      cnpg.io/cluster: monitoring-paradedb
   podMetricsEndpoints:
     - bearerTokenSecret:
         key: ''
@@ -57,9 +56,6 @@ spec:
           targetLabel: cnpg_cluster
         - action: labeldrop
           regex: cluster
-=======
-      cnpg.io/cluster: monitoring-paradedb
->>>>>>> b6ce7c4 (ParadeDB Support (#1)):charts/paradedb/test/monitoring/01-monitoring_cluster-assert.yaml
 ---
 apiVersion: monitoring.coreos.com/v1
 kind: PodMonitor
@@ -68,8 +64,7 @@ metadata:
 spec:
   selector:
     matchLabels:
-<<<<<<< HEAD:charts/cluster/test/monitoring/01-monitoring_cluster-assert.yaml
-      cnpg.io/poolerName: monitoring-cluster-pooler-rw
+      cnpg.io/poolerName: monitoring-paradedb-pooler-rw
   podMetricsEndpoints:
     - bearerTokenSecret:
         key: ''
@@ -92,11 +87,11 @@ spec:
 apiVersion: monitoring.coreos.com/v1
 kind: PodMonitor
 metadata:
-  name: monitoring-cluster-pooler-ro
+  name: monitoring-paradedb-pooler-ro
 spec:
   selector:
     matchLabels:
-      cnpg.io/poolerName: monitoring-cluster-pooler-ro
+      cnpg.io/poolerName: monitoring-paradedb-pooler-ro
   podMetricsEndpoints:
     - bearerTokenSecret:
         key: ''
@@ -115,9 +110,6 @@ spec:
           targetLabel: cnpg_cluster
         - action: labeldrop
           regex: cluster
-=======
-      cnpg.io/poolerName: monitoring-paradedb-pooler-rw
->>>>>>> b6ce7c4 (ParadeDB Support (#1)):charts/paradedb/test/monitoring/01-monitoring_cluster-assert.yaml
 ---
 apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
