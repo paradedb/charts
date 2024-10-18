@@ -48,10 +48,13 @@ helm upgrade --install cnpg \
 cnpg/cloudnative-pg
 ```
 
-### Installing the Prometheus CRDs
+### Installing the Prometheus Stack
 
-The ParadeDB Helm chart supports monitoring via Prometheus and Grafana. This is enabled by default, and therefore the Prometheus CRDs are required for
-the chart to launch. If you do not yet have the Prometheus CRDs installed on your Kubernetes cluster, you can install them via:
+The ParadeDB Helm chart supports monitoring via Prometheus and Grafana. This is enabled by default, so you need to have the Prometheus CRDs installed before installing the CNPG operator.
+
+If you do not wish to monitor your ParadeDB Kubernetes cluster, skip this step, but make sure to omit the `monitoring` parameters when installing the operator and set `cluster.monitoring.enabled: false` when installing the cluster.
+
+If you do not yet have the Prometheus installed on your Kubernetes cluster, you can install it with:
 
 ```bash
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
