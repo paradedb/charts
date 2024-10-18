@@ -213,7 +213,7 @@ cluster:
 
   monitoring:
     # -- Whether to enable monitoring
-    enabled: true
+    enabled: false
     podMonitor:
       # -- Whether to enable the PodMonitor
       enabled: true

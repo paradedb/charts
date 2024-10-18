@@ -39,14 +39,6 @@ cnpg/cloudnative-pg
 
 ### Setting up a ParadeDB CNPG Cluster
 
-
-
-This is enabled by default, so you need to have the Prometheus CRDs installed before installing the CloudNativePG operator.
-
-If you do not wish to monitor your ParadeDB Kubernetes cluster, skip this step, but make sure to omit the `monitoring` parameters when installing the operator and set `cluster.monitoring.enabled: false` when installing the cluster.
-
-
-
 Create a `values.yaml` and configure it to your requirements. Here is a basic example:
 
 ```yaml
@@ -59,7 +51,7 @@ cluster:
     size: 256Mi
 ```
 
-Then, launch the ParadeDB cluster.
+Then, launch the ParadeDB cluster. If you do not wish to monitor your cluster, omit the `--set` command.
 
 ```bash
 helm repo add paradedb https://paradedb.github.io/charts
@@ -67,12 +59,11 @@ helm upgrade --install paradedb \
 --namespace paradedb \
 --create-namespace \
 --values values.yaml \
+--set cluster.monitoring.enabled=true \
 paradedb/paradedb
 ```
 
 If `--values values.yaml` is omitted, the default values will be used. For additional configuration options for the `values.yaml` file, including configuring backups and PgBouncer, please refer to the [ParadeDB Helm Chart documentation](https://artifacthub.io/packages/helm/paradedb/paradedb#values). For advanced cluster configuration options, please refer to the [CloudNativePG Cluster Chart documentation](charts/paradedb/README.md).
-
-A more detailed guide on launching the cluster can be found in the [Getting Started docs](<./docs/Getting Started.md>). To get started with ParadeDB, we suggest you follow the [quickstart guide](/documentation/getting-started/quickstart).
 
 ### Connecting to a ParadeDB CNPG Cluster
 
@@ -82,7 +73,7 @@ The command to connect to the primary instance of the cluster will be printed in
 kubectl --namespace paradedb exec --stdin --tty services/paradedb-rw -- bash
 ```
 
-This will launch a shell inside the instance. You can connect via `psql` with:
+This will launch a Bash shell inside the instance. You can connect to the ParadeDB database via `psql` with:
 
 ```bash
 psql -d paradedb
@@ -96,8 +87,8 @@ To connect to the Grafana dashboard for your cluster, we suggested port forwardi
 kubectl --namespace prometheus-community port-forward svc/prometheus-community-grafana 3000:80
 ```
 
-You can the naccess the Grafana dasbhoard at [http://localhost:3000/](http://localhost:3000/) using the credentials `admin` as username and `prom-operator` as password. These default credentials are
-defined in the [`kube-stack-config.yaml`](https://raw.githubusercontent.com/cloudnative-pg/cloudnative-pg/main/docs/src/samples/monitoring/kube-stack-config.yaml) file used as the `values.yaml` file in [Installing the Prometheus CRDs](#installing-the-prometheus-crds) and can be modified by providing your own `values.yaml` file.
+You can then access the Grafana dasbhoard at [http://localhost:3000/](http://localhost:3000/) using the credentials `admin` as username and `prom-operator` as password. These default credentials are
+defined in the [`kube-stack-config.yaml`](https://raw.githubusercontent.com/cloudnative-pg/cloudnative-pg/main/docs/src/samples/monitoring/kube-stack-config.yaml) file used as the `values.yaml` file in [Installing the Prometheus CRDs](#installing-the-prometheus-stack) and can be modified by providing your own `values.yaml` file.
 
 ## Development
 
