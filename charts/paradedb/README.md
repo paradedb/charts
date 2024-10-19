@@ -55,7 +55,7 @@ Then, launch the ParadeDB cluster. If you do not wish to monitor your cluster, o
 
 ```bash
 helm repo add paradedb https://paradedb.github.io/charts
-helm upgrade --install paradedb \
+helm upgrade --atomic --install paradedb \
 --namespace paradedb \
 --create-namespace \
 --values values.yaml \
@@ -95,7 +95,7 @@ defined in the [`kube-stack-config.yaml`](https://raw.githubusercontent.com/clou
 To test changes to the Chart on a local Minikube cluster, follow the instructions from [Getting Started](#getting-started), replacing the `helm upgrade` step by the path to the directory of the modified `Chart.yaml`.
 
 ```bash
-helm upgrade --install paradedb --namespace paradedb --create-namespace ./charts/paradedb
+helm upgrade --atomic --install paradedb --namespace paradedb --create-namespace ./charts/paradedb
 ```
 
 ## Cluster Configuration
