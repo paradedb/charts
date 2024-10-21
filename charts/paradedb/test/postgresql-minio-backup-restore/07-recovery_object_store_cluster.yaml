@@ -1,7 +1,6 @@
 type: postgresql
 mode: recovery
-version:
-  major: "17"
+
 cluster:
   instances: 2
   storage:
