@@ -104,7 +104,7 @@ spec:
         - describe:
             apiVersion: postgresql.cnpg.io/v1
             kind: Backup
-    - name: Create a recovery cluster from backup with a PITR target
+    - name: Create a recovery cluster from backup with a PITR target -- TEST 2
       try:
         - script:
             content: |

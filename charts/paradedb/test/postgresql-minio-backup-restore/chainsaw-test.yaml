@@ -111,7 +111,7 @@ spec:
             file: 08-data_test.yaml
         - assert:
             file: 08-data_test-assert.yaml
-    - name: Create a recovery cluster from backup with a PITR target
+    - name: Create a recovery cluster from backup with a PITR target -- TEST 1
       try:
         - script:
             content: |
