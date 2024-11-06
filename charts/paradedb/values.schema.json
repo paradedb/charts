@@ -265,12 +265,7 @@
                     "type": "object",
                     "properties": {
                         "parameters": {
-                            "type": "object",
-                            "properties": {
-                                "cron.database_name": {
-                                    "type": "string"
-                                }
-                            }
+                            "type": "object"
                         },
                         "pg_hba": {
                             "type": "array"
