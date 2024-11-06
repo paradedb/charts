@@ -43,9 +43,7 @@ cluster:
     replicationTLSSecret: replication-tls-secret
     clientCASecret: client-ca-secret
   enableSuperuserAccess: true
-  superuserSecret:
-    name: supersecret-secret
-    key: password
+  superuserSecret: supersecret-secret
   roles:
      - name: dante
        ensure: present
