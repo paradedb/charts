@@ -29,6 +29,8 @@ Kubernetes, and specifically the CloudNativePG operator, is the recommended appr
 
 The ParadeDB Helm Chart supports Postgres 14+ and ships with Postgres 17 by default.
 
+The ParadeDB Helm Chart supports Postgres 13+ and ships with Postgres 16 by default.
+
 The chart is also available on [Artifact Hub](https://artifacthub.io/packages/helm/paradedb/paradedb).
 
 ## Usage
