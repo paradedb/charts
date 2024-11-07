@@ -318,6 +318,9 @@ cluster:
     # postInitApplicationSQL: []
     # postInitTemplateSQL: []
 
+  # -- Configure the generation of the service account
+  serviceAccountTemplate: {}
+
   additionalLabels: {}
   annotations: {}
 
