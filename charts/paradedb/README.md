@@ -16,13 +16,13 @@ The most reliable way to run ParadeDB in production is with ParadeDB BYOC, an en
 
 ParadeDB BYOC includes built-in integration with managed PostgreSQL services, such as AWS RDS, via logical replication. It also provides monitoring, logging and alerting through Prometheus and Grafana. The ParadeDB team manages the underlying infrastructure and lifecycle of the cluster.
 
-You can read more about the optimal architecture for running ParadeDB in production [here](https://docs.paradedb.com/deploy/overview), and you can contact sales [here](mailto:sales@paradedb.com).
+You can read more about the optimal architecture for running ParadeDB in production [here](https://docs.paradedb.com/deploy/overview) and you can contact sales [here](mailto:sales@paradedb.com).
 
 ### Self-Hosted
 
 First, install [Helm](https://helm.sh/docs/intro/install/). The following steps assume you have a Kubernetes cluster running v1.25+. If you are testing locally, we recommend using [Minikube](https://minikube.sigs.k8s.io/docs/start/).
 
-#### (Optional) Monitoring
+#### Monitoring
 
 The ParadeDB Helm chart supports monitoring via Prometheus and Grafana. To enable monitoring, you need to have the Prometheus CRDs installed before installing the CloudNativePG operator. The Promotheus CRDs can be found [here](https://prometheus-community.github.io/helm-charts).
 
@@ -67,13 +67,13 @@ If `--values values.yaml` is omitted, the default values will be used. For advan
 
 #### Connecting to a ParadeDB CNPG Cluster
 
-The command to connect to the primary instance of the cluster will be printed in your terminal. You can connect to a specific pod via:
+You can launch a Bash shell inside a specific pod via:
 
 ```bash
 kubectl exec --stdin --tty <pod-name> -n paradedb -- bash
 ```
 
-The primary is called `paradedb-1`, and the replicas will be called `paradedb-2` onwards depending on the number of replicas you configured. This will launch a Bash shell inside the instance. You can connect to the ParadeDB database via `psql` with:
+The primary is called `paradedb-1`. The replicas are called `paradedb-2` onwards depending on the number of replicas you configured. You can connect to the ParadeDB database with `psql` via:
 
 ```bash
 psql -d paradedb
@@ -81,7 +81,7 @@ psql -d paradedb
 
 ## Development
 
-To test changes to the Chart on a local Minikube cluster, follow the instructions from [Self Hosted](#self-hosted), replacing the `helm upgrade` step by the path to the directory of the modified `Chart.yaml`.
+To test changes to the Chart on a local Minikube cluster, follow the instructions from [Self Hosted](#self-hosted) replacing the `helm upgrade` step by the path to the directory of the modified `Chart.yaml`.
 
 ```bash
 helm upgrade --atomic --install paradedb --namespace paradedb --create-namespace ./charts/paradedb
