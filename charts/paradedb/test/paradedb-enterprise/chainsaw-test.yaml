@@ -43,6 +43,7 @@ spec:
             file: 02-paradedb_test-assert.yaml
       catch:
         - describe:
+<<<<<<< HEAD
             apiVersion: v1
             kind: Pod
         - describe:
@@ -69,14 +70,23 @@ spec:
             selector: cnpg.io/cluster=paradedb-ncc-1701-d
         - podLogs:
             selector: batch.kubernetes.io/job-name=paradedb-enterprise-index-test
+=======
+            apiVersion: batch/v1
+            kind: Job
+        - podLogs:
+            selector: batch.kubernetes.io/job-name=data-test
+>>>>>>> 73217c4 (ParadeDB Enterprise (#58))
     - name: Cleanup
       try:
         - script:
             content: |
               helm uninstall --namespace $NAMESPACE paradedb-ncc-1701-d
+<<<<<<< HEAD
       catch:
         - describe:
             apiVersion: v1
             kind: Pod
         - podLogs:
             selector: cnpg.io/cluster=paradedb-ncc-1701-d
+=======
+>>>>>>> 73217c4 (ParadeDB Enterprise (#58))
