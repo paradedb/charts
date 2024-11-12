@@ -23,6 +23,15 @@ spec:
                 paradedb-ncc-1701-d ../../
         - assert:
             file: ./01-paradedb-NCC-1701-D_cluster-assert.yaml
+      catch:
+        - describe:
+            apiVersion: v1
+            kind: Pod
+        - describe:
+            apiVersion: batch/v1
+            kind: Job
+        - podLogs:
+            selector: cnpg.io/cluster=paradedb-ncc-1701-d
     - name: Verify ParadeDB extensions are installed
       timeouts:
         apply: 1s
