@@ -75,3 +75,7 @@ jobs:
 
       - name: Run Kyverno/Chainsaw
         run: chainsaw test
+        env:
+          PARADEDB_ENTERPRISE_DOCKER_USERNAME: ${{ secrets.PARADEDB_ENTERPRISE_DOCKER_USERNAME }}
+          PARADEDB_ENTERPRISE_DOCKER_PAT: ${{ secrets.PARADEDB_ENTERPRISE_DOCKER_PAT }}
+
