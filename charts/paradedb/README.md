@@ -94,10 +94,14 @@ helm upgrade --atomic --install paradedb --namespace paradedb --create-namespace
 To create a ParadeDB cluster, you must specify either `paradedb` or `paradedb-enterprise` via the `type` parameter.
 
 > [!IMPORTANT]
-> When using `paradedb-enterprise` you must also specify `cluster.imagePullSecrets` containing the Docker registry credentials.
-> You can create one with:
+> When using `paradedb-enterprise` you must also specify `cluster.imagePullSecrets` containing the Docker registry credentials. You can create one with:
+>
+> ```bash
 > kubectl -n NAMESPACE create secret docker-registry paradedb-enterprise-registry-cred --docker-server="https://index.docker.io/v1/" --docker-username="USERNAME" --docker-password="ACCESS_TOKEN"
+> ```
+>
 > Then you need to set:
+>
 > ```yaml
 > type: paradedb-enterprise
 > cluster:
@@ -149,8 +153,6 @@ There is a separate document outlining the recovery procedure here: **[Recovery]
 
 There are several configuration examples in the [examples](examples) directory. Refer to them for a basic setup and
 refer to  the [CloudNativePG Documentation](https://cloudnative-pg.io/documentation/current/) for more advanced configurations.
-
-## Values
 
 ## Values
 
@@ -306,18 +308,18 @@ refer to  the [CloudNativePG Documentation](https://cloudnative-pg.io/documentat
 | type | string | `"paradedb"` | Type of the CNPG database. Available types: * `paradedb` * `paradedb-enterprise` |
 | version.paradedb | string | `"0.12.0"` | We default to v0.12.0 for testing and local development |
 | version.postgresql | string | `"16"` | PostgreSQL major version to use |
-| poolers[].name                                      | string                                       | ``                                               | Name of the pooler resource                                                                                                                                                                                                                                                                                                                                                                                                                |
-| poolers[].instances                                 | number                                       | `1`                                              | The number of replicas we want                                                                                                                                                                                                                                                                                                                                                                                                             |
-| poolers[].type                                      | [PoolerType][PoolerType]                     | `rw`                                             | Type of service to forward traffic to. Default: `rw`.                                                                                                                                                                                                                                                                                                                                                                                      |
-| poolers[].poolMode                                  | [PgBouncerPoolMode][PgBouncerPoolMode]       | `session`                                        | The pool mode. Default: `session`.                                                                                                                                                                                                                                                                                                                                                                                                         |
-| poolers[].authQuerySecret                           | [LocalObjectReference][LocalObjectReference] | `{}`                                             | The credentials of the user that need to be used for the authentication query.                                                                                                                                                                                                                                                                                                                                                             |
-| poolers[].authQuery                                 | string                                       | `{}`                                             | The credentials of the user that need to be used for the authentication query.                                                                                                                                                                                                                                                                                                                                                             |
-| poolers[].parameters                                | map[string]string                            | `{}`                                             | Additional parameters to be passed to PgBouncer - please check the CNPG documentation for a list of options you can configure                                                                                                                                                                                                                                                                                                              |
-| poolers[].template                                  | [PodTemplateSpec][PodTemplateSpec]           | `{}`                                             | The template of the Pod to be created                                                                                                                                                                                                                                                                                                                                                                                                      |
-| poolers[].template                                  | [ServiceTemplateSpec][ServiceTemplateSpec]   | `{}`                                             | Template for the Service to be created                                                                                                                                                                                                                                                                                                                                                                                                     |
-| poolers[].pg_hba                                    | []string                                     | `{}`                                             | PostgreSQL Host Based Authentication rules (lines to be appended to the pg_hba.conf file)                                                                                                                                                                                                                                                                                                                                                  |
-| poolers[].monitoring.enabled                        | bool                                         | `false`                                          | Whether to enable monitoring for the Pooler.                                                                                                                                                                                                                                                                                                                                                                                               |
-| poolers[].monitoring.podMonitor.enabled             | bool                                         | `true`                                           | Create a podMonitor for the Pooler.                                                                                                                                                                                                                                                                                                                                                                                                        |
+| poolers[].name | string | `` | Name of the pooler resource |
+| poolers[].instances | number | `1` | The number of replicas we want |
+| poolers[].type | [PoolerType][PoolerType] | `rw` | Type of service to forward traffic to. Default: `rw`. |
+| poolers[].poolMode | [PgBouncerPoolMode][PgBouncerPoolMode] | `session` | The pool mode. Default: `session`. |
+| poolers[].authQuerySecret | [LocalObjectReference][LocalObjectReference] | `{}` | The credentials of the user that need to be used for the authentication query. |
+| poolers[].authQuery | string | `{}` | The credentials of the user that need to be used for the authentication query. |
+| poolers[].parameters | map[string]string | `{}` | Additional parameters to be passed to PgBouncer - please check the CNPG documentation for a list of options you can configure |
+| poolers[].template | [PodTemplateSpec][PodTemplateSpec] | `{}` | The template of the Pod to be created |
+| poolers[].template | [ServiceTemplateSpec][ServiceTemplateSpec] | `{}` | Template for the Service to be created |
+| poolers[].pg_hba | []string | `{}` | PostgreSQL Host Based Authentication rules (lines to be appended to the pg_hba.conf file) |
+| poolers[].monitoring.enabled | bool | `false` | Whether to enable monitoring for the Pooler. |
+| poolers[].monitoring.podMonitor.enabled | bool | `true` | Create a podMonitor for the Pooler. |
 
 ## Maintainers
 
