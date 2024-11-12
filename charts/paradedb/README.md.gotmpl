@@ -91,7 +91,7 @@ helm upgrade --atomic --install paradedb --namespace paradedb --create-namespace
 
 ### Database Types
 
-To create a ParadeDBcluster, you must specify either `paradedb` or `paradedb-enterprise` via the `type` parameter.
+To create a ParadeDB cluster, you must specify either `paradedb` or `paradedb-enterprise` via the `type` parameter.
 
 > [!IMPORTANT]
 > When using `paradedb-enterprise` you must also specify `cluster.imagePullSecrets` containing the Docker registry credentials.
