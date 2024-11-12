@@ -8,6 +8,7 @@ namespaceOverride: ""
 ###
 # -- Type of the CNPG database. Available types:
 # * `paradedb`
+# * `paradedb-enterprise`
 type: paradedb
 
 version:
@@ -175,10 +176,6 @@ recovery:
       sslRootCertSecret:
         name: ""
         key: ""
-<<<<<<< HEAD
-
-=======
->>>>>>> 5566e55 (Feat recovery.mode=import (#53))
 
 cluster:
   # -- Number of instances
