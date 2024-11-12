@@ -1,16 +1,16 @@
 ##
-# This test sets up a ParadeDB Enterprise Cluster and ensures that ParadeDB extensions are available
+# This test sets up a ParadeDB Enterprise Cluster and ensures that ParadeDB extensions are available.
 apiVersion: chainsaw.kyverno.io/v1alpha1
 kind: Test
 metadata:
-  name: paradedb
+  name: paradedb-enterprise
 spec:
   timeouts:
     apply: 1s
     assert: 2m
     cleanup: 1m
   steps:
-    - name: Install a standalone ParadeDB CNPG Cluster
+    - name: Install a standalone ParadeDB Enterprise CNPG Cluster
       try:
         - script:
             content: |
@@ -32,7 +32,7 @@ spec:
             kind: Job
         - podLogs:
             selector: cnpg.io/cluster=paradedb-ncc-1701-d
-    - name: Verify ParadeDB extensions are installed
+    - name: Verify ParadeDB Enterprise extensions are installed
       timeouts:
         apply: 1s
         assert: 30s

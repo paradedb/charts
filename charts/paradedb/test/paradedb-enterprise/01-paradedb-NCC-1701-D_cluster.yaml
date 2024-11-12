@@ -8,6 +8,5 @@ cluster:
   imagePullSecrets:
     - name: paradedb-enterprise-registry-cred
 
-
 backups:
   enabled: false
