@@ -25,7 +25,6 @@ jobs:
     needs: test-list
     runs-on: ubuntu-latest
     strategy:
-      fail-fast: false
       matrix: ${{ fromJson(needs.test-list.outputs.tests) }}
     name: ${{ matrix.test }}
     steps:
