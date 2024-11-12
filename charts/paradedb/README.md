@@ -94,13 +94,13 @@ helm upgrade --atomic --install paradedb --namespace paradedb --create-namespace
 To create a ParadeDB cluster, you must specify either `paradedb` or `paradedb-enterprise` via the `type` parameter.
 
 > [!IMPORTANT]
-> When using `paradedb-enterprise` you must also specify `cluster.imagePullSecrets` containing the Docker registry credentials. You can create one with:
+> When using `paradedb-enterprise` you must also specify the `cluster.imagePullSecrets` containing the Docker registry credentials. You can create one with:
 >
 > ```bash
 > kubectl -n NAMESPACE create secret docker-registry paradedb-enterprise-registry-cred --docker-server="https://index.docker.io/v1/" --docker-username="USERNAME" --docker-password="ACCESS_TOKEN"
 > ```
 >
-> Then you need to set:
+> You then need to set the name of the secret in the `values.yaml` file with:
 >
 > ```yaml
 > type: paradedb-enterprise
