@@ -22,7 +22,6 @@ spec:
             psql "$DB_URI" <<-EOSQL
               CALL paradedb.create_bm25_test_table(
                 schema_name => 'public',
-<<<<<<< HEAD
                 table_name => 'mock_items_paradedb_enterprise'
               );
               CREATE INDEX search_idx_paradedb_enterprise ON mock_items_paradedb_enterprise
@@ -32,36 +31,13 @@ spec:
             RESULT=$(psql "$DB_URI" -t) <<-EOSQL
               SELECT description
               FROM mock_items_paradedb_enterprise
-=======
-                table_name => 'mock_items'
-              );          
-              CALL paradedb.create_bm25(
-                index_name => 'search_idx',
-                table_name => 'mock_items',
-                key_field => 'id',
-                text_fields => paradedb.field('description') || paradedb.field('category'),
-                numeric_fields => paradedb.field('rating'),
-                boolean_fields => paradedb.field('in_stock'),
-                datetime_fields => paradedb.field('created_at'),
-                json_fields => paradedb.field('metadata'),
-                range_fields => paradedb.field('weight_range')
-              );
-            EOSQL
-            RESULT=$(psql "$DB_URI" -t) <<-EOSQL
-              SELECT description
-              FROM mock_items
->>>>>>> 73217c4 (ParadeDB Enterprise (#58))
               WHERE description @@@ '"bluetooth speaker"~1'
               LIMIT 1;
             EOSQL
             echo -$RESULT-
-<<<<<<< HEAD
             if [ "$RESULT" = " Bluetooth-enabled speaker" ]; then
               echo "Test for description search passed."
             else
               echo "Test for description search failed."
               exit 1
             fi
-=======
-            test "$RESULT" = " Bluetooth-enabled speaker"
->>>>>>> 73217c4 (ParadeDB Enterprise (#58))
