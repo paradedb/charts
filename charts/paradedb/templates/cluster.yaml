@@ -54,7 +54,7 @@ spec:
   enablePDB: {{ .Values.cluster.enablePDB }}
   postgresql:
     shared_preload_libraries:
-      {{- if eq .Values.type "paradedb" }}
+      {{- if or (eq .Values.type "paradedb") (eq .Values.type "paradedb-enterprise") }}
       - pg_search
       - pg_analytics
       - pg_cron
