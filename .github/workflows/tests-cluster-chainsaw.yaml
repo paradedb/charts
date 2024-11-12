@@ -29,12 +29,28 @@ jobs:
     name: ${{matrix.test}}
     steps:
       - name: Checkout
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - id: listTests
+        run: |
+          echo "tests=$(ls charts/paradedb/test -1 | jq -cRn '{ include: [inputs | { test: "\(.)" }]}')" >> $GITHUB_OUTPUT
+  
+  test:
+    needs: test-list
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{ fromJson(needs.test-list.outputs.tests) }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
       - name: Install Cosign
-        uses: sigstore/cosign-installer@d7543c93d881b35a8faa02e8e3605f69b7a1ce62 # v3.10.0
+        uses: sigstore/cosign-installer@v3
 
       # Added by ParadeDB: Authenticate to Docker Hub to avoid rate limits
       - name: Login to Docker Hub
@@ -71,7 +87,7 @@ jobs:
           helm install prometheus-crds prometheus-community/prometheus-operator-crds
 
       - name: Install Chainsaw
-        uses: kyverno/action-install-chainsaw@6354895e0f99ab23d3e38d85cf5c71b5dc21d727 # v0.2.13
+        uses: kyverno/action-install-chainsaw@v0.2.12
         with:
           verify: true
 
@@ -92,5 +108,9 @@ jobs:
             --values ./.github/minio.yaml \
             tenant minio-operator/tenant
 
+      # The Docker Hub tokens are required for the ParadeDB Enterprise tests
       - name: Run Kyverno/Chainsaw
-        run: chainsaw test charts/cluster/test/${{matrix.test}}
+        run: chainsaw test charts/paradedb/test/${{ matrix.test }}
+        env:
+          PARADEDB_ENTERPRISE_DOCKER_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          PARADEDB_ENTERPRISE_DOCKER_PAT: ${{ secrets.DOCKERHUB_ACCESS_TOKEN }}
