@@ -1,6 +1,0 @@
-apiVersion: batch/v1
-kind: Job
-metadata:
-  name: paradedb-write
-status:
-  succeeded: 1
