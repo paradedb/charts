@@ -83,6 +83,7 @@ spec:
       {{- toYaml . | nindent 6 }}
     {{- end }}
     {{- with .Values.cluster.postgresql.pg_ident }}
+
     pg_ident:
       {{- toYaml . | nindent 6 }}
     {{- end }}
