@@ -67,7 +67,10 @@ spec:
     pg_ident:
       {{- toYaml .pg_ident | nindent 6 }}
     parameters:
-      {{- toYaml .parameters | nindent 6 }}
+      {{ with .parameters }}
+        {{- toYaml . | nindent 6 }}
+      {{ end }}
+      cron.database_name: postgres
     {{ end }}
 
   managed:
