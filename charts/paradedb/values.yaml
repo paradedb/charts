@@ -13,7 +13,7 @@ type: paradedb
 
 version:
   # -- PostgreSQL major version to use
-  postgresql: "17"
+  postgresql: "16"
   # -- The ParadeDB version, set in the publish CI workflow from the latest paradedb/paradedb GitHub tag
   # -- We default to v0.15.6 for testing and local development
   paradedb: "0.15.6"
@@ -310,9 +310,7 @@ cluster:
 
   postgresql:
     # -- PostgreSQL configuration options (postgresql.conf)
-    parameters:
-      # Required by pg_cron
-      cron.database_name: postgres
+    parameters: {}
       # max_connections: 300
     # -- Quorum-based Synchronous Replication
     synchronous: {}
