@@ -147,7 +147,7 @@ below. Refer to the table for the full list of parameters and place the configur
 
 ## Recovery
 
-There is a separate document outlining the recovery procedure here: **[Recovery](docs/Recovery.md)**
+There is a separate document outlining the recovery procedure here: **[Recovery](docs/recovery.md)**
 
 ## Examples
 
@@ -228,9 +228,9 @@ refer to  the [CloudNativePG Documentation](https://cloudnative-pg.io/documentat
 | cluster.primaryUpdateStrategy | string | `"unsupervised"` | Strategy to follow to upgrade the primary server during a rolling update procedure, after all replicas have been successfully updated: it can be automated (unsupervised - default) or manual (supervised) |
 | cluster.priorityClassName | string | `""` |  |
 | cluster.resources | object | `{}` | Resources requirements of every generated Pod. Please refer to https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/ for more information. We strongly advise you use the same setting for limits and requests so that your cluster pods are given a Guaranteed QoS. See: https://kubernetes.io/docs/concepts/workloads/pods/pod-qos/ |
-| cluster.services | object | `{}` | Customization of service definions. Please refer to https://cloudnative-pg.io/documentation/current/service_management/ |
 | cluster.roles | list | `[]` | This feature enables declarative management of existing roles, as well as the creation of new roles if they are not already present in the database. See: https://cloudnative-pg.io/documentation/current/declarative_role_management/ |
 | cluster.serviceAccountTemplate | object | `{}` | Configure the metadata of the generated service account |
+| cluster.services | object | `{}` | Customization of service definions. Please refer to https://cloudnative-pg.io/documentation/1.24/service_management/ |
 | cluster.storage.size | string | `"8Gi"` |  |
 | cluster.storage.storageClass | string | `""` |  |
 | cluster.superuserSecret | string | `""` |  |
@@ -312,8 +312,8 @@ refer to  the [CloudNativePG Documentation](https://cloudnative-pg.io/documentat
 | recovery.secret.create | bool | `true` | Whether to create a secret for the backup credentials |
 | recovery.secret.name | string | `""` | Name of the backup credentials secret |
 | type | string | `"paradedb"` | Type of the CNPG database. Available types: * `paradedb` * `paradedb-enterprise` |
-| version.paradedb | string | `"0.12.1"` | We default to v0.12.1 for testing and local development |
-| version.postgresql | string | `"17"` | PostgreSQL major version to use |
+| version.paradedb | string | `"0.12.2"` | We default to v0.12.2 for testing and local development |
+| version.postgresql | string | `"16"` | PostgreSQL major version to use |
 | poolers[].name | string | `` | Name of the pooler resource |
 | poolers[].instances | number | `1` | The number of replicas we want |
 | poolers[].type | [PoolerType][PoolerType] | `rw` | Type of service to forward traffic to. Default: `rw`. |
