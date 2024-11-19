@@ -2,7 +2,7 @@ type: postgresql
 mode: standalone
 version:
   major: "16"
-  paradedb: "0.12.1"
+  paradedb: "0.12.2"
 cluster:
   instances: 1
   imageCatalogRef:
