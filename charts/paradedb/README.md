@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # ParadeDB Helm Chart
 
 Trigger test, remove once done.
@@ -8,8 +7,6 @@ The [ParadeDB](https://github.com/paradedb/paradedb) Helm Chart is based on the 
 Kubernetes, and specifically the CloudNativePG operator, is the recommended approach for deploying ParadeDB in production, with high availability. ParadeDB also provides a [Docker image](https://hub.docker.com/r/paradedb/paradedb) and [prebuilt binaries](https://github.com/paradedb/paradedb/releases) for Debian, Ubuntu, Red Hat Enterprise Linux, and macOS.
 
 The ParadeDB Helm Chart supports Postgres 14+ and ships with Postgres 17 by default.
-
-The ParadeDB Helm Chart supports Postgres 13+ and ships with Postgres 16 by default.
 
 The chart is also available on [Artifact Hub](https://artifacthub.io/packages/helm/paradedb/paradedb).
 
@@ -44,48 +41,6 @@ cnpg/cloudnative-pg
 ```
 
 #### Setting up a ParadeDB CNPG Cluster
-=======
-# ParadeDB CloudNativePG Cluster
-
-The [ParadeDB](https://github.com/paradedb/paradedb) Helm Chart is based on the official [CloudNativePG Helm Chart](https://cloudnative-pg.io/). CloudNativePG is a Kubernetes operator that manages the full lifecycle of a highly available PostgreSQL database cluster with a primary/standby architecture using Postgres streaming replication.
-
-Kubernetes, and specifically the CloudNativePG operator, is the recommended approach for deploying ParadeDB in production, with high availability. ParadeDB also provides a [Docker image](https://hub.docker.com/r/paradedb/paradedb) and [prebuilt binaries](https://github.com/paradedb/paradedb/releases) for Debian, Ubuntu and Red Hat Enterprise Linux.
-
-The chart is also available on [Artifact Hub](https://artifacthub.io/packages/helm/paradedb/paradedb).
-
-## Getting Started
-
-First, install [Helm](https://helm.sh/docs/intro/install/). The following steps assume you have a Kubernetes cluster running v1.25+. If you are testing locally, we recommend using [Minikube](https://minikube.sigs.k8s.io/docs/start/).
-
-### Installing the Prometheus Stack
-
-The ParadeDB Helm chart supports monitoring via Prometheus and Grafana. To enable this, you need to have the Prometheus CRDs installed before installing the CloudNativePG operator. If you do not yet have the Prometheus CRDs installed on your Kubernetes cluster, you can install it with:
-
-```bash
-helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
-helm upgrade --atomic --install prometheus-community \
---create-namespace \
---namespace prometheus-community \
---values https://raw.githubusercontent.com/cloudnative-pg/cloudnative-pg/main/docs/src/samples/monitoring/kube-stack-config.yaml \
-prometheus-community/kube-prometheus-stack
-```
-
-### Installing the CloudNativePG Operator
-
-Skip this step if the CloudNativePG operator is already installed in your cluster. If you do not wish to monitor your cluster, omit the `--set` commands.
-
-```bash
-helm repo add cnpg https://cloudnative-pg.github.io/charts
-helm upgrade --atomic --install cnpg \
---create-namespace \
---namespace cnpg-system \
---set monitoring.podMonitorEnabled=true \
---set monitoring.grafanaDashboard.create=true \
-cnpg/cloudnative-pg
-```
-
-### Setting up a ParadeDB CNPG Cluster
-> 6ea0301 (ParadeDB Support (#1))
 
 > [!IMPORTANT]
 > When deploying a cluster with more than one instance, you must use `type: paradedb-enterprise` to enable replication of BM25 indexes across instances.
@@ -103,11 +58,7 @@ cluster:
     size: 256Mi
 ```
 
-<<<<<<< HEAD
 Then, launch the ParadeDB cluster.
-=======
-Then, launch the ParadeDB cluster. If you do not wish to monitor your cluster, omit the `--set` command.
-> 6ea0301 (ParadeDB Support (#1))
 
 ```bash
 helm repo add paradedb https://paradedb.github.io/charts
@@ -115,61 +66,14 @@ helm upgrade --atomic --install paradedb \
 --namespace paradedb \
 --create-namespace \
 --values values.yaml \
-<<<<<<< HEAD
 paradedb/paradedb
 ```
-=======
---set cluster.monitoring.enabled=true \
-paradedb/paradedb
-```
-
-If `--values values.yaml` is omitted, the default values will be used. For additional configuration options for the `values.yaml` file, including configuring backups and PgBouncer, please refer to the [ParadeDB Helm Chart documentation](https://artifacthub.io/packages/helm/paradedb/paradedb#values). For advanced cluster configuration options, please refer to the [CloudNativePG Cluster Chart documentation](charts/paradedb/README.md).
-
-### Connecting to a ParadeDB CNPG Cluster
-
-The command to connect to the primary instance of the cluster will be printed in your terminal. If you do not modify any settings, it will be:
-
-```bash
-kubectl --namespace paradedb exec --stdin --tty services/paradedb-rw -- bash
-```
-
-This will launch a Bash shell inside the instance. You can connect to the ParadeDB database via `psql` with:
-
-```bash
-psql -d paradedb
-```
-
-### Connecting to the Grafana Dashboard
-
-To connect to the Grafana dashboard for your cluster, we suggested port forwarding the Kubernetes service running Grafana to localhost:
-
-```bash
-kubectl --namespace prometheus-community port-forward svc/prometheus-community-grafana 3000:80
-```
-
-You can then access the Grafana dasbhoard at [http://localhost:3000/](http://localhost:3000/) using the credentials `admin` as username and `prom-operator` as password. These default credentials are
-defined in the [`kube-stack-config.yaml`](https://raw.githubusercontent.com/cloudnative-pg/cloudnative-pg/main/docs/src/samples/monitoring/kube-stack-config.yaml) file used as the `values.yaml` file in [Installing the Prometheus CRDs](#installing-the-prometheus-stack) and can be modified by providing your own `values.yaml` file.
-
-## Development
-
-To test changes to the Chart on a local Minikube cluster, follow the instructions from [Getting Started](#getting-started), replacing the `helm upgrade` step by the path to the directory of the modified `Chart.yaml`.
-
-```bash
-helm upgrade --atomic --install paradedb --namespace paradedb --create-namespace ./charts/paradedb
-```
-
-## Cluster Configuration
-> 6ea0301 (ParadeDB Support (#1))
 
 If `--values values.yaml` is omitted, the default values will be used. For advanced ParadeDB configuration and monitoring, please refer to the [ParadeDB Chart documentation](https://github.com/paradedb/charts/tree/dev/charts/paradedb#values).
 
-<<<<<<< HEAD
 #### Connecting to a ParadeDB CNPG Cluster
 
 You can launch a Bash shell inside a specific pod via:
-=======
-To use the ParadeDB Helm Chart, specify `paradedb` via the `type` parameter.
-> 6ea0301 (ParadeDB Support (#1))
 
 ```bash
 kubectl exec --stdin --tty <pod-name> -n paradedb -- bash
@@ -407,7 +311,6 @@ refer to  the [CloudNativePG Documentation](https://cloudnative-pg.io/documentat
 | recovery.google.bucket | string | `""` |  |
 | recovery.google.gkeEnvironment | bool | `false` |  |
 | recovery.google.path | string | `"/"` |  |
-<<<<<<< HEAD
 | recovery.import.databases | list | `[]` | Databases to import |
 | recovery.import.pgDumpExtraOptions | list | `[]` | List of custom options to pass to the `pg_dump` command. IMPORTANT: Use these options with caution and at your own risk, as the operator does not validate their content. Be aware that certain options may conflict with the operator's intended functionality or design. |
 | recovery.import.pgRestoreExtraOptions | list | `[]` | List of custom options to pass to the `pg_restore` command. IMPORTANT: Use these options with caution and at your own risk, as the operator does not validate their content. Be aware that certain options may conflict with the operator's intended functionality or design. |
@@ -460,12 +363,7 @@ refer to  the [CloudNativePG Documentation](https://cloudnative-pg.io/documentat
 | recovery.s3.secretKey | string | `""` |  |
 | recovery.secret.create | bool | `true` | Whether to create a secret for the backup credentials |
 | recovery.secret.name | string | `""` | Name of the backup credentials secret |
-<<<<<<< HEAD
 | replica.bootstrap.database | string | `""` | Name of the database used by the application |
-=======
-<<<<<<< HEAD
-| replica.bootstrap.database | string | `"app"` | Name of the database used by the application. Default: `app`. |
->>>>>>> 464982c (ParadeDB Support (#1))
 | replica.bootstrap.owner | string | `""` | Name of the owner of the database in the instance to be used by applications. Defaults to the value of the `database` key. |
 | replica.bootstrap.secret | string | `""` | Name of the secret containing the initial credentials for the owner of the user database. If empty a new secret will be created from scratch |
 | replica.bootstrap.source | string | `""` | One of `object_store` or `pg_basebackup`. Method to use for bootstrap. |
