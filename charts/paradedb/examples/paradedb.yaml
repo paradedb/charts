@@ -2,7 +2,7 @@ type: paradedb
 mode: standalone
 version:
   postgresql: "17.0"
-  paradedb: "0.12.2"
+  paradedb: "0.13.0"
 cluster:
   instances: 1
 backups:
