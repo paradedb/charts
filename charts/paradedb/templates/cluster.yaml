@@ -80,11 +80,10 @@ spec:
     {{ end }}
 
   # -- Configure the generation of the service account
+  {{- with .Values.cluster.serviceAccountTemplate }}
   serviceAccountTemplate:
-    {{- with .Values.cluster.serviceAccountTemplate }}
-    serviceAccountTemplate:
-      {{- toYaml . | nindent 4 }}
-    {{- end }}
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
 
   monitoring:
     enablePodMonitor: {{ and .Values.cluster.monitoring.enabled .Values.cluster.monitoring.podMonitor.enabled }}
