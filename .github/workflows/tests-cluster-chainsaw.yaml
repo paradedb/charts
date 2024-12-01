@@ -98,3 +98,12 @@ jobs:
         env:
           PARADEDB_ENTERPRISE_DOCKER_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
           PARADEDB_ENTERPRISE_DOCKER_PAT: ${{ secrets.DOCKERHUB_ACCESS_TOKEN }}
+
+      - name: Fetch Kubernetes Logs
+        if: failure()
+        run: |
+          kubectl get pods --all-namespaces
+          for pod in $(kubectl get pods --all-namespaces -o jsonpath='{.items[*].metadata.name}'); do
+            echo "Logs for pod $pod:"
+            kubectl logs $pod --all-containers=true
+          done
