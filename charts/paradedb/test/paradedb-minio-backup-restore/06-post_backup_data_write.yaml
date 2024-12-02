@@ -19,7 +19,7 @@ spec:
               fieldRef:
                 fieldPath: metadata.namespace
         image: alpine:3.19
-        command: ['bash', '-c']
+        command: ['sh', '-c']
         args:
          - |
            apk --no-cache add postgresql-client
