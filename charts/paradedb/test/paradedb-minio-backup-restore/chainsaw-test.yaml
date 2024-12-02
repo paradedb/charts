@@ -103,7 +103,7 @@ spec:
         - apply:
             file: ./05-checkpoint.yaml
         - assert:
-            file: ./05-backup_completed-assert.yaml      
+            file: ./05-backup_completed-assert.yaml
       catch:
         - describe:
             apiVersion: postgresql.cnpg.io/v1
