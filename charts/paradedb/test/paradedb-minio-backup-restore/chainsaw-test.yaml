@@ -92,24 +92,17 @@ spec:
         - assert:
             file: ./05-backup_completed-assert.yaml      
       catch:
+        # - describe:
+        #     apiVersion: postgresql.cnpg.io/v1
+        #     kind: Backup
+        # - podLogs:
+        #     name: post-init-backup
+        #     container: backup-container
         - describe:
             apiVersion: postgresql.cnpg.io/v1
-            kind: Backup
+            kind: Cluster
         - podLogs:
-            name: post-init-backup
-            container: backup-container
-        - command:
-            run: |
-              echo "=== BACKUP RESOURCE DETAILS ==="
-              kubectl get backups.v1.postgresql.cnpg.io post-init-backup -o yaml || true
-        - command:
-            run: |
-              echo "=== POD DETAILS ==="
-              kubectl describe pod post-init-backup || true
-        - command:
-            run: |
-              echo "=== POD EVENTS ==="
-              kubectl get events --field-selector involvedObject.name=post-init-backup || true
+            selector: cnpg.io/cluster=paradedb-paradedb
     - name: Write more data to the database after the backup
       try:
         - apply:
