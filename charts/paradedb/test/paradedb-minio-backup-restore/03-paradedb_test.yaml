@@ -19,7 +19,7 @@ spec:
         args:
           - |
             apk --no-cache add postgresql-client
-            RESULT=$(psql "$DB_URI" -t) <<-EOSQL
+            RESULT=$(psql -e "$DB_URI" -t) <<-EOSQL
               SELECT description
               FROM mock_items
               WHERE description @@@ '"bluetooth speaker"~1'

@@ -19,7 +19,7 @@ spec:
         args:
           - |
             apk --no-cache add postgresql-client
-            psql "$DB_URI" <<-EOSQL
+            psql -e "$DB_URI" <<-EOSQL
               CALL paradedb.create_bm25_test_table(
                 schema_name => 'public',
                 table_name => 'mock_items'
@@ -28,7 +28,7 @@ spec:
               USING bm25 (id, description, category, rating, in_stock, created_at, metadata, weight_range)
               WITH (key_field='id');
             EOSQL
-            RESULT=$(psql "$DB_URI" -t) <<-EOSQL
+            RESULT=$(psql -e "$DB_URI" -t) <<-EOSQL
               SELECT description
               FROM mock_items
               WHERE description @@@ '"bluetooth speaker"~1'

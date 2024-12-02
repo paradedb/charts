@@ -20,5 +20,5 @@ spec:
          - |
            apk --no-cache add postgresql-client
            DB_URI=$(echo $DB_URI | sed "s|/\*|/|" )
-           test "$(psql "${DB_URI}mygooddb" -t -c 'SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = $$mygoodtable$$)' --csv -q 2>/dev/null)" = "t"
-           test "$(psql "${DB_URI}mygooddb" -t -c 'SELECT EXISTS (SELECT FROM mygoodtable WHERE id = 314159265)' --csv -q 2>/dev/null)" = "t"
+           test "$(psql -e "${DB_URI}mygooddb" -t -c 'SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = $$mygoodtable$$)' --csv -q 2>/dev/null)" = "t"
+           test "$(psql -e "${DB_URI}mygooddb" -t -c 'SELECT EXISTS (SELECT FROM mygoodtable WHERE id = 314159265)' --csv -q 2>/dev/null)" = "t"
