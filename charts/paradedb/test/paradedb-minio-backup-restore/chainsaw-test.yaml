@@ -98,6 +98,11 @@ spec:
         - podLogs:
             name: post-init-backup
             container: backup-container
+        - describe:
+            apiVersion: postgresql.cnpg.io/v1
+            kind: Cluster
+        - podLogs:
+            selector: cnpg.io/cluster=paradedb-paradedb
     - name: Write more data to the database after the backup
       try:
         - apply:
