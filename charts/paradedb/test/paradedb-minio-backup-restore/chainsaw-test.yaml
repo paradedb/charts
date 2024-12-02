@@ -94,7 +94,7 @@ spec:
         catch:
           - describe:
               apiVersion: postgresql.cnpg.io/v1
-              kind: Backup
+              kind: Job
           - podLogs:
               selector: batch.kubernetes.io/job-name=post-backup-init
     - name: Write more data to the database after the backup
