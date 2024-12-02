@@ -24,7 +24,7 @@ spec:
                 schema_name => 'public',
                 table_name => 'mock_items'
               );
-              CREATE INDEX paradedb_enterprise_test_ ON mock_items
+              CREATE INDEX paradedb_enterprise_test_search_idx ON mock_items
               USING bm25 (id, description, category, rating, in_stock, created_at, metadata, weight_range)
               WITH (key_field='id');
             EOSQL
