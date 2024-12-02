@@ -91,12 +91,12 @@ spec:
             file: ./05-checkpoint.yaml
         - assert:
             file: ./05-backup_completed-assert.yaml
-        catch:
-          - describe:
-              apiVersion: postgresql.cnpg.io/v1
-              kind: Job
-          - podLogs:
-              selector: batch.kubernetes.io/job-name=post-backup-init
+      catch:
+        - describe:
+            apiVersion: postgresql.cnpg.io/v1
+            kind: Job
+        - podLogs:
+            selector: batch.kubernetes.io/job-name=post-backup-init
     - name: Write more data to the database after the backup
       try:
         - apply:
