@@ -99,6 +99,7 @@ spec:
         - podLogs:
             selector: cnpg.io/cluster=paradedb-paradedb
     - name: Complete a backup
+      try:
         - apply:
             file: ./05-checkpoint.yaml
         - assert:
