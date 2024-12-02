@@ -52,3 +52,9 @@ spec:
         - script:
             content: |
               helm uninstall --namespace $NAMESPACE paradedb-ncc-1701-d
+      catch:
+        - describe:
+            apiVersion: v1
+            kind: Pod
+        - podLogs:
+            selector: cnpg.io/cluster=paradedb-ncc-1701-d
