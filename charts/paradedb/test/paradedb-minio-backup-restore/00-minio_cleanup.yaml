@@ -9,7 +9,7 @@ spec:
       containers:
       - name: minio-cleanup
         image: minio/mc
-        command: ['sh', '-c']
+        command: ['bash', '-c']
         args:
          - |
            mc alias set myminio https://minio.minio.svc.cluster.local minio minio123
