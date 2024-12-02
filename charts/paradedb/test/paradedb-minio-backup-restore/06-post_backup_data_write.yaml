@@ -24,4 +24,4 @@ spec:
          - |
            apk --no-cache add postgresql-client
            DB_URI=$(echo $DB_URI | sed "s|/\*|/|" )
-           psql -e "$DB_URI" -c "CREATE TABLE mybadtable (id serial PRIMARY KEY);"
+           psql "$DB_URI" -c "CREATE TABLE mybadtable (id serial PRIMARY KEY);"
