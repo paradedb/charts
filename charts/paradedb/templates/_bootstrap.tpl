@@ -19,6 +19,7 @@ bootstrap:
           {{- printf "- %s" . | nindent 6 }}
         {{- end -}}
       {{- end }}
+    {{- if or (eq .Values.type "paradedb") (eq .Values.type "paradedb-enterprise") (not (empty .Values.cluster.initdb.postInitApplicationSQL)) }}
     postInitApplicationSQL:
       {{- if or (eq .Values.type "paradedb") (eq .Values.type "paradedb-enterprise") }}
       - CREATE EXTENSION IF NOT EXISTS pg_search;
@@ -36,6 +37,8 @@ bootstrap:
           {{- printf "- %s" . | nindent 6 }}
         {{- end -}}
       {{- end }}
+    {{- end }}
+    {{- if or (eq .Values.type "paradedb") (eq .Values.type "paradedb-enterprise") (not (empty .Values.cluster.initdb.postInitTemplateSQL)) }}
     postInitTemplateSQL:
       {{- if or (eq .Values.type "paradedb") (eq .Values.type "paradedb-enterprise") }}
       - CREATE EXTENSION IF NOT EXISTS pg_search;
@@ -53,6 +56,7 @@ bootstrap:
           {{- printf "- %s" . | nindent 6 }}
         {{- end -}}
       {{- end -}}
+    {{- end -}}
 {{- else if eq .Values.mode "recovery" -}}
 bootstrap:
 {{- if eq .Values.recovery.method "pg_basebackup" }}
