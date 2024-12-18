@@ -60,7 +60,7 @@ spec:
   {{ end }}
   enablePDB: {{ .Values.cluster.enablePDB }}
   postgresql:
-    {{- if or (eq .Values.type "timescaledb") (not (empty .Values.cluster.postgresql.shared_preload_libraries)) }}
+    {{- if or (eq .Values.type "paradedb") (eq .Values.type "paradedb-enterprise") (not (empty .Values.cluster.postgresql.shared_preload_libraries)) }}
     shared_preload_libraries:
       {{- if or (eq .Values.type "paradedb") (eq .Values.type "paradedb-enterprise") }}
       - pg_search
