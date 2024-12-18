@@ -20,7 +20,7 @@ You can read more about the optimal architecture for running ParadeDB in product
 
 ### Self-Hosted
 
-First, install [Helm](https://helm.sh/docs/intro/install/). The following steps assume you have a Kubernetes cluster running v1.25+. If you are testing locally, we recommend using [Minikube](https://minikube.sigs.k8s.io/docs/start/).
+First, install [Helm](https://helm.sh/docs/intro/install/). The following steps assume you have a Kubernetes cluster running v1.29+. If you are testing locally, we recommend using [Minikube](https://minikube.sigs.k8s.io/docs/start/).
 
 #### Monitoring
 
@@ -311,7 +311,7 @@ refer to  the [CloudNativePG Documentation](https://cloudnative-pg.io/documentat
 | recovery.secret.create | bool | `true` | Whether to create a secret for the backup credentials |
 | recovery.secret.name | string | `""` | Name of the backup credentials secret |
 | type | string | `"paradedb"` | Type of the CNPG database. Available types: * `paradedb` * `paradedb-enterprise` |
-| version.paradedb | string | `"0.13.1"` | We default to v0.13.1 for testing and local development |
+| version.paradedb | string | `"0.13.2"` | We default to v0.13.2 for testing and local development |
 | version.postgresql | string | `"17"` | PostgreSQL major version to use |
 | poolers[].name | string | `` | Name of the pooler resource |
 | poolers[].instances | number | `1` | The number of replicas we want |
