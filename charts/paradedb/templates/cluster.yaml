@@ -83,10 +83,9 @@ spec:
     synchronous:
       {{- toYaml . | nindent 6 }}
     {{ end }}
+    {{- with .Values.cluster.postgresql.parameters }}
     parameters:
-      {{- with .Values.cluster.postgresql.parameters }}
-        {{- toYaml . | nindent 6 }}
-      {{ end }}
+      {{- toYaml . | nindent 6 }}
       cron.database_name: postgres
     {{ end }}
 
