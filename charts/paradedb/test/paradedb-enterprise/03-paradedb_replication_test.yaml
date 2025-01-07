@@ -35,7 +35,7 @@ spec:
             fi
             
             SIZE_RESULT=$(psql "$DB_URI" -t) <<-EOSQL
-              SELECT pg_size_pretty(pg_relation_size('search_idx'));
+              SELECT pg_size_pretty(pg_relation_size('search_idx_paradedb_enterprise'));
             EOSQL
             echo -$SIZE_RESULT-
             if [ "$SIZE_RESULT" != " 0 bytes" ]; then
