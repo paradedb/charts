@@ -302,6 +302,9 @@
                 "serviceAccountTemplate": {
                     "type": "object"
                 },
+                "services": {
+                    "type": "object"
+                },
                 "storage": {
                     "type": "object",
                     "properties": {

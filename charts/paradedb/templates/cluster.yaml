@@ -89,10 +89,14 @@ spec:
       cron.database_name: postgres
     {{ end }}
 
-  {{- if not (empty .Values.cluster.roles) }}
+  {{- if or (not (empty .Values.cluster.roles)) (not (empty .Values.cluster.services)) }}
   managed:
     {{- with .Values.cluster.roles }}
     roles:
+      {{- toYaml . | nindent 6 }}
+    {{ end }}
+    {{- with .Values.cluster.services}}
+    services:
       {{- toYaml . | nindent 6 }}
     {{ end }}
   {{- end }}
