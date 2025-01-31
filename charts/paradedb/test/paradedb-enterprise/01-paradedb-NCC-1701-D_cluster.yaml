@@ -2,7 +2,11 @@ type: paradedb-enterprise
 mode: standalone
 version:
   major: "17"
+<<<<<<< HEAD
   paradedb: "0.15.1"
+=======
+  paradedb: "0.15.0"
+>>>>>>> 0d458f5 (chore: Upgrade to 0.15.0 (#80))
 cluster:
   instances: 2
   storage:
