@@ -3,10 +3,14 @@ mode: standalone
 version:
   major: "17"
 <<<<<<< HEAD
+<<<<<<< HEAD
   paradedb: "0.15.1"
 =======
   paradedb: "0.14.1"
 >>>>>>> e3c5886 (test: Upgrade to 0.14.0 & Add test for replication (#75))
+=======
+  paradedb: "0.15.1"
+>>>>>>> 9de7651 (chore: Upgrade to 0.15.0 (#80))
 cluster:
   instances: 2
   storage:
