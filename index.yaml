@@ -2,6 +2,31 @@ apiVersion: v1
 entries:
   paradedb:
   - apiVersion: v2
+    created: "2025-02-07T18:44:33.088297323Z"
+    description: Deploys and manages a ParadeDB CloudNativePG cluster and its associated
+      resources.
+    digest: 5deebb821888c2e9682569689444135d2d897dfd2e9dd2fee2b3cfaf3b0a54b2
+    home: https://paradedb.com
+    icon: https://raw.githubusercontent.com/paradedb/paradedb/main/docs/logo/light.svg
+    keywords:
+    - paradedb
+    - pg_search
+    - pg_analytics
+    - postgresql
+    - postgres
+    - database
+    maintainers:
+    - email: support@paradedb.com
+      name: ParadeDB
+      url: https://paradedb.com
+    name: paradedb
+    sources:
+    - https://github.com/paradedb/charts
+    type: application
+    urls:
+    - https://github.com/paradedb/charts/releases/download/paradedb-0.9.18/paradedb-0.9.18.tgz
+    version: 0.9.18
+  - apiVersion: v2
     created: "2025-02-05T07:54:30.185412146Z"
     description: Deploys and manages a ParadeDB CloudNativePG cluster and its associated
       resources.
@@ -1751,4 +1776,4 @@ entries:
     urls:
     - https://github.com/paradedb/charts/releases/download/paradedb-0.8.0/paradedb-0.8.0.tgz
     version: 0.8.0
-generated: "2025-02-05T07:54:30.185772033Z"
+generated: "2025-02-07T18:44:33.088582216Z"
