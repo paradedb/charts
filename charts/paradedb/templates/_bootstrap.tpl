@@ -100,7 +100,7 @@ bootstrap:
       pgRestoreExtraOptions:
         {{- . | toYaml | nindent 6 }}
       {{- end }}
-  {{- else }}
+{{- else }}
   recovery:
     {{- with .Values.recovery.pitrTarget.time }}
     recoveryTarget:
