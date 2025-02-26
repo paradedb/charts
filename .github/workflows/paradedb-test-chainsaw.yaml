@@ -1,4 +1,4 @@
-name: test( cluster )
+name: test( ParadeDB )
 
 on:
   pull_request:
