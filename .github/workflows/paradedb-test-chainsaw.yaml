@@ -1,4 +1,4 @@
-name: test( ParadeDB )
+name: Test ParadeDB Helm Chart
 
 on:
   pull_request:
