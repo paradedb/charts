@@ -32,6 +32,7 @@ spec:
     shared_preload_libraries:
       - pgaudit
       - pg_cron
+      - pg_prewarm
     synchronous:
       method: any
       number: 1
