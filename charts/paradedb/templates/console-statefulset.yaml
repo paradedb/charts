@@ -1,3 +1,4 @@
+{{- if .Values.cluster.console.enabled }}
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -41,7 +42,7 @@ spec:
         {{- end }}
         app.kubernetes.io/component: console
     spec:
-      terminationGracePeriodSeconds: 5
+      terminationGracePeriodSeconds: 2
       containers:
         - name: console
           image: ubuntu:latest
@@ -54,3 +55,4 @@ spec:
           volumeMounts:
             - name: console-home
               mountPath: /root
+{{- end }}
