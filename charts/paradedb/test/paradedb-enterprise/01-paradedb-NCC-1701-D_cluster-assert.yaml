@@ -6,6 +6,6 @@ spec:
   postgresql:
     parameters:
       cron.database_name: postgres
-      hot_standby_feedback: on
+      hot_standby_feedback: "1"
 status:
   readyInstances: 2
