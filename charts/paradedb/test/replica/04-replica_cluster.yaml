@@ -1,4 +1,4 @@
-type: postgresql
+type: paradedb
 mode: replica
 
 cluster:
