@@ -10,4 +10,4 @@ spec:
     enabled: true
     source: originCluster
 status:
-  readyInstances: 2
+  readyInstances: 1
