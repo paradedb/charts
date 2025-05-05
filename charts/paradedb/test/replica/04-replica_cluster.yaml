@@ -11,12 +11,12 @@ replica:
     source: pg_basebackup
   origin:
     pg_basebackup:
-      host: "source-cluster-rw"
+      host: "source-paradedb-rw"
       username: "streaming_replica"
       sslMode: "require"
       sslKeySecret:
-        name: source-cluster-replication
+        name: source-paradedb-replication
         key: tls.key
       sslCertSecret:
-        name: source-cluster-replication
+        name: source-paradedb-replication
         key: tls.crt
