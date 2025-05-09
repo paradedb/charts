@@ -87,7 +87,6 @@ bootstrap:
       {{ with .Values.recovery.import.roles }}
       roles: {{ . | toJson }}
       {{- end }}
-      {{ with .Values.recovery.import.postImportApplicationSQL }}
       postImportApplicationSQL:
         {{- if or (eq .Values.type "paradedb") (eq .Values.type "paradedb-enterprise") }}
         - CREATE EXTENSION IF NOT EXISTS pg_search;
@@ -99,8 +98,9 @@ bootstrap:
         - CREATE EXTENSION IF NOT EXISTS postgis_tiger_geocoder;
         - ALTER DATABASE "{{ default "paradedb" .Values.cluster.initdb.database }}" SET search_path TO public,paradedb;
         {{- end }}
+        {{- with .Values.recovery.import.postImportApplicationSQL }}
         {{- . | toYaml | nindent 6 }}
-      {{- end }}
+        {{- end }}
       schemaOnly: {{ .Values.recovery.import.schemaOnly }}
       {{ with .Values.recovery.import.pgDumpExtraOptions }}
       pgDumpExtraOptions:
