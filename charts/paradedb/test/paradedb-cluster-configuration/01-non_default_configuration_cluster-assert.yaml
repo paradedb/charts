@@ -33,7 +33,6 @@ spec:
       - pg_search
       - pg_cron
       - pgaudit
-      - pg_cron
     synchronous:
       method: any
       number: 1
