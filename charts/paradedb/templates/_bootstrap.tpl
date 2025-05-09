@@ -89,6 +89,14 @@ bootstrap:
       {{- end }}
       {{ with .Values.recovery.import.postImportApplicationSQL }}
       postImportApplicationSQL:
+        - CREATE EXTENSION IF NOT EXISTS pg_search;
+        - CREATE EXTENSION IF NOT EXISTS pg_ivm;
+        - CREATE EXTENSION IF NOT EXISTS vector;
+        - CREATE EXTENSION IF NOT EXISTS postgis;
+        - CREATE EXTENSION IF NOT EXISTS postgis_topology;
+        - CREATE EXTENSION IF NOT EXISTS fuzzystrmatch;
+        - CREATE EXTENSION IF NOT EXISTS postgis_tiger_geocoder;
+        - ALTER DATABASE "{{ default "paradedb" .Values.cluster.initdb.database }}" SET search_path TO public,paradedb;
         {{- . | toYaml | nindent 6 }}
       {{- end }}
       schemaOnly: {{ .Values.recovery.import.schemaOnly }}
