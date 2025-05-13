@@ -2,6 +2,325 @@ apiVersion: v1
 entries:
   paradedb:
   - apiVersion: v2
+    appVersion: 0.15.25
+    created: "2025-06-13T23:37:26.38323009Z"
+    description: Deploys and manages a ParadeDB CloudNativePG cluster and its associated
+      resources.
+    digest: c7bc9e5c7e5430d54efc7950272de41f220ed605893a2060ad27123f57125c28
+    home: https://paradedb.com
+    icon: https://raw.githubusercontent.com/paradedb/paradedb/main/docs/logo/light.svg
+    keywords:
+    - paradedb
+    - pg_search
+    - postgresql
+    - postgres
+    - database
+    - full-text
+    - analytics
+    - vector
+    - zero-etl
+    maintainers:
+    - email: support@paradedb.com
+      name: ParadeDB
+      url: https://paradedb.com
+    name: paradedb
+    sources:
+    - https://github.com/paradedb/charts
+    type: application
+    urls:
+    - https://github.com/paradedb/charts/releases/download/paradedb-0.10.0/paradedb-0.10.0.tgz
+    version: 0.10.0
+  - apiVersion: v2
+    appVersion: 0.15.25
+    created: "2025-06-13T16:49:30.410678137Z"
+    description: Deploys and manages a ParadeDB CloudNativePG cluster and its associated
+      resources.
+    digest: 1deb37e566a9adad56314db9f6d8dac6b802cebaf17565a9e6929d97010e5b1c
+    home: https://paradedb.com
+    icon: https://raw.githubusercontent.com/paradedb/paradedb/main/docs/logo/light.svg
+    keywords:
+    - paradedb
+    - pg_search
+    - postgresql
+    - postgres
+    - database
+    - full-text
+    - analytics
+    - vector
+    - zero-etl
+    maintainers:
+    - email: support@paradedb.com
+      name: ParadeDB
+      url: https://paradedb.com
+    name: paradedb
+    sources:
+    - https://github.com/paradedb/charts
+    type: application
+    urls:
+    - https://github.com/paradedb/charts/releases/download/paradedb-0.9.97/paradedb-0.9.97.tgz
+    version: 0.9.97
+  - apiVersion: v2
+    appVersion: 0.15.25
+    created: "2025-06-11T17:50:12.768383627Z"
+    description: Deploys and manages a ParadeDB CloudNativePG cluster and its associated
+      resources.
+    digest: d0bea88939bd8c0fd333c7fce8d352697d0704671ca580e72a90891be30762c7
+    home: https://paradedb.com
+    icon: https://raw.githubusercontent.com/paradedb/paradedb/main/docs/logo/light.svg
+    keywords:
+    - paradedb
+    - pg_search
+    - postgresql
+    - postgres
+    - database
+    - full-text
+    - analytics
+    - vector
+    - zero-etl
+    maintainers:
+    - email: support@paradedb.com
+      name: ParadeDB
+      url: https://paradedb.com
+    name: paradedb
+    sources:
+    - https://github.com/paradedb/charts
+    type: application
+    urls:
+    - https://github.com/paradedb/charts/releases/download/paradedb-0.9.96/paradedb-0.9.96.tgz
+    version: 0.9.96
+  - apiVersion: v2
+    appVersion: 0.15.22
+    created: "2025-06-04T21:19:11.100407801Z"
+    description: Deploys and manages a ParadeDB CloudNativePG cluster and its associated
+      resources.
+    digest: c40859b75442a29efdee1410861bc5eb710fd1118754b7bca0eb9a9fe8d7cb18
+    home: https://paradedb.com
+    icon: https://raw.githubusercontent.com/paradedb/paradedb/main/docs/logo/light.svg
+    keywords:
+    - paradedb
+    - pg_search
+    - postgresql
+    - postgres
+    - database
+    - full-text
+    - analytics
+    - vector
+    - zero-etl
+    maintainers:
+    - email: support@paradedb.com
+      name: ParadeDB
+      url: https://paradedb.com
+    name: paradedb
+    sources:
+    - https://github.com/paradedb/charts
+    type: application
+    urls:
+    - https://github.com/paradedb/charts/releases/download/paradedb-0.9.95/paradedb-0.9.95.tgz
+    version: 0.9.95
+  - apiVersion: v2
+    appVersion: 0.15.21
+    created: "2025-06-01T15:24:10.839401359Z"
+    description: Deploys and manages a ParadeDB CloudNativePG cluster and its associated
+      resources.
+    digest: 13845098fdcd8758848a15a2e6eca5ca784a1744a6af3d6065f2245eccaae70b
+    home: https://paradedb.com
+    icon: https://raw.githubusercontent.com/paradedb/paradedb/main/docs/logo/light.svg
+    keywords:
+    - paradedb
+    - pg_search
+    - postgresql
+    - postgres
+    - database
+    - full-text
+    - analytics
+    - vector
+    - zero-etl
+    maintainers:
+    - email: support@paradedb.com
+      name: ParadeDB
+      url: https://paradedb.com
+    name: paradedb
+    sources:
+    - https://github.com/paradedb/charts
+    type: application
+    urls:
+    - https://github.com/paradedb/charts/releases/download/paradedb-0.9.94/paradedb-0.9.94.tgz
+    version: 0.9.94
+  - apiVersion: v2
+    appVersion: 0.15.20
+    created: "2025-05-27T19:35:10.531650578Z"
+    description: Deploys and manages a ParadeDB CloudNativePG cluster and its associated
+      resources.
+    digest: 74da6cd78ac62ad9fd5d00ad2a8e0409b7367ebd9f8cf68230fb6057c8b07149
+    home: https://paradedb.com
+    icon: https://raw.githubusercontent.com/paradedb/paradedb/main/docs/logo/light.svg
+    keywords:
+    - paradedb
+    - pg_search
+    - postgresql
+    - postgres
+    - database
+    - full-text
+    - analytics
+    - vector
+    - zero-etl
+    maintainers:
+    - email: support@paradedb.com
+      name: ParadeDB
+      url: https://paradedb.com
+    name: paradedb
+    sources:
+    - https://github.com/paradedb/charts
+    type: application
+    urls:
+    - https://github.com/paradedb/charts/releases/download/paradedb-0.9.93/paradedb-0.9.93.tgz
+    version: 0.9.93
+  - apiVersion: v2
+    appVersion: 0.15.20
+    created: "2025-05-25T12:19:43.70992973Z"
+    description: Deploys and manages a ParadeDB CloudNativePG cluster and its associated
+      resources.
+    digest: 9e58bcec92210cfe764ea31c0e71855ca9edf7b34d0ca2e166b6b4ec5b8e1b95
+    home: https://paradedb.com
+    icon: https://raw.githubusercontent.com/paradedb/paradedb/main/docs/logo/light.svg
+    keywords:
+    - paradedb
+    - pg_search
+    - postgresql
+    - postgres
+    - database
+    - full-text
+    - analytics
+    - vector
+    - zero-etl
+    maintainers:
+    - email: support@paradedb.com
+      name: ParadeDB
+      url: https://paradedb.com
+    name: paradedb
+    sources:
+    - https://github.com/paradedb/charts
+    type: application
+    urls:
+    - https://github.com/paradedb/charts/releases/download/paradedb-0.9.92/paradedb-0.9.92.tgz
+    version: 0.9.92
+  - apiVersion: v2
+    appVersion: 0.15.20
+    created: "2025-05-17T10:16:14.81870394Z"
+    description: Deploys and manages a ParadeDB CloudNativePG cluster and its associated
+      resources.
+    digest: 99ea6ce68316a8b1113a34894f7fd70e4ff5db6b7b7a532bdefc7d05c16695ca
+    home: https://paradedb.com
+    icon: https://raw.githubusercontent.com/paradedb/paradedb/main/docs/logo/light.svg
+    keywords:
+    - paradedb
+    - pg_search
+    - postgresql
+    - postgres
+    - database
+    - full-text
+    - analytics
+    - vector
+    - zero-etl
+    maintainers:
+    - email: support@paradedb.com
+      name: ParadeDB
+      url: https://paradedb.com
+    name: paradedb
+    sources:
+    - https://github.com/paradedb/charts
+    type: application
+    urls:
+    - https://github.com/paradedb/charts/releases/download/paradedb-0.9.91/paradedb-0.9.91.tgz
+    version: 0.9.91
+  - apiVersion: v2
+    appVersion: 0.15.20
+    created: "2025-05-16T21:29:40.758212638Z"
+    description: Deploys and manages a ParadeDB CloudNativePG cluster and its associated
+      resources.
+    digest: 90ee36f98eaa120cae84c3fc5c5a33e54be2c98e9c9371ecd0ce55bb2373f841
+    home: https://paradedb.com
+    icon: https://raw.githubusercontent.com/paradedb/paradedb/main/docs/logo/light.svg
+    keywords:
+    - paradedb
+    - pg_search
+    - postgresql
+    - postgres
+    - database
+    - full-text
+    - analytics
+    - vector
+    - zero-etl
+    maintainers:
+    - email: support@paradedb.com
+      name: ParadeDB
+      url: https://paradedb.com
+    name: paradedb
+    sources:
+    - https://github.com/paradedb/charts
+    type: application
+    urls:
+    - https://github.com/paradedb/charts/releases/download/paradedb-0.9.90/paradedb-0.9.90.tgz
+    version: 0.9.90
+  - apiVersion: v2
+    appVersion: 0.15.19
+    created: "2025-05-14T18:23:41.514148937Z"
+    description: Deploys and manages a ParadeDB CloudNativePG cluster and its associated
+      resources.
+    digest: 442ca67ecc610e49ac0d42fb79ea2e472a496ac49779ba43f081ee54aa4784b5
+    home: https://paradedb.com
+    icon: https://raw.githubusercontent.com/paradedb/paradedb/main/docs/logo/light.svg
+    keywords:
+    - paradedb
+    - pg_search
+    - postgresql
+    - postgres
+    - database
+    - full-text
+    - analytics
+    - vector
+    - zero-etl
+    maintainers:
+    - email: support@paradedb.com
+      name: ParadeDB
+      url: https://paradedb.com
+    name: paradedb
+    sources:
+    - https://github.com/paradedb/charts
+    type: application
+    urls:
+    - https://github.com/paradedb/charts/releases/download/paradedb-0.9.89/paradedb-0.9.89.tgz
+    version: 0.9.89
+  - apiVersion: v2
+    appVersion: 0.15.19
+    created: "2025-05-13T21:50:48.468953699Z"
+    description: Deploys and manages a ParadeDB CloudNativePG cluster and its associated
+      resources.
+    digest: f093f6c6aa611ef95b8d52dc19e2c600aeb40e3b0979205a17b3ec9e68ffc79a
+    home: https://paradedb.com
+    icon: https://raw.githubusercontent.com/paradedb/paradedb/main/docs/logo/light.svg
+    keywords:
+    - paradedb
+    - pg_search
+    - postgresql
+    - postgres
+    - database
+    - full-text
+    - analytics
+    - vector
+    - zero-etl
+    maintainers:
+    - email: support@paradedb.com
+      name: ParadeDB
+      url: https://paradedb.com
+    name: paradedb
+    sources:
+    - https://github.com/paradedb/charts
+    type: application
+    urls:
+    - https://github.com/paradedb/charts/releases/download/paradedb-0.9.88/paradedb-0.9.88.tgz
+    version: 0.9.88
+  - apiVersion: v2
     appVersion: 0.15.18
     created: "2025-05-10T07:13:09.463518124Z"
     description: Deploys and manages a ParadeDB CloudNativePG cluster and its associated
@@ -3598,4 +3917,4 @@ entries:
     urls:
     - https://github.com/paradedb/charts/releases/download/paradedb-0.8.0/paradedb-0.8.0.tgz
     version: 0.8.0
-generated: "2025-05-10T07:13:09.464125842Z"
+generated: "2025-06-13T23:37:26.383638374Z"
