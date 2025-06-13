@@ -14,4 +14,3 @@ databases:
     extensions:
       - name: pg_search
         ensure: present
-        version: "0.15.21"

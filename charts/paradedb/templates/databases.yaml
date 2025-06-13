@@ -70,9 +70,10 @@ spec:
   {{- with .extensions }}
   extensions:
   {{- range . }}
+    {{- $extname := .name }}
     - name: {{ .name }}
       {{- with .version }}
-      version: {{ . }}
+      version: {{ eq $extname "pg_search" | ternary $.Values.version.paradedb . }}
       {{- end }}
       {{- with .schema }}
       schema: {{ . }}
