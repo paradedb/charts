@@ -72,7 +72,7 @@ spec:
   {{- range . }}
     {{- $extname := .name }}
     - name: {{ .name }}
-      {{- with .version }}
+      {{- if or (not (empty .version)) (eq $extname "pg_search") }}
       version: {{ eq $extname "pg_search" | ternary $.Values.version.paradedb . }}
       {{- end }}
       {{- with .schema }}
