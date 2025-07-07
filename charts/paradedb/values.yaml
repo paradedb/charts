@@ -365,7 +365,7 @@ cluster:
   annotations: {}
 
   console:
-    # -- Deploys a console StatefulSet to run long-running commands against the cluster.
+    # -- Deploys a console StatefulSet to run long-running commands against the cluster (e.g. `CREATE INDEX`).
     enabled: false
 
 backups:
