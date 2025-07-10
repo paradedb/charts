@@ -2,7 +2,7 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: {{ include "cluster.fullname" $  }}-console
+  name: {{ include "cluster.fullname" $ }}-console
   namespace: {{ include "cluster.namespace" $ }}
   {{- with .Values.cluster.annotations }}
   annotations:
@@ -50,8 +50,44 @@ spec:
           args:
             - "-c"
             - |
-              apt update && apt install -y postgresql-client screen curl wget jq unzip gzip nano util-linux
+              apt update && apt install -y postgresql-client screen curl wget jq unzip gzip nano vim util-linux less htop
+              cat <<EOF > /root/.bashrc
+              echo -e "\nHere are some examples for connecting and running queries on the cluster:"
+              echo '  nohup psql \$DB_SUPERUSER_URI"/DB_NAME" -c "SELECT 1;" 2>&1 > command.log &'
+              echo -e "\nTo check up on the command, use:"
+              echo "  tail -f command.log"
+              echo -e "\nYou can also use \'screen\' for an interactive session. See \'docs/Long-running Tasks.md\' in the Helm chart for examples."
+              echo -e "\n"
+              EOF
               sleep infinity
+          env:
+            - name: DB_APP_URI
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "cluster.fullname" $ }}-app
+                  key: uri
+            - name: DB_SUPERUSER_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "cluster.fullname" $ }}-superuser
+                  key: host
+            - name: DB_SUPERUSER_PORT
+              valueFrom:
+                  secretKeyRef:
+                    name: {{ include "cluster.fullname" $ }}-superuser
+                    key: port
+            - name: DB_SUPERUSER_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "cluster.fullname" $ }}-superuser
+                  key: user
+            - name: DB_SUPERUSER_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "cluster.fullname" $ }}-superuser
+                  key: password
+            - name: DB_SUPERUSER_URI
+              value: "postgresql://$(DB_SUPERUSER_USER):$(DB_SUPERUSER_PASSWORD)@$(DB_SUPERUSER_HOST):$(DB_SUPERUSER_PORT)"
           volumeMounts:
             - name: console-home
               mountPath: /root
