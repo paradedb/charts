@@ -50,13 +50,15 @@ spec:
           args:
             - "-c"
             - |
-              apt update && apt install -y postgresql-client screen curl wget jq unzip gzip nano vim util-linux less htop
+              apt update
+              apt install -y postgresql-client
+              apt install -y screen curl wget jq unzip gzip nano vim util-linux less htop
               cat <<EOF > /root/.bashrc
               echo -e "\nHere are some examples for connecting and running queries on the cluster:"
               echo '  nohup psql \$DB_SUPERUSER_URI"/DB_NAME" -c "SELECT 1;" 2>&1 > command.log &'
               echo -e "\nTo check up on the command, use:"
               echo "  tail -f command.log"
-              echo -e "\nYou can also use \'screen\' for an interactive session. See \'docs/Long-running Tasks.md\' in the Helm chart for examples."
+              echo -e "\nYou can also use 'screen' for an interactive session. See 'docs/Long-running Tasks.md' in the Helm chart for examples."
               echo -e "\n"
               EOF
               sleep infinity

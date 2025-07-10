@@ -1,0 +1,41 @@
+##
+# This is a test that verifies that non-default configuration options are correctly propagated to the ParadeDB CNPG cluster.
+# P.S. This test is not designed to have a good running configuration, it is designed to test the configuration propagation!
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  name: postgresql-cluster-configuration
+spec:
+  timeouts:
+    apply: 1s
+    assert: 5s
+    cleanup: 30s
+    exec: 30s
+  steps:
+    - name: Install the non-default configuration cluster
+      try:
+        - script:
+            content: |
+              helm upgrade \
+                --install \
+                --namespace $NAMESPACE \
+                --values ./01-console_test_cluster.yaml \
+                --wait \
+                console-test ../../
+        - assert:
+            file: ./01-console_test_cluster-assert.yaml
+        - script:
+            content: |
+              kubectl --namespace $NAMESPACE wait --for=condition=ready clusters.postgresql.cnpg.io/console-test-paradedb --timeout=30s
+              kubectl --namespace $NAMESPACE wait --for=condition=ready pod/console-test-paradedb-console-0 --timeout=30s
+              kubectl --namespace $NAMESPACE exec statefulsets/console-test-paradedb-console -- bash -c 'while true; do command -v psql && break || sleep 1; done'
+              echo 'psql $DB_SUPERUSER_URI -c "SELECT PG_SLEEP(15);"' | kubectl --namespace $NAMESPACE exec --stdin statefulsets/console-test-paradedb-console -- bash &
+              sleep 5
+              PSQL_RUNNING=$(kubectl --namespace $NAMESPACE exec statefulsets/console-test-paradedb-console -- bash -c 'ps -ef | grep psql | wc -l')
+              echo "PSQL_RUNNING: $PSQL_RUNNING"
+              [ $PSQL_RUNNING -gt 3 ] || exit 1
+    - name: Cleanup
+      try:
+        - script:
+            content: |
+              helm uninstall --namespace $NAMESPACE console-test
