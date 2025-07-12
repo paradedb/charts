@@ -39,7 +39,7 @@ We provide the database credentials as environment variables in the console pod.
 To run a command in the background you can use the `nohup` command. For example, to create an index in the background:
 
 ```bash
-nohup psql $DB_SUPERUSER_URI"/DB_NAME" -c "CREATE INDEX orders_idx ON orders USING bm25 (order_id, customer_name) WITH (key_field='order_id');" 2>&1 > command.log
+nohup psql $DB_SUPERUSER_URI"/DB_NAME" -c "CREATE INDEX orders_idx ON orders USING bm25 (order_id, customer_name) WITH (key_field='order_id');" 2>&1 > command.log &
 ```
 
 To check on the status of the command, you can use the `tail` command:
