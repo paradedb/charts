@@ -5,5 +5,7 @@ version:
   paradedb: "0.19.4"
 cluster:
   instances: 1
+  console:
+    enabled: true
 backups:
   enabled: false

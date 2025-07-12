@@ -15,8 +15,8 @@ version:
   # -- PostgreSQL major version to use
   postgresql: "17"
   # -- The ParadeDB version, set in the publish CI workflow from the latest paradedb/paradedb GitHub tag
-  # -- We default to v0.16.3 for testing and local development
-  paradedb: "0.16.3"
+  # -- We default to v0.19.4 for testing and local development
+  paradedb: "0.19.4"
 
 ###
 # -- Cluster mode of operation. Available modes:
@@ -179,7 +179,7 @@ recovery:
 
 cluster:
   # -- Number of instances
-  instances: 3
+  instances: 1
 
   # -- Name of the container image, supporting both tags (<image>:<tag>) and digests for deterministic and repeatable deployments:
   # <image>:<tag>@sha256:<digestValue>
@@ -303,10 +303,15 @@ cluster:
   monitoring:
     # -- Whether to enable monitoring
     enabled: false
+    instrumentation:
+      # -- Enable ParadeDB index metrics
+      paradedbIndex: true
+      # -- Enable logical replication metrics
+      logicalReplication: true
     podMonitor:
       # -- Whether to enable the PodMonitor
       enabled: true
-      # --The list of relabelings for the PodMonitor.
+      # -- The list of relabelings for the PodMonitor.
       # Applied to samples before scraping.
       relabelings: []
       # -- The list of metric relabelings for the PodMonitor.
@@ -390,6 +395,9 @@ cluster:
   additionalLabels: {}
   annotations: {}
 
+  console:
+    # -- Deploys a console StatefulSet to run long-running commands against the cluster (e.g. `CREATE INDEX`).
+    enabled: false
 
 backups:
   # -- You need to configure backups manually, so backups are disabled by default.
@@ -599,7 +607,7 @@ databases: []
  #   extensions: []                 # -- List of extensions to be created in the database.
  #    # - name: pg_search
  #    #   ensure: present           # -- Ensure the PostgreSQL extension is present or absent - defaults to "present".
- #    #   version: "0.15.21"        # -- Version of the extension to be installed, if not specified the latest version will be used.
+ #    #   version: "0.19.4"         # -- Version of the extension to be installed, if not specified the latest version will be used.
  #    #   schema: ""                # -- Schema where the extension will be installed, if not specified the extensions or current default object creation schema will be used.
  #   isTemplate: false              # -- Maps to the IS_TEMPLATE parameter. If true, the database is considered a template for new databases.
  #   locale: ""                     # -- Maps to the LC_COLLATE and LC_CTYPE parameters

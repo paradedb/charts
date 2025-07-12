@@ -42,7 +42,7 @@ jobs:
         id: set_versions
         working-directory: charts/paradedb/
         env:
-          GH_TOKEN: ${{ secrets.GHA_CREATE_RELEASE_PAT }}
+          GH_TOKEN: ${{ secrets.PARADEDB_BOT_GITHUB_TOKEN }}
         run: |
           # If no appVersion is provided, we use the latest ParadeDB version
           if [ -z "${{ github.event.inputs.appVersion }}" ]; then
@@ -88,14 +88,14 @@ jobs:
         with:
           config: "./.github/config/cr.yaml"
         env:
-          CR_TOKEN: "${{ secrets.GHA_CREATE_RELEASE_PAT }}"
+          CR_TOKEN: "${{ secrets.PARADEDB_BOT_GITHUB_TOKEN }}"
 
       # We have a separate version for our Helm Chart, since it needs to always increment by
       # one for every production release, independently of the ParadeDB version. Any non-patch
       # version increment should be done manually in GitHub Actions Variables.
       - name: Increment Helm Chart Version Number in GitHub Actions Variables
         env:
-          GH_TOKEN: ${{ secrets.GHA_CREATE_RELEASE_PAT }}
+          GH_TOKEN: ${{ secrets.PARADEDB_BOT_GITHUB_TOKEN }}
         run: |
           gh api \
             --method PATCH \

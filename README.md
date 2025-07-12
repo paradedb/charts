@@ -30,7 +30,7 @@ The [ParadeDB](https://github.com/paradedb/paradedb) Helm Chart is based on the 
 
 Kubernetes, and specifically the CloudNativePG operator, is the recommended approach for deploying ParadeDB in production, with high availability. ParadeDB also provides a [Docker image](https://hub.docker.com/r/paradedb/paradedb) and [prebuilt binaries](https://github.com/paradedb/paradedb/releases) for Debian, Ubuntu, Red Hat Enterprise Linux, and macOS.
 
-The ParadeDB Helm Chart supports Postgres 13+ and ships with Postgres 17 by default.
+The ParadeDB Helm Chart supports Postgres 14+ and ships with Postgres 17 by default.
 
 The chart is also available on [Artifact Hub](https://artifacthub.io/packages/helm/paradedb/paradedb).
 
@@ -66,6 +66,10 @@ cnpg/cloudnative-pg
 
 #### Setting up a ParadeDB CNPG Cluster
 
+> [!IMPORTANT]
+> When deploying a cluster with more than one instance, you must use `type: paradedb-enterprise` to enable replication of BM25 indexes across instances.
+> Using ParadeDB Enterprise requires an access token. To request one, please [contact sales](mailto:sales@paradedb.com).
+
 Create a `values.yaml` and configure it to your requirements. Here is a basic example:
 
 ```yaml
@@ -73,7 +77,7 @@ type: paradedb
 mode: standalone
 
 cluster:
-  instances: 3
+  instances: 1
   storage:
     size: 256Mi
 ```

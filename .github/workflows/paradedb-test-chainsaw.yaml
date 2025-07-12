@@ -48,7 +48,7 @@ jobs:
       - name: Set ParadeDB Version to Latest
         working-directory: charts/paradedb/
         env:
-          GH_TOKEN: ${{ secrets.GHA_CREATE_RELEASE_PAT }}
+          GH_TOKEN: ${{ secrets.PARADEDB_BOT_GITHUB_TOKEN }}
         run: |
           LATEST_TAG=$(curl -s https://api.github.com/repos/paradedb/paradedb/tags | jq -r '.[0].name')
           APP_VERSION=${LATEST_TAG#v}
