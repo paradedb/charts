@@ -34,7 +34,6 @@ We provide the database credentials as environment variables in the console pod.
 * `$DB_APP_URI` - The connection credentials to the default user.
 * `$DB_SUPERUSER_URI` - The connection credentials to the superuser (`postgres`) user.
 
-
 ## Executing queries
 
 To run a command in the background you can use the `nohup` command. For example, to create an index in the background:
