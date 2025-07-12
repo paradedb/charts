@@ -24,3 +24,6 @@ charts/**/charts/*.tgz
 
 # macOS
 .DS_Store
+
+# Claude
+CLAUDE.md

@@ -1,10 +1,11 @@
-type: paradedb
+type: paradedb-enterprise
 mode: replica
-
 cluster:
   instances: 1
   storage:
     size: 256Mi
+  imagePullSecrets:
+    - name: paradedb-enterprise-registry-cred
 
 replica:
   name: "off-site-backup1"

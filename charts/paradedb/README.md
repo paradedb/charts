@@ -4,7 +4,7 @@ The [ParadeDB](https://github.com/paradedb/paradedb) Helm Chart is based on the 
 
 Kubernetes, and specifically the CloudNativePG operator, is the recommended approach for deploying ParadeDB in production, with high availability. ParadeDB also provides a [Docker image](https://hub.docker.com/r/paradedb/paradedb) and [prebuilt binaries](https://github.com/paradedb/paradedb/releases) for Debian, Ubuntu, Red Hat Enterprise Linux, and macOS.
 
-The ParadeDB Helm Chart supports Postgres 13+ and ships with Postgres 17 by default.
+The ParadeDB Helm Chart supports Postgres 14+ and ships with Postgres 18 by default.
 
 The chart is also available on [Artifact Hub](https://artifacthub.io/packages/helm/paradedb/paradedb).
 
@@ -40,14 +40,24 @@ cnpg/cloudnative-pg
 
 #### Setting up a ParadeDB CNPG Cluster
 
+> [!IMPORTANT]
+> When deploying a cluster with more than one instance, you must use `type: paradedb-enterprise` to enable replication of BM25 indexes across instances.
+> Using ParadeDB Enterprise requires an access token. To request one, please [contact sales](mailto:sales@paradedb.com).
+
 Create a `values.yaml` and configure it to your requirements. Here is a basic example:
 
 ```yaml
 type: paradedb
 mode: standalone
 
+version:
+  # -- PostgreSQL major version to use
+  postgresql: "18"
+  # -- ParadeDB version to use
+  paradedb: "0.21.2"
+
 cluster:
-  instances: 3
+  instances: 1
   storage:
     size: 256Mi
 ```
@@ -147,7 +157,37 @@ below. Refer to the table for the full list of parameters and place the configur
 
 ## Recovery
 
-There is a separate document outlining the recovery procedure here: **[Recovery](docs/Recovery.md)**
+There is a separate document outlining the recovery procedure here: **[Recovery](docs/recovery.md)**
+
+## Monitoring
+
+The ParadeDB Helm chart supports monitoring with Prometheus and Grafana. The chart includes a comprehensive Grafana dashboard that provides complete monitoring for both PostgreSQL/cluster operations and ParadeDB-specific search and analytics features. The dashboard is provisioned as a ConfigMap that works with the Grafana sidecar to automatically import dashboards. You can enable this by setting `monitoring.grafanaDashboard.create`.
+
+**Note:** This is a complete, all-in-one dashboard that includes both standard CloudNativePG monitoring (replication, backups, storage, WAL, connections) and ParadeDB-specific metrics (BM25 indexes, index segments). You do not need to install any additional dashboards.
+
+### Dashboard Features
+
+The comprehensive dashboard includes monitoring for:
+
+**PostgreSQL & Cluster Management:**
+- Physical Replication (lag, write/flush/replay lag)
+- Backups & WAL archiving status
+- Storage usage and disk I/O
+- Server health (CPU, memory, TPS)
+- Connection states and transactions
+- Logical replication metrics
+
+**ParadeDB Search & Analytics:**
+- BM25 index segments and sizes
+- `pg_search` performance metrics
+- Search-specific analytics
+- Index layer monitoring
+
+Alternatively, you can manually import the dashboard from the `monitoring` directory.
+
+### Metrics Configuration
+
+Additionally, we recommend enabling the `kube-state-metrics` CRD monitoring and adding the CNPG metrics. The configuration can be found in `monitoring/metrics-clusters_postgresql_cnpg_io.yaml`.
 
 ## Examples
 
@@ -199,6 +239,7 @@ refer to  the [CloudNativePG Documentation](https://cloudnative-pg.io/documentat
 | cluster.affinity | object | `{"topologyKey":"topology.kubernetes.io/zone"}` | Affinity/Anti-affinity rules for Pods. See: https://cloudnative-pg.io/documentation/current/cloudnative-pg.v1/#postgresql-cnpg-io-v1-AffinityConfiguration |
 | cluster.annotations | object | `{}` |  |
 | cluster.certificates | object | `{}` | The configuration for the CA and related certificates. See: https://cloudnative-pg.io/documentation/current/cloudnative-pg.v1/#postgresql-cnpg-io-v1-CertificatesConfiguration |
+| cluster.console.enabled | bool | `false` | Deploys a console StatefulSet to run long-running commands against the cluster (e.g. `CREATE INDEX`). |
 | cluster.enablePDB | bool | `true` | Allow to disable PDB, mainly useful for upgrade of single-instance clusters or development purposes See: https://cloudnative-pg.io/documentation/current/kubernetes_upgrade/#pod-disruption-budgets |
 | cluster.enableSuperuserAccess | bool | `true` | When this option is enabled, the operator will use the SuperuserSecret to update the postgres user password. If the secret is not present, the operator will automatically create one. When this option is disabled, the operator will ignore the SuperuserSecret content, delete it when automatically created, and then blank the password of the postgres user by setting it to NULL. |
 | cluster.env | list | `[]` | Env follows the Env format to pass environment variables to the pods created in the cluster |
@@ -214,6 +255,8 @@ refer to  the [CloudNativePG Documentation](https://cloudnative-pg.io/documentat
 | cluster.monitoring.customQueriesSecret | list | `[]` | The list of secrets containing the custom queries |
 | cluster.monitoring.disableDefaultQueries | bool | `false` | Whether the default queries should be injected. Set it to true if you don't want to inject default queries into the cluster. |
 | cluster.monitoring.enabled | bool | `false` | Whether to enable monitoring |
+| cluster.monitoring.instrumentation.logicalReplication | bool | `false` | Enable logical replication metrics |
+| cluster.monitoring.instrumentation.paradedbIndex | bool | `true` | Enable ParadeDB index metrics |
 | cluster.monitoring.podMonitor.enabled | bool | `true` | Whether to enable the PodMonitor |
 | cluster.monitoring.podMonitor.metricRelabelings | list | `[]` | The list of metric relabelings for the PodMonitor. Applied to samples before ingestion. |
 | cluster.monitoring.podMonitor.relabelings | list | `[]` | The list of relabelings for the PodMonitor. Applied to samples before scraping. |
@@ -245,6 +288,11 @@ refer to  the [CloudNativePG Documentation](https://cloudnative-pg.io/documentat
 | imageCatalog.create | bool | `true` | Whether to provision an image catalog. If imageCatalog.images is empty this option will be ignored. |
 | imageCatalog.images | list | `[]` | List of images to be provisioned in an image catalog. |
 | mode | string | `"standalone"` | Cluster mode of operation. Available modes: * `standalone` - default mode. Creates new or updates an existing CNPG cluster. * `replica` - Creates a replica cluster from an existing CNPG cluster. * `recovery` - Same as standalone but creates a cluster from a backup, object store or via pg_basebackup. |
+| monitoring.grafanaDashboard.annotations | object | `{}` | Annotations that ConfigMaps can have to get configured in Grafana. |
+| monitoring.grafanaDashboard.configMapName | string | `"paradedb-grafana-dashboard"` | The name of the ConfigMap containing the dashboard. |
+| monitoring.grafanaDashboard.create | bool | `true` |  |
+| monitoring.grafanaDashboard.labels | object | `{"grafana_dashboard":"1"}` | Labels that ConfigMaps should have to get configured in Grafana. |
+| monitoring.grafanaDashboard.namespace | string | `"monitoring"` | Allows overriding the namespace where the ConfigMap will be created, defaulting to the same one as the Release. |
 | nameOverride | string | `""` | Override the name of the chart |
 | namespaceOverride | string | `""` | Override the namespace of the chart |
 | poolers | list | `[]` | List of PgBouncer poolers |
@@ -258,7 +306,7 @@ refer to  the [CloudNativePG Documentation](https://cloudnative-pg.io/documentat
 | recovery.azure.storageSasToken | string | `""` |  |
 | recovery.backupName | string | `""` | Backup Recovery Method |
 | recovery.clusterName | string | `""` | The original cluster name when used in backups. Also known as serverName. |
-| recovery.database | string | `"app"` | Name of the database used by the application. Default: `app`. |
+| recovery.database | string | `"paradedb"` | Name of the database used by the application. Default: `paradedb`. |
 | recovery.destinationPath | string | `""` | Overrides the provider specific default path. Defaults to: S3: s3://<bucket><path> Azure: https://<storageAccount>.<serviceName>.core.windows.net/<containerName><path> Google: gs://<bucket><path> |
 | recovery.endpointCA | object | `{"create":false,"key":"","name":"","value":""}` | Specifies a CA bundle to validate a privately signed certificate. |
 | recovery.endpointCA.create | bool | `false` | Creates a secret with the given value if true, otherwise uses an existing secret. |
@@ -366,8 +414,8 @@ refer to  the [CloudNativePG Documentation](https://cloudnative-pg.io/documentat
 | replica.promotionToken | string | `""` | A demotion token generated by an external cluster used to check if the promotion requirements are met. |
 | replica.self | string | `""` | Defines the name of this cluster. It is used to determine if this is a primary or a replica cluster, comparing it with primary. Leave empty by default. |
 | type | string | `"paradedb"` | Type of the CNPG database. Available types: * `paradedb` * `paradedb-enterprise` |
-| version.paradedb | string | `"0.16.3"` | We default to v0.16.3 for testing and local development |
-| version.postgresql | string | `"17"` | PostgreSQL major version to use |
+| version.paradedb | string | `"0.21.2"` | We default to v0.21.2 for testing and local development |
+| version.postgresql | string | `"18"` | PostgreSQL major version to use |
 | poolers[].name | string | `` | Name of the pooler resource |
 | poolers[].instances | number | `1` | The number of replicas we want |
 | poolers[].type | [PoolerType][PoolerType] | `rw` | Type of service to forward traffic to. Default: `rw`. |

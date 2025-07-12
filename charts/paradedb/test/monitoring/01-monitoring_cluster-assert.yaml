@@ -7,14 +7,18 @@ metadata:
   annotations:
     foo: bar
 spec:
-  instances: 2
+  instances: 1
   storage:
     size: 256Mi
     storageClass: standard
   monitoring:
       disableDefaultQueries: true
       customQueriesConfigMap:
-        - name: monitoring-paradedb-monitoring
+        - name: monitoring-paradedb-monitoring-paradedb-index
+          key: custom-queries
+        - name: monitoring-paradedb-monitoring-logical-replication
+          key: custom-queries
+        - name: monitoring-paradedb-monitoring-user-metrics
           key: custom-queries
       enablePodMonitor: true
       podMonitorRelabelings:
@@ -31,6 +35,8 @@ spec:
           targetLabel: cnpg_cluster
         - action: labeldrop
           regex: cluster
+status:
+  phase: Cluster in healthy state
 ---
 apiVersion: monitoring.coreos.com/v1
 kind: PodMonitor
@@ -110,13 +116,13 @@ metadata:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: monitoring-paradedb-monitoring
+  name: monitoring-paradedb-monitoring-user-metrics
 data:
   custom-queries: |
     pg_cache_hit_ratio:
       query: "SELECT current_database() as datname, sum(heap_blks_hit) / (sum(heap_blks_hit) + sum(heap_blks_read)) as ratio FROM pg_statio_user_tables;"
       target_databases: ["*"]
-      predicate_query: "SELECT 'postgresql';"
+      predicate_query: "SELECT 'paradedb';"
       metrics:
         - datname:
             description: Name of the database
@@ -124,3 +130,20 @@ data:
         - ratio:
             description: Cache hit ratio
             usage: GAUGE
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: monitoring-paradedb-monitoring-paradedb-index
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: monitoring-paradedb-monitoring-logical-replication
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: paradedb-grafana-dashboard
+  labels:
+    grafana_dashboard: "1"

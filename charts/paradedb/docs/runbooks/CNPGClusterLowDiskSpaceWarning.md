@@ -1,31 +1,28 @@
-CNPGClusterLowDiskSpaceWarning
-==============================
+# CNPGClusterLowDiskSpaceWarning
 
-Meaning
--------
+## Description
 
-This alert is triggered when the disk space on the CloudNativePG cluster exceeds 90%. It can be triggered by either:
+The `CNPGClusterLowDiskSpaceWarning` alert is triggered when disk usage on any CloudNativePG cluster volume exceeds 90%. It may occur on the following volumes:
 
-* the PVC hosting the `PGDATA` (`storage` section)
-* the PVC hosting WAL files (`walStorage` section), where applicable
-* any PVC hosting a tablespace (`tablespaces` section)
+- The PVC hosting `PGDATA` (`storage` section)
+- The PVC hosting WAL files (`walStorage` section)
+- Any PVC hosting a tablespace (`tablespaces` section)
 
-Impact
-------
+## Impact
 
-Use the [CloudNativePG Grafana Dashboard](https://grafana.com/grafana/dashboards/20417-cloudnativepg/).
+At 100% disk usage, the cluster will experience downtime and potential data loss.
 
-Excessive disk space usage can lead fragmentation negatively impacting performance. Reaching 100% disk usage will result
-in downtime and data loss.
+High disk usage can also cause fragmentation, where files are split due to insufficient contiguous free space, significantly increasing random I/O and degrading performance. Disk fragmentation can start happening at ~80% disk space usage.
 
-Diagnosis
----------
+## Diagnosis
 
-Mitigation
-----------
+Check disk usage metrics in the [CloudNativePG Grafana Dashboard](https://grafana.com/grafana/dashboards/20417-cloudnativepg/) to identify which volume is nearing capacity.
 
-If you experience issues with the WAL (Write-Ahead Logging) volume and have
-set up continuous archiving, ensure that WAL archiving is functioning
-correctly. This is crucial to avoid a buildup of WAL files in the `pg_wal`
-folder. Monitor the `cnpg_collector_pg_wal_archive_status` metric, specifically
-ensuring that the number of `ready` files does not increase linearly.
+## Mitigation
+
+> [!NOTE]
+> If using the ParadeDB BYOC Terraform module, refer to the `docs/handbook/NotEnoughDiskSpace.md` handbook for instructions on increasing disk space. This requires a switchover of the ParadeDB primary, causing a brief service disruption.
+
+If the WAL (Write-Ahead Logging) volume is filling and you have continuous archiving enabled, verify that WAL archiving is functioning correctly. A buildup of WAL files in `pg_wal` indicates an issue. Monitor the `cnpg_collector_pg_wal_archive_status` metric and ensure the number of `ready` files is not steadily increasing.
+
+For more details, see the [CloudNativePG documentation on resizing storage](https://cloudnative-pg.io/documentation/current/troubleshooting/#storage-is-full).
