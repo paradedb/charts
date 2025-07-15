@@ -26,8 +26,8 @@ type: application
 version: 0.0.0-generated-in-ci
 
 # The ParadeDB version, set in the publish CI workflow from the latest paradedb/paradedb GitHub tag
-# We default to v0.16.3 for testing and local development
-appVersion: 0.16.3
+# We default to v0.16.4 for testing and local development
+appVersion: 0.16.4
 
 sources:
   - https://github.com/paradedb/charts
