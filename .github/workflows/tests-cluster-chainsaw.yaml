@@ -116,9 +116,5 @@ jobs:
       - name: Run Kyverno/Chainsaw
         run: chainsaw test charts/paradedb/test/${{ matrix.test }}
         env:
-<<<<<<< HEAD
-          PARADEDB_ENTERPRISE_DOCKER_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-=======
           PARADEDB_ENTERPRISE_DOCKER_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
->>>>>>> d9c7f7a (Feat recovery.mode=import (#53))
           PARADEDB_ENTERPRISE_DOCKER_PAT: ${{ secrets.DOCKERHUB_ACCESS_TOKEN }}
