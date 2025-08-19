@@ -9,8 +9,7 @@ The `CNPGClusterOffline` alert is triggered when there are no ready CloudNativeP
 Impact
 ------
 
-Having an offline cluster means your applications will not be able to access the database, leading to potential service
-disruption.
+Having an offline cluster means your applications will not be able to access the database, leading to service disruption.
 
 Diagnosis
 ---------

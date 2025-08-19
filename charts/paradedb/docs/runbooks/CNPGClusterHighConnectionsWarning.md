@@ -15,10 +15,32 @@ disruption.
 Diagnosis
 ---------
 
-Use the [CloudNativePG Grafana Dashboard](https://grafana.com/grafana/dashboards/20417-cloudnativepg/).
+Use the [CloudNativePG Grafana Dashboard](https://grafana.com/grafana/dashboards/20417-cloudnativepg/) to check the
+number of connections to the CloudNativePG cluster instances. Identify the instance that is experiencing issues and
+whether that instance is the primary or a standby replica.
+
+You can check the current primary instance using the following command:
+
+```bash
+kubectl get cluster paradedb -o 'jsonpath={"Current Primary: "}{.status.currentPrimary}{"; Target Primary: "}{.status.targetPrimary}{"\n"}' --namespace NAMESPACE
+```
 
 Mitigation
 ----------
 
-* Increase the maximum number of connections by increasing the `max_connections` PostgreSQL parameter.
-* Use connection pooling by enabling PgBouncer to reduce the number of connections to the database.
+* Increase the maximum number of connections by increasing the `max_connections` PostgreSQL parameter. You can do this
+  by setting: `cluster.postgresql.parameters.max_connections` in your Helm values.
+
+  If using the ParadeDB BYOC Terraform module, set: `paradedb.postgresql.parameters.max_connections`.
+* Use connection pooling by enabling PgBouncer to reduce the number of connections to the database. Note that PgBouncer
+  also requires a set of connections, and you should make sure to increase the `max_connections` parameter temporarily
+  while enabling PgBouncer to avoid service disruption.
+
+> [!NOTE]
+> PostgreSQL sizes certain resources based directly on the value of `max_connections`. Each connection uses
+> `shared_buffers` memory as well as additional non-shared memory, so increasing the `max_connections` parameter will
+> increase the memory usage of the CloudNativePG cluster instances.
+
+> [!IMPORTANT]
+> Changing the `max_connections` parameter requires a restart of the CloudNativePG cluster instances. This will cause a
+> restart of a standby instance and then a switchover of the primary instance, causing a brief service disruption.
