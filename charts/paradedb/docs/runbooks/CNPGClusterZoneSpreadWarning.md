@@ -5,7 +5,9 @@ Meaning
 -------
 
 The `CNPGClusterZoneSpreadWarning` alert is raised when pods are not evenly distributed across availability zones. To be
-more accurate, the alert is raised when the number of `pods > zones < 3`.
+more accurate, the alert is raised when both of the following conditions are met:
+* the number of pods exceeds the number of zones
+* the number of zones is less than 3.
 
 This can be caused by insufficient nodes in the cluster or misconfigured scheduling rules, such as affinity, anti-affinity,
 and tolerations.
