@@ -1,10 +1,10 @@
-CNPGClusterHighReplicationLag
-=============================
+CNPGClusterPhysicalReplicationLagCritical
+=========================================
 
 Meaning
 -------
 
-This alert is triggered when the replication lag of the CloudNativePG cluster exceed `1s`.
+This alert is triggered when the replication lag of the CloudNativePG cluster exceeds `15s`.
 
 Impact
 ------
