@@ -2,9 +2,9 @@
 {{- if not (has $alert .excludeRules) -}}
 alert: {{ $alert }}
 annotations:
-  summary: ParadeDB CNPG Cluster high replication lag
+  summary: ParadeDB CNPG Cluster high physical replication lag
   description: |-
-    ParadeDB CNPG Cluster "{{ .namespace }}/{{ .cluster }}" is experiencing a very high replication lag of {{ .value }}ms.
+    ParadeDB CNPG Cluster "{{ .namespace }}/{{ .cluster }}" is experiencing a very high physical replication lag of {{ .value }}ms.
 
     High replication lag indicates network issues, busy instances, slow queries or suboptimal configuration.
   runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/{{ $alert }}.md
