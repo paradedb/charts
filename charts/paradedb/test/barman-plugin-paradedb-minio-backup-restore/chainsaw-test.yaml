@@ -4,7 +4,7 @@
 apiVersion: chainsaw.kyverno.io/v1alpha1
 kind: Test
 metadata:
-  name: paradedb-minio-backup-restore
+  name: barman-plugin-paradedb-minio-backup-restore
 spec:
   timeouts:
     apply: 1s
