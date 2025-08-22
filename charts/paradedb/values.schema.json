@@ -91,6 +91,9 @@
                         }
                     }
                 },
+                "method": {
+                    "type": "string"
+                },
                 "provider": {
                     "type": "string"
                 },
@@ -187,6 +190,14 @@
                 "certificates": {
                     "type": "object"
                 },
+                "console": {
+                    "type": "object",
+                    "properties": {
+                        "enabled": {
+                            "type": "boolean"
+                        }
+                    }
+                },
                 "enablePDB": {
                     "type": "boolean"
                 },
@@ -260,6 +271,9 @@
                             }
                         }
                     }
+                },
+                "plugins": {
+                    "type": "array"
                 },
                 "postgresGID": {
                     "type": "integer"

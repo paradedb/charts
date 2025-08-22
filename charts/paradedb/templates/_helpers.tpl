@@ -137,3 +137,60 @@ Postgres GID
     {{- 26 -}}
   {{- end -}}
 {{- end -}}
+
+{{/*
+Check if a list of objects has a set key value pairs
+*/}}
+{{- /* Usage: {{ include "helpers.hasKeyValue" (list .Values.list (list (list "key" "value"))) }} */}}
+{{- /* Returns the string true if the list has an item matching the key value pairs */}}
+{{- define "helpers.hasKeyValue" -}}
+  {{- $list := index . 0 }}
+  {{- $kvPairs := index . 1 }}
+  {{- $found := false }}
+
+  {{- range $list }}
+    {{- $item := . }}
+    {{- $valid := true }}
+    {{- range $kvPairs }}
+      {{- $key := index . 0 -}}
+      {{- $value := index . 1 -}}
+      {{- if or (not (hasKey $item $key)) (not (eq (get $item $key) $value)) -}}
+        {{- $valid = false -}}
+        {{- break -}}
+      {{- end -}}
+    {{- end -}}
+    {{- if $valid -}}
+      {{- $found = true -}}
+      {{- break -}}
+    {{- end -}}
+  {{- end -}}
+  {{- $found -}}
+{{- end -}}
+
+{{/*
+Similar to the omit function, returns a list of items that do not match the key value pairs
+*/}}
+{{- /* Usage: {{ include "helpers.omitKeyValue" (list .Values.list (list (list "key" "value"))) }} */}}
+{{- /* Returns the string true if the list has an item matching the key value pairs */}}
+{{- define "helpers.omitKeyValue" -}}
+  {{- $list := index . 0 }}
+  {{- $kvPairs := index . 1 }}
+  {{- $newList := list }}
+
+  {{- range $list }}
+    {{- $item := . }}
+    {{- $valid := true }}
+    {{- range $kvPairs }}
+      {{- $key := index . 0 -}}
+      {{- $value := index . 1 -}}
+      {{- if or (not (hasKey $item $key)) (not (eq (get $item $key) $value)) -}}
+        {{- $newList = append $newList $item -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+  {{- toYaml $newList -}}
+{{- end -}}
+
+{{- define "cluster.barmanPluginEnabled" -}}
+  {{- eq (include "helpers.hasKeyValue" (list .Values.cluster.plugins (list (list "name" "barman-cloud.cloudnative-pg.io") (list "isWALArchiver" true)))) "true" -}}
+{{- end -}}
