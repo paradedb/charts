@@ -1,4 +1,4 @@
-{{- define "cluster.bootstrap" -}}
+ {{- define "cluster.bootstrap" -}}
 bootstrap:
 {{- if eq .Values.mode "standalone" }}
   initdb:

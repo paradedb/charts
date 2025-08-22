@@ -147,7 +147,7 @@ below. Refer to the table for the full list of parameters and place the configur
 
 ## Recovery
 
-There is a separate document outlining the recovery procedure here: **[Recovery](docs/recovery.md)**
+There is a separate document outlining the recovery procedure here: **[Recovery](docs/Recovery.md)**
 
 ## Examples
 
@@ -178,6 +178,7 @@ refer to  the [CloudNativePG Documentation](https://cloudnative-pg.io/documentat
 | backups.google.bucket | string | `""` |  |
 | backups.google.gkeEnvironment | bool | `false` |  |
 | backups.google.path | string | `"/"` |  |
+| backups.method | string | `"barmanObjectStore"` | One of `barmanObjectStore` (default) or `plugin` when using the Barman CNPG-I plugin. |
 | backups.provider | string | `"s3"` | One of `s3`, `azure` or `google` |
 | backups.retentionPolicy | string | `"30d"` | Retention policy for backups |
 | backups.s3.accessKey | string | `""` |  |
@@ -187,7 +188,7 @@ refer to  the [CloudNativePG Documentation](https://cloudnative-pg.io/documentat
 | backups.s3.region | string | `""` |  |
 | backups.s3.secretKey | string | `""` |  |
 | backups.scheduledBackups[0].backupOwnerReference | string | `"self"` | Backup owner reference |
-| backups.scheduledBackups[0].method | string | `"barmanObjectStore"` | Backup method, can be `barmanObjectStore` (default) or `volumeSnapshot` |
+| backups.scheduledBackups[0].method | string | `"barmanObjectStore"` | Backup method, can be `barmanObjectStore` (default), `volumeSnapshot` or `plugin`. |
 | backups.scheduledBackups[0].name | string | `"daily-backup"` | Scheduled backup name |
 | backups.scheduledBackups[0].schedule | string | `"0 0 0 * * *"` | Schedule in cron format |
 | backups.secret.create | bool | `true` | Whether to create a secret for the backup credentials |
@@ -220,6 +221,7 @@ refer to  the [CloudNativePG Documentation](https://cloudnative-pg.io/documentat
 | cluster.monitoring.podMonitor.relabelings | list | `[]` | The list of relabelings for the PodMonitor. Applied to samples before scraping. |
 | cluster.monitoring.prometheusRule.enabled | bool | `true` | Whether to enable the PrometheusRule automated alerts |
 | cluster.monitoring.prometheusRule.excludeRules | list | `[]` | Exclude specified rules |
+| cluster.plugins | list | `[]` | Plugins |
 | cluster.postgresGID | int | `-1` | The GID of the postgres user inside the image, defaults to 26 |
 | cluster.postgresUID | int | `-1` | The UID of the postgres user inside the image, defaults to 26 |
 | cluster.postgresql.ldap | object | `{}` | PostgreSQL LDAP configuration (see https://cloudnative-pg.io/documentation/current/postgresql_conf/#ldap-configuration) |

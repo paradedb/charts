@@ -1,0 +1,35 @@
+{{- if and .Values.backups.enabled (eq (include "cluster.barmanPluginEnabled" .) "true") }}
+apiVersion: barmancloud.cnpg.io/v1
+kind: ObjectStore
+metadata:
+  name: {{ include "cluster.fullname" . }}
+  namespace: {{ include "cluster.namespace" . }}
+  {{- with .Values.cluster.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  labels:
+  {{- include "cluster.labels" . | nindent 4 }}
+  {{- with .Values.cluster.additionalLabels }}
+    {{ toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  retentionPolicy: {{ .Values.backups.retentionPolicy }}
+  configuration:
+    wal:
+      compression: {{ .Values.backups.wal.compression }}
+      {{- if .Values.backups.wal.encryption }}
+      encryption: {{ .Values.backups.wal.encryption }}
+      {{- end }}
+      maxParallel: {{ .Values.backups.wal.maxParallel }}
+    data:
+      compression: {{ .Values.backups.data.compression }}
+      {{- if .Values.backups.data.encryption }}
+      encryption: {{ .Values.backups.data.encryption }}
+      {{- end }}
+      jobs: {{ .Values.backups.data.jobs }}
+
+    {{- $d := dict "chartFullname" (include "cluster.fullname" .) "scope" .Values.backups "secretPrefix" "backup" }}
+    {{- include "cluster.barmanObjectStoreConfig" $d | nindent 2 }}
+
+{{- end }}

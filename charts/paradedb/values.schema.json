@@ -91,6 +91,9 @@
                         }
                     }
                 },
+                "method": {
+                    "type": "string"
+                },
                 "provider": {
                     "type": "string"
                 },
@@ -279,6 +282,9 @@
                             }
                         }
                     }
+                },
+                "plugins": {
+                    "type": "array"
                 },
                 "postgresGID": {
                     "type": "integer"

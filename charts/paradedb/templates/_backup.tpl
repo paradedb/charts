@@ -1,23 +1,23 @@
 {{- define "cluster.backup" -}}
-{{- if .Values.backups.enabled }}
+{{- if and .Values.backups.enabled ((eq .Values.backups.method "barmanObjectStore")) }}
 backup:
   target: "prefer-standby"
-  retentionPolicy: {{ .Values.backups.retentionPolicy }}
+  retentionPolicy: {{ .Values.backups.barmanObjectStore.retentionPolicy }}
   barmanObjectStore:
     wal:
-      compression: {{ .Values.backups.wal.compression }}
-      {{- if .Values.backups.wal.encryption }}
-      encryption: {{ .Values.backups.wal.encryption }}
+      compression: {{ .Values.backups.barmanObjectStore.wal.compression }}
+      {{- if .Values.backups.barmanObjectStore.wal.encryption }}
+      encryption: {{ .Values.backups.barmanObjectStore.wal.encryption }}
       {{- end }}
-      maxParallel: {{ .Values.backups.wal.maxParallel }}
+      maxParallel: {{ .Values.backups.barmanObjectStore.wal.maxParallel }}
     data:
-      compression: {{ .Values.backups.data.compression }}
-      {{- if .Values.backups.data.encryption }}
-      encryption: {{ .Values.backups.data.encryption }}
+      compression: {{ .Values.backups.barmanObjectStore.data.compression }}
+      {{- if .Values.backups.barmanObjectStore.data.encryption }}
+      encryption: {{ .Values.backups.barmanObjectStore.data.encryption }}
       {{- end }}
-      jobs: {{ .Values.backups.data.jobs }}
+      jobs: {{ .Values.backups.barmanObjectStore.data.jobs }}
 
-    {{- $d := dict "chartFullname" (include "cluster.fullname" .) "scope" .Values.backups "secretPrefix" "backup" }}
+    {{- $d := dict "chartFullname" (include "cluster.fullname" .) "scope" .Values.backups.barmanObjectStore "secretPrefix" "backup" }}
     {{- include "cluster.barmanObjectStoreConfig" $d | nindent 2 }}
 {{- end }}
 {{- end }}
