@@ -43,5 +43,5 @@ Mitigation
 
 1. Verify you have more than a single node with no taints preventing pods from being scheduled there.
 2. Verify your [affinity](https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/), taints, and tolerations configuration.
-3. Increase the instance CPU and Memory resources such that only one instance can fit on a single node.
+3. Increase the instance CPU and Memory resources so that a node can only fit a one instance.
 4. For more information, please refer to the ["Scheduling"](https://cloudnative-pg.io/documentation/current/scheduling/) section in the documentation
