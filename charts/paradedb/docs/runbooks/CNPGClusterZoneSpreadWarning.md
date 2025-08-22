@@ -34,7 +34,7 @@ Get the nodes and their respective zones:
 kubectl get nodes --label-columns topology.kubernetes.io/zone
 ```
 
-You can identify the current primary instance or use the following command:
+You can identify the current primary instance with the following command:
 
 ```bash
 kubectl get cluster paradedb -o 'jsonpath={"Current Primary: "}{.status.currentPrimary}{"; Target Primary: "}{.status.targetPrimary}{"\n"}' --namespace NAMESPACE
