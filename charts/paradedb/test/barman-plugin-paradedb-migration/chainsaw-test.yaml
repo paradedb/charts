@@ -4,7 +4,7 @@
 apiVersion: chainsaw.kyverno.io/v1alpha1
 kind: Test
 metadata:
-  name: paradedb-minio-backup-restore
+  name: barman-plugin-paradedb-minio-backup-restore
 spec:
   timeouts:
     apply: 1s
@@ -81,12 +81,34 @@ spec:
             kind: Job
         - podLogs:
             selector: batch.kubernetes.io/job-name=data-test
+    - name: Switch the cluster to using Barman CNPG-I for backups
+      try:
+        - script:
+            content: |
+              kubectl -n $NAMESPACE create secret generic kube-root-ca.crt --from-literal=ca.crt="$(kubectl -n kube-system get configmaps kube-root-ca.crt -o jsonpath='{.data.ca\.crt}')" --dry-run=client -o yaml | kubectl apply -f -
+              helm upgrade \
+                --namespace $NAMESPACE \
+                --values ./05.1-paradedb_cluster.yaml \
+                --wait \
+                paradedb ../../
+        - assert:
+            file: ./05-paradedb_cluster-assert.yaml
+        - script:
+            content: |
+              kubectl -n $NAMESPACE create secret generic kube-root-ca.crt --from-literal=ca.crt="$(kubectl -n kube-system get configmaps kube-root-ca.crt -o jsonpath='{.data.ca\.crt}')" --dry-run=client -o yaml | kubectl apply -f -
+              helm upgrade \
+                --namespace $NAMESPACE \
+                --values ./05.2-paradedb_cluster.yaml \
+                --wait \
+                paradedb ../../
+        - assert:
+            file: ./05-paradedb_cluster-assert.yaml
     - name: Start a backup
       try:
         - apply:
-            file: ./05-backup.yaml
+            file: ./06-backup.yaml
         - assert:
-            file: ./05-backup_running-assert.yaml
+            file: ./06-backup_running-assert.yaml
       catch:
         - describe:
             apiVersion: postgresql.cnpg.io/v1
@@ -101,9 +123,9 @@ spec:
     - name: Complete a backup
       try:
         - apply:
-            file: ./05-checkpoint.yaml
+            file: ./06-checkpoint.yaml
         - assert:
-            file: ./05-backup_completed-assert.yaml
+            file: ./06-backup_completed-assert.yaml
       catch:
         - describe:
             apiVersion: postgresql.cnpg.io/v1
@@ -118,9 +140,9 @@ spec:
     - name: Write more data to the database after the backup
       try:
         - apply:
-            file: ./06-post_backup_data_write.yaml
+            file: ./07-post_backup_data_write.yaml
         - assert:
-            file: ./06-post_backup_data_write-assert.yaml
+            file: ./07-post_backup_data_write-assert.yaml
       timeouts:
         apply: 1s
         assert: 10m
@@ -136,12 +158,12 @@ spec:
               helm upgrade \
                 --install \
                 --namespace $NAMESPACE \
-                --values ./07-recovery_backup_pitr_cluster.yaml \
+                --values ./08-recovery_backup_pitr_cluster.yaml \
                 --set recovery.pitrTarget.time="$DATE_NO_BAD_TABLE" \
                 --wait \
                 recovery-backup-pitr ../../
         - assert:
-            file: ./07-recovery_backup_pitr_cluster-assert.yaml
+            file: ./08-recovery_backup_pitr_cluster-assert.yaml
       catch:
         - describe:
             apiVersion: postgresql.cnpg.io/v1
@@ -151,9 +173,9 @@ spec:
     - name: Verify the pre-backup data on the recovery cluster exists but not the post-backup data
       try:
         - apply:
-            file: 08-data_test.yaml
+            file: 09-data_test.yaml
         - assert:
-            file: 08-data_test-assert.yaml
+            file: 09-data_test-assert.yaml
       catch:
         - describe:
             apiVersion: batch/v1
