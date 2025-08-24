@@ -6,21 +6,19 @@ Meaning
 
 The `CNPGClusterHACritical` alert is triggered when the CloudNativePG cluster has no ready standby replicas.
 
-This can happen during a normal failover or during an automated minor version upgrades in a cluster with 2 or less instances. The new instance may need some time to catch up with the cluster's primary instance.
+This can happen during a normal failover or during an automated minor version upgrades in a cluster with 2 or fewer instances. The new instance may need some time to catch up with the cluster's primary instance.
 
 This alert will be constantly triggered if your cluster is configured to run with only 1 instance. If this is intentional, you may want to silence it.
 
 Impact
 ------
 
-Having no available replicas puts the cluster at severe risk if the primary instance also fails. The primary instance is still online and able to serve queries, although connections to the `-ro` endpoint will fail. Failure of the primary instance will result in a complete outage.
+Having no available replicas puts the cluster at severe risk of downtime if the primary instance also fails. The primary instance is still online and able to serve queries, although connections to the `-ro` endpoint will fail. Failure of the primary instance will result in a complete outage.
 
 Diagnosis
 ---------
 
-Use the [CloudNativePG Grafana Dashboard](https://grafana.com/grafana/dashboards/20417-cloudnativepg/).
-
-You can identify the current primary instance or use the following command:
+You can identify the current primary instance with the [CloudNativePG Grafana Dashboard](https://grafana.com/grafana/dashboards/20417-cloudnativepg/) or via the following command:
 
 ```bash
 kubectl get cluster paradedb -o 'jsonpath={"Current Primary: "}{.status.currentPrimary}{"; Target Primary: "}{.status.targetPrimary}{"\n"}' --namespace NAMESPACE
@@ -28,7 +26,7 @@ kubectl get cluster paradedb -o 'jsonpath={"Current Primary: "}{.status.currentP
 
 Avoid making changes or operations that could negatively impact the primary instance as it is the only instance serving queries.
 
-Get the status of the CloudNativePG cluster instances:
+To retrieve the status of the CloudNativePG cluster instances:
 
 ```bash
 kubectl get pods -A -l "cnpg.io/podRole=instance" -o wide
@@ -61,16 +59,17 @@ kubectl logs --namespace cnpg-system -l "app.kubernetes.io/name=cloudnative-pg"
 Mitigation
 ----------
 
+> [!NOTE]
+> If using the ParadeDB BYOC, refer to `docs/handbook/NotEnoughDiskSpace.md` provided with the Terraform module.
+
 Refer to the [CloudNativePG Failure Modes](https://cloudnative-pg.io/documentation/current/failure_modes/)
 and [CloudNativePG Troubleshooting](https://cloudnative-pg.io/documentation/current/troubleshooting/) documentation for more information on how to troubleshoot and mitigate this issue.
 
-If the issue is due to insufficient storage, you should increase the cluster storage size. See this documentation for more information on how to [Resize the CloudNativePG Cluster Storage](https://cloudnative-pg.io/documentation/current/troubleshooting/#storage-is-full).
+If the issue is due to insufficient storage, increase the cluster storage size. Refer to the CloudNativePG documentation for more information on how to [Resize the CloudNativePG Cluster Storage](https://cloudnative-pg.io/documentation/current/troubleshooting/#storage-is-full).
 
-If using the ParadeDB BYOC refer to `docs/handbook/NotEnoughDiskSpace.md` provided with the Terraform module.
+In the advent that the cause of the issue cannot be determined with certainty, recreate the affect pods. This should be done one pod at a time to avoid increasing the load on the primary instance.
 
-If unable to determine the issue, you can attempt to recreate the affected pods. Make sure you do this only one pod at a time to avoid increasing the load on the primary instance unnecessarily.
-
-Very carefully verify that:
+Before doing so, carefully very that:
 
 1. You are connected to the correct cluster.
 2. You are deleting the correct pod.

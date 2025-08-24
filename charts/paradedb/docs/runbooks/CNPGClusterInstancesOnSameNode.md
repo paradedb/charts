@@ -11,7 +11,7 @@ This can be caused by insufficient nodes in the cluster or misconfigured schedul
 Impact
 ------
 
-Normally, no two CloudNativePG cluster instances should be scheduled on the same node. High availability is affected because if the node on which the instances are scheduled fails, all instances will become unavailable.
+This configuration can affect high availability, since the downtime of a node with multiple database pods will bring down all the database pods on the node.
 
 Diagnosis
 ---------
@@ -38,6 +38,9 @@ Mitigation
 ----------
 
 1. Verify that you have more than a single node with no taint preventing pods from being scheduled on these nodes.
+
 2. Verify your [affinity](https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/), taints, and tolerations configuration.
+
 3. Increase the instance CPU and Memory resources so that a node can only fit a one instance.
+
 4. For more information, please refer to the ["Scheduling"](https://cloudnative-pg.io/documentation/current/scheduling/) section of the documentation.
