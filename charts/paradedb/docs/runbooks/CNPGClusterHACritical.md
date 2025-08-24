@@ -6,7 +6,7 @@ Meaning
 
 The `CNPGClusterHACritical` alert is triggered when the CloudNativePG cluster has no ready standby replicas.
 
-This can happen during a normal failover or during an automated minor version upgrades in a cluster with 2 or fewer instances. The new instance may need some time to catch up with the cluster's primary instance.
+This alert can trigger during a regular failover or during an automated minor version upgrade if the cluster has two or fewer instances. In this scenario, the new instance may need some time to catch up with the cluster's primary instance, causing this alert to trigger.
 
 This alert will be constantly triggered if your cluster is configured to run with only 1 instance. If this is intentional, you may want to silence it.
 
