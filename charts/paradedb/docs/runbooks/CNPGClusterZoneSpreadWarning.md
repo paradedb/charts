@@ -4,13 +4,12 @@ CNPGClusterZoneSpreadWarning
 Meaning
 -------
 
-The `CNPGClusterZoneSpreadWarning` alert is raised when pods are not evenly distributed across availability zones. To be
-more accurate, the alert is raised when both of the following conditions are met:
+The `CNPGClusterZoneSpreadWarning` alert is raised when pods are not evenly distributed across availability zones. To be more accurate, the alert is raised when both of the following conditions are met:
+
 * the number of pods exceeds the number of zones
 * the number of zones is less than 3.
 
-This can be caused by insufficient nodes in the cluster or misconfigured scheduling rules, such as affinity, anti-affinity,
-and tolerations.
+This can be caused by insufficient nodes in the cluster or misconfigured scheduling rules, such as affinity, anti-affinity, and tolerations.
 
 Impact
 ------
@@ -44,14 +43,16 @@ Mitigation
 ----------
 
 1. Verify you have more than a single node with no taints, preventing pods to be scheduled in each availability zone.
+
 2. Verify your [affinity](https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/) and taints and tolerations configuration.
-3. Delete the pods and their respective PVCs that are not in the desired availability zone and allow the operator to repair the cluster.
-   Make sure you do this only one pod at a time to avoid increasing the load on the primary instance unnecessarily.
 
-   Very carefully verify that:
-   1. You are deleting the correct pod.
-   2. You are not deleting the active primary instance.
+3. Delete the pods and their respective PVCs that are not in the desired availability zone and allow the operator to repair the cluster. Make sure you do this only one pod at a time to avoid increasing the load on the primary instance unnecessarily.
 
-    ```bash
-    kubectl delete --namespace NAMESPACE pod/POD_NAME pvc/POD_NAME pvc/POD_NAME-wal
-    ```
+Very carefully verify that:
+
+* You are deleting the correct pod.
+* You are not deleting the active primary instance.
+
+```bash
+kubectl delete --namespace NAMESPACE pod/POD_NAME pvc/POD_NAME pvc/POD_NAME-wal
+```
