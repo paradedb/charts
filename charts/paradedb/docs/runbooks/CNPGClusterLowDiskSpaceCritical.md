@@ -15,6 +15,8 @@ Impact
 
 Reaching 100% disk usage will result in downtime and data loss.
 
+Moreover, very high disk space usage can lead to disk fragmentation, where files are split due to the absence of large-enough contiguous blocks of available storage, significantly increasing random I/O and degrading performance.
+
 Diagnosis
 ---------
 
