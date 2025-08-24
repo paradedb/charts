@@ -4,7 +4,7 @@ CNPGClusterLowDiskSpaceCritical
 Meaning
 -------
 
-This alert is triggered when the disk space on the CloudNativePG cluster exceeds 90%. It can be triggered by either:
+This alert is triggered when the disk space usage on the CloudNativePG cluster exceeds 90%. It can be triggered by either:
 
 * the PVC hosting the `PGDATA` (`storage` section)
 * the PVC hosting WAL files (`walStorage` section), where applicable
@@ -13,7 +13,7 @@ This alert is triggered when the disk space on the CloudNativePG cluster exceeds
 Impact
 ------
 
-Excessive disk space usage can lead fragmentation negatively impacting performance. Reaching 100% disk usage will result in downtime and data loss.
+Reaching 100% disk usage will result in downtime and data loss.
 
 Diagnosis
 ---------

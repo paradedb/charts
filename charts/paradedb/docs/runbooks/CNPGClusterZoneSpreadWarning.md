@@ -48,7 +48,7 @@ Mitigation
 
 3. Delete the pods and their respective PVCs that are not in the desired availability zone and allow the operator to repair the cluster. Make sure you do this only one pod at a time to avoid increasing the load on the primary instance unnecessarily.
 
-Very carefully verify that:
+Before doing so, carefully very that:
 
 * You are deleting the correct pod.
 * You are not deleting the active primary instance.
