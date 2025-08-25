@@ -1,8 +1,6 @@
-CNPGClusterLowDiskSpaceCritical
-===============================
+# CNPGClusterLowDiskSpaceCritical
 
-Meaning
--------
+## Meaning
 
 This alert is triggered when the disk space usage on the CloudNativePG cluster exceeds 90%. It can be triggered by either:
 
@@ -10,20 +8,17 @@ This alert is triggered when the disk space usage on the CloudNativePG cluster e
 * the PVC hosting WAL files (`walStorage` section), where applicable
 * any PVC hosting a tablespace (`tablespaces` section)
 
-Impact
-------
+## Impact
 
 Reaching 100% disk usage will result in downtime and data loss.
 
 Moreover, very high disk space usage can lead to disk fragmentation, where files are split due to the absence of large-enough contiguous blocks of available storage, significantly increasing random I/O and degrading performance. Disk fragmentation can start happening at ~80% disk space usage.
 
-Diagnosis
----------
+## Diagnosis
 
 Use the [CloudNativePG Grafana Dashboard](https://grafana.com/grafana/dashboards/20417-cloudnativepg/).
 
-Mitigation
-----------
+## Mitigation
 
 * If you experience issues with the WAL (Write-Ahead Logging) volume and have set up continuous archiving, ensure that WAL archiving is functioning correctly. This is crucial to avoid a buildup of WAL files in the `pg_wal` folder. Monitor the `cnpg_collector_pg_wal_archive_status` metric, specifically ensuring that the number of `ready` files does not increase linearly.
 

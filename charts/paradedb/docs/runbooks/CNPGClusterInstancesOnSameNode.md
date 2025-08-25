@@ -1,20 +1,16 @@
-CNPGClusterInstancesOnSameNode
-============================
+# CNPGClusterInstancesOnSameNode
 
-Meaning
--------
+## Meaning
 
 The `CNPGClusterInstancesOnSameNode` alert is raised when two or more database pods are scheduled on the same node. This is not the expected behavior for CloudNativePG clusters, as each instance should run on a separate node to ensure high availability and fault tolerance.
 
 This can be caused by insufficient nodes in the cluster or misconfigured scheduling rules, such as affinity, anti-affinity, and tolerations.
 
-Impact
-------
+## Impact
 
 This configuration can affect high availability, since the downtime of a node with multiple database pods will bring down all the database pods on the node.
 
-Diagnosis
----------
+## Diagnosis
 
 List all database pods and their node assignments:
 
@@ -34,8 +30,7 @@ Describe the pods:
 kubectl describe pods -A -l "cnpg.io/podRole=instance"
 ```
 
-Mitigation
-----------
+## Mitigation
 
 1. Verify that you have more than a single node with no taint preventing pods from being scheduled on these nodes.
 

@@ -1,18 +1,14 @@
-CNPGClusterPhysicalReplicationLagCritical
-=========================================
+# CNPGClusterPhysicalReplicationLagCritical
 
-Meaning
--------
+## Meaning
 
 This alert is triggered when the physical replication lag of the CloudNativePG cluster exceeds `15s`.
 
-Impact
-------
+## Impact
 
 High physical replication lag can cause the cluster replicas to become out of sync. Queries to the `-r` and `-ro` endpoints may return stale data. In the event of a failover, the data that has not yet been replicated from the primary to the replicas may be lost.
 
-Diagnosis
----------
+## Diagnosis
 
 You can identify the current primary instance with the [CloudNativePG Grafana Dashboard](https://grafana.com/grafana/dashboards/20417-cloudnativepg/) or via the following command:
 
@@ -42,8 +38,7 @@ Inspect the `Stat Activity` section of the [CloudNativePG Grafana Dashboard](htt
 
 Inspect the `PostgreSQL Parameters` section of the [CloudNativePG Grafana Dashboard](https://grafana.com/grafana/dashboards/20417-cloudnativepg/).
 
-Mitigation
-----------
+## Mitigation
 
 - Kill any long-running transactions that could be creating more changes than the standby replicas can process.
 
