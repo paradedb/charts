@@ -51,7 +51,7 @@ Mitigation
 kubectl exec -it services/paradedb-rw --namespace NAMESPACE -- psql
 ```
 
-- Increase the Memory and CPU resources of ParadeDB instances if they are under heavy load. You can do this by increasing the resource requests by setting `cluster.resources.requests` and `cluster.resources.limits` in your Helm values. It is highly recommended that you set both `requests` and `limits` to the same value to achieve QoS `Guaranteed`. This will require a restart of the CloudNativePG cluster instances and a primary switchover, which will cause a brief service disruption.
+- Increase the Memory and CPU resources of the ParadeDB instances under heavy load. This can be done by setting `cluster.resources.requests` and `cluster.resources.limits` in your Helm values. It is highly recommended to set both `requests` and `limits` to the same value to achieve QoS `Guaranteed`. This will require a restart of the CloudNativePG cluster instances and a primary switchover, which will cause a brief service disruption.
 
 If using the ParadeDB BYOC Terraform module, you can achieve the same thing by setting the `paradedb.cpu` and `paradedb.mem` parameters in the BYOC values.
 
