@@ -45,7 +45,7 @@ Inspect the `PostgreSQL Parameters` section of the [CloudNativePG Grafana Dashbo
 Mitigation
 ----------
 
-- Kill any long-running transactions that could be creating more changes than standby replicas are able to process.
+- Kill any long-running transactions that could be creating more changes than the standby replicas can process.
 
 ```bash
 kubectl exec -it services/paradedb-rw --namespace NAMESPACE -- psql
