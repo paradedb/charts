@@ -59,7 +59,7 @@ If using the ParadeDB BYOC Terraform module, you can achieve the same thing by s
 
 If you are using the ParadeDB BYOC Terraform module, you can set `paradedb.postgresql.parameters.wal_compression`.
 
-- Increasing the number of IOPS or throughput of the storage used by the CloudNativePG cluster instances can help reduce replication lag if disk IO bottlenecked. Doing that requires creating a new storage class with higher IOPS or throughput and rebuilding cluster instances one by one using the new storage class. This is a slow process that will also affect the cluster's availability.
+- Increase the number of IOPS/throughput of the storage used by the CloudNativePG cluster instances. Doing so can help reduce replication lag if the disk IO is bottlenecked. This requires creating a new storage class with higher IOPS/throughput and rebuilding cluster instances and their PVCs one by one using the new storage class. This is a slow process that will also affect the cluster's availability.
 
 If you decide to go this route:
 
