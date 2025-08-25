@@ -24,7 +24,7 @@ High physical replication lag can be caused by a number of factors, including:
 
 - Network issues and network congestion of the node network interface
 
-Check the network interface statistics using the Grafana Dashboard in the `Kubernetes Cluster` section.
+Inspect the network interface statistics using the `Kubernetes Cluster` section of the [CloudNativePG Grafana Dashboard](https://grafana.com/grafana/dashboards/20417-cloudnativepg/).
 
 - High load on the primary or standby replicas
 
