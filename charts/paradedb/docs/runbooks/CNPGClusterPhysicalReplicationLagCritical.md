@@ -32,7 +32,7 @@ Inspect the CPU and Memory usage of the CloudNativePG cluster instances using th
 
 - Disk IO bottlenecks on the replicas
 
-Check the disk IO statistics using the [CloudNativePG Grafana Dashboard](https://grafana.com/grafana/dashboards/20417-cloudnativepg/).
+Inspect the disk IO statistics using the [CloudNativePG Grafana Dashboard](https://grafana.com/grafana/dashboards/20417-cloudnativepg/).
 
 - Long-running queries
 
