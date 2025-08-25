@@ -1,0 +1,23 @@
+{{- if and .Values.recovery.enabled (eq .Values.recovery.pluginConfiguration.name "barman-cloud.cloudnative-pg.io") }}
+apiVersion: barmancloud.cnpg.io/v1
+kind: ObjectStore
+metadata:
+  name: {{ include "cluster.fullname" . }}-recovery
+  namespace: {{ include "cluster.namespace" . }}
+  {{- with .Values.cluster.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  labels:
+  {{- include "cluster.labels" . | nindent 4 }}
+  {{- with .Values.cluster.additionalLabels }}
+    {{ toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  configuration:
+    {{- $d := dict "chartFullname" (include "cluster.fullname" .) "scope" .Values.recovery.barmanObjectStore "secretPrefix" "recovery" -}}
+    {{- include "cluster.barmanObjectStoreConfig" $d | nindent 2 }}
+  retentionPolicy: {{ .Values.recovery.barmanObjectStore.retentionPolicy }}
+  instanceSidecarConfiguration:
+    {{- .Values.recovery.barmanObjectStore.instanceSidecarConfiguration | toYaml | nindent 4 }}
+{{- end }}
