@@ -38,7 +38,7 @@ Check the disk IO statistics using the [CloudNativePG Grafana Dashboard](https:/
 
 Inspect the `Stat Activity` section of the [CloudNativePG Grafana Dashboard](https://grafana.com/grafana/dashboards/20417-cloudnativepg/).
 
-- Suboptimal PostgreSQL configuration, in particular a small number of `max_wal_senders`. It should be set to a number greater than or equal to the number of instances in your cluster. It defaults to `10` so it is usually sufficient for a clusters with less than 10 instances.
+- Suboptimal PostgreSQL configuration, in particular a small number of `max_wal_senders`. It should be set to a number greater than or equal to the number of instances in your cluster. The default value of `10` is usually sufficient.
 
 You can check active PostgreSQL parameter configuration using the [CloudNativePG Grafana Dashboard](https://grafana.com/grafana/dashboards/20417-cloudnativepg/) in the `PostgreSQL Parameters` section.
 
