@@ -57,7 +57,7 @@ If using the ParadeDB BYOC Terraform module, you can achieve the same thing by s
 
 - Enabling `wal_compression` by setting the `cluster.postgresql.parameters.wal_compression` parameter to `on`. might reduce the size of the WAL files and help reduce replication lag in a congested network. Changing `wal_compression` doesn't require a restart of the CloudNativePG cluster instances and normally can be done live.
 
-If you are using the ParadeDB BYOC Terraform module, you can set `paradedb.postgresql.parameters.wal_compression`.
+If using the ParadeDB BYOC Terraform module, this can be done by setting `paradedb.postgresql.parameters.wal_compression`.
 
 - Increase the number of IOPS/throughput of the storage used by the CloudNativePG cluster instances. Doing so can help reduce replication lag if the disk IO is bottlenecked. This requires creating a new storage class with higher IOPS/throughput and rebuilding cluster instances and their PVCs one by one using the new storage class. This is a slow process that will also affect the cluster's availability.
 
