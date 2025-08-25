@@ -29,6 +29,7 @@ recovery:
   ##
   # -- Available recovery methods:
   # * `backup` - Recovers a CNPG cluster from a CNPG backup (PITR supported) Needs to be on the same cluster in the same namespace.
+  # * `plugin` - Recovers a CNPG cluster from a backup taken with a CloudNativePG plugin (e.g. barman-cloud).
   # * `object_store` - Recovers a CNPG cluster from a barman object store (PITR supported).
   # * `pg_basebackup` - Recovers a CNPG cluster viaa streaming replication protocol. Useful if you want to
   #        migrate databases to CloudNativePG, even from outside Kubernetes.
@@ -51,51 +52,59 @@ recovery:
   database: paradedb
   # -- Name of the owner of the database in the instance to be used by applications. Defaults to the value of the `database` key.
   owner: ""
-  # -- Overrides the provider specific default endpoint. Defaults to:
-  # S3: https://s3.<region>.amazonaws.com"
-  # Leave empty if using the default S3 endpoint
-  endpointURL: ""
-  # -- Specifies a CA bundle to validate a privately signed certificate.
-  endpointCA:
-    # -- Creates a secret with the given value if true, otherwise uses an existing secret.
-    create: false
-    name: ""
-    key: ""
-    value: ""
-  # -- Overrides the provider specific default path. Defaults to:
-  # S3: s3://<bucket><path>
-  # Azure: https://<storageAccount>.<serviceName>.core.windows.net/<containerName><path>
-  # Google: gs://<bucket><path>
-  destinationPath: ""
-  # -- One of `s3`, `azure` or `google`
-  provider: s3
-  s3:
-    region: ""
-    bucket: ""
-    path: "/"
-    accessKey: ""
-    secretKey: ""
-    # -- Use the role based authentication without providing explicitly the keys
-    inheritFromIAMRole: false
-  azure:
-    path: "/"
-    connectionString: ""
-    storageAccount: ""
-    storageKey: ""
-    storageSasToken: ""
-    containerName: ""
-    serviceName: blob
-    inheritFromAzureAD: false
-  google:
-    path: "/"
-    bucket: ""
-    gkeEnvironment: false
-    applicationCredentials: ""
-  secret:
-    # -- Whether to create a secret for the backup credentials
-    create: true
-    # -- Name of the backup credentials secret
-    name: ""
+
+  pluginConfiguration:
+    #name: barman-cloud.cloudnative-pg.io
+    #parameters:
+    #  serverName: cluster-example
+
+  barmanObjectStore:
+    # -- Overrides the provider specific default endpoint. Defaults to:
+    # S3: https://s3.<region>.amazonaws.com"
+    # Leave empty if using the default S3 endpoint
+    endpointURL: ""
+    # -- Specifies a CA bundle to validate a privately signed certificate.
+    endpointCA:
+      # -- Creates a secret with the given value if true, otherwise uses an existing secret.
+      create: false
+      name: ""
+      key: ""
+      value: ""
+    # -- Overrides the provider specific default path. Defaults to:
+    # S3: s3://<bucket><path>
+    # Azure: https://<storageAccount>.<serviceName>.core.windows.net/<containerName><path>
+    # Google: gs://<bucket><path>
+    destinationPath: ""
+    # -- One of `s3`, `azure` or `google`
+    provider: s3
+    s3:
+      region: ""
+      bucket: ""
+      path: "/"
+      accessKey: ""
+      secretKey: ""
+      # -- Use the role based authentication without providing explicitly the keys
+      inheritFromIAMRole: false
+    azure:
+      path: "/"
+      connectionString: ""
+      storageAccount: ""
+      storageKey: ""
+      storageSasToken: ""
+      containerName: ""
+      serviceName: blob
+      inheritFromAzureAD: false
+    google:
+      path: "/"
+      bucket: ""
+      gkeEnvironment: false
+      applicationCredentials: ""
+    secret:
+      # -- Whether to create a secret for the backup credentials
+      create: true
+      # -- Name of the backup credentials secret
+      name: ""
+    instanceSidecarConfiguration: {}
 
   # See https://cloudnative-pg.io/documentation/1.22/bootstrap/#bootstrap-from-a-live-cluster-pg_basebackup
   pgBaseBackup:
@@ -451,6 +460,9 @@ backups:
       encryption: AES256
       # -- Number of data files to be archived or restored in parallel.
       jobs: 2
+
+    # -- Plugin-specific configuration when using the `plugin` method with the `barman-cloud.cloudnative-pg.io` plugin.
+    instanceSidecarConfiguration: {}
 
   scheduledBackups:
     -
