@@ -28,7 +28,7 @@ Check the network interface statistics using the Grafana Dashboard in the `Kuber
 
 - High load on the primary or standby replicas
 
-Check the CPU and Memory usage of the CloudNativePG cluster instances using the [CloudNativePG Grafana Dashboard](https://grafana.com/grafana/dashboards/20417-cloudnativepg/).
+Inspect the CPU and Memory usage of the CloudNativePG cluster instances using the [CloudNativePG Grafana Dashboard](https://grafana.com/grafana/dashboards/20417-cloudnativepg/).
 
 - Disk IO bottlenecks on the replicas
 
