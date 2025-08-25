@@ -53,7 +53,7 @@ kubectl exec -it services/paradedb-rw --namespace NAMESPACE -- psql
 
 - Increase the Memory and CPU resources of the ParadeDB instances under heavy load. This can be done by setting `cluster.resources.requests` and `cluster.resources.limits` in your Helm values. It is highly recommended to set both `requests` and `limits` to the same value to achieve QoS `Guaranteed`. This will require a restart of the CloudNativePG cluster instances and a primary switchover, which will cause a brief service disruption.
 
-If using the ParadeDB BYOC Terraform module, you can achieve the same thing by setting the `paradedb.cpu` and `paradedb.mem` parameters in the BYOC values.
+If using the ParadeDB BYOC Terraform module, this can be done by setting the `paradedb.cpu` and `paradedb.mem` parameters in the `.tfvars` file(s).
 
 - Enable `wal_compression` by setting the `cluster.postgresql.parameters.wal_compression` parameter to `on`. Doing so will reduce the size of the WAL files and can help reduce replication lag in a congested network. Changing `wal_compression` does not require a restart of the CloudNativePG cluster.
 
