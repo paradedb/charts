@@ -36,7 +36,7 @@ Check the disk IO statistics using the [CloudNativePG Grafana Dashboard](https:/
 
 - Long-running queries
 
-Check the `Stat Activity` section of the [CloudNativePG Grafana Dashboard](https://grafana.com/grafana/dashboards/20417-cloudnativepg/).
+Inspect the `Stat Activity` section of the [CloudNativePG Grafana Dashboard](https://grafana.com/grafana/dashboards/20417-cloudnativepg/).
 
 - Suboptimal PostgreSQL configuration, in particular a small number of `max_wal_senders`. It should be set to a number greater than or equal to the number of instances in your cluster. It defaults to `10` so it is usually sufficient for a clusters with less than 10 instances.
 
