@@ -69,7 +69,9 @@ If you decide to go this route:
 If using the ParadeDB BYOC Terraform module, add the new storage to the cluster's BYOC values - `k8s.storageClasses`.
 
 2. Make sure to only replace one instance at a time to avoid service disruption.
+
 3. Double check are deleting the correct pod.
+
 4. Don't start with the active primary instance. Delete one of the standby replicas first.
 
 ```bash

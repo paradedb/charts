@@ -4,7 +4,7 @@ CNPGClusterOffline
 Meaning
 -------
 
-The `CNPGClusterOffline` alert is triggered when there are no ready CloudNativePG instances.
+This alert is triggered when there are no ready CloudNativePG instances.
 
 Impact
 ------
@@ -37,5 +37,4 @@ kubectl logs --namespace cnpg-system -l "app.kubernetes.io/name=cloudnative-pg"
 Mitigation
 ----------
 
-Refer to the [CloudNativePG Failure Modes](https://cloudnative-pg.io/documentation/current/failure_modes/)
-and [CloudNativePG Troubleshooting](https://cloudnative-pg.io/documentation/current/troubleshooting/) documentation for more information on how to troubleshoot and mitigate this issue.
+Refer to the [CloudNativePG Failure Modes](https://cloudnative-pg.io/documentation/current/failure_modes/) and [CloudNativePG Troubleshooting](https://cloudnative-pg.io/documentation/current/troubleshooting/) documentation for more information on how to troubleshoot and mitigate this issue.
