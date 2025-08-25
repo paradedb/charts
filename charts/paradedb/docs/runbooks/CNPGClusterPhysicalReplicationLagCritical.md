@@ -9,7 +9,7 @@ This alert is triggered when the physical replication lag of the CloudNativePG c
 Impact
 ------
 
-High physical replication lag can cause the cluster replicas to become out of sync. Queries to the `-r` and `-ro` endpoints may return stale data. In the event of a failover, the data that has not yet been replicate from the primary to the replicas may be lost.
+High physical replication lag can cause the cluster replicas to become out of sync. Queries to the `-r` and `-ro` endpoints may return stale data. In the event of a failover, the data that has not yet been replicated from the primary to the replicas may be lost.
 
 Diagnosis
 ---------
