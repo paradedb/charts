@@ -55,7 +55,7 @@ kubectl exec -it services/paradedb-rw --namespace NAMESPACE -- psql
 
 If using the ParadeDB BYOC Terraform module, you can achieve the same thing by setting the `paradedb.cpu` and `paradedb.mem` parameters in the BYOC values.
 
-- Enabling `wal_compression` by setting the `cluster.postgresql.parameters.wal_compression` parameter to `on`. might reduce the size of the WAL files and help reduce replication lag in a congested network. Changing `wal_compression` doesn't require a restart of the CloudNativePG cluster instances and normally can be done live.
+- Enable `wal_compression` by setting the `cluster.postgresql.parameters.wal_compression` parameter to `on`. Doing so will reduce the size of the WAL files and can help reduce replication lag in a congested network. Changing `wal_compression` does not require a restart of the CloudNativePG cluster.
 
 If using the ParadeDB BYOC Terraform module, this can be done by setting `paradedb.postgresql.parameters.wal_compression`.
 
