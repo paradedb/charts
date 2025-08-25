@@ -1,18 +1,14 @@
-CNPGClusterOffline
-==================
+# CNPGClusterOffline
 
-Meaning
--------
+## Meaning
 
 This alert is triggered when there are no ready CloudNativePG instances.
 
-Impact
-------
+## Impact
 
 Having an offline cluster means that your applications will not be able to access the database, leading to service disruption.
 
-Diagnosis
----------
+## Diagnosis
 
 Use the [CloudNativePG Grafana Dashboard](https://grafana.com/grafana/dashboards/20417-cloudnativepg/).
 
@@ -34,7 +30,6 @@ Check the CloudNativePG operator logs:
 kubectl logs --namespace cnpg-system -l "app.kubernetes.io/name=cloudnative-pg"
 ```
 
-Mitigation
-----------
+## Mitigation
 
 Refer to the [CloudNativePG Failure Modes](https://cloudnative-pg.io/documentation/current/failure_modes/) and [CloudNativePG Troubleshooting](https://cloudnative-pg.io/documentation/current/troubleshooting/) documentation for more information on how to troubleshoot and mitigate this issue.

@@ -1,18 +1,14 @@
-CNPGClusterHighConnectionsCritical
-==================================
+# CNPGClusterHighConnectionsCritical
 
-Meaning
--------
+## Meaning
 
 This alert is triggered when the number of connections to the CloudNativePG cluster instance exceeds 95% of its capacity.
 
-Impact
-------
+## Impact
 
 At 100% capacity, the CloudNativePG cluster instance will not be able to accept new connections. This will result in a service disruption.
 
-Diagnosis
----------
+## Diagnosis
 
 Use the [CloudNativePG Grafana Dashboard](https://grafana.com/grafana/dashboards/20417-cloudnativepg/) to check the number of connections to the CloudNativePG cluster instances. Identify the instance that is experiencing issues and whether that instance is the primary or a standby replica.
 
@@ -22,8 +18,7 @@ You can check the current primary instance using the following command:
 kubectl get cluster paradedb -o 'jsonpath={"Current Primary: "}{.status.currentPrimary}{"; Target Primary: "}{.status.targetPrimary}{"\n"}' --namespace NAMESPACE
 ```
 
-Mitigation
-----------
+## Mitigation
 
 > [!IMPORTANT]
 > Changing the `max_connections` parameter requires a restart of the CloudNativePG cluster instances. This will cause a restart of a standby instance and a switchover of the primary instance, causing a brief service disruption.

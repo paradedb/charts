@@ -1,8 +1,6 @@
-CNPGClusterZoneSpreadWarning
-============================
+# CNPGClusterZoneSpreadWarning
 
-Meaning
--------
+## Meaning
 
 This alert is raised when pods are not evenly distributed across availability zones. To be more precise, the alert is raised when both of the following conditions are met:
 
@@ -11,13 +9,11 @@ This alert is raised when pods are not evenly distributed across availability zo
 
 This can be caused by insufficient nodes in the cluster or by misconfigured scheduling rules, such as affinity, anti-affinity, and tolerations.
 
-Impact
-------
+## Impact
 
 The uneven distribution of pods across availability zones can lead to a single point of failure if a zone goes down.
 
-Diagnosis
----------
+## Diagnosis
 
 Use the [CloudNativePG Grafana Dashboard](https://grafana.com/grafana/dashboards/20417-cloudnativepg/).
 
@@ -39,8 +35,7 @@ Identify the current primary instance with the following command:
 kubectl get cluster paradedb -o 'jsonpath={"Current Primary: "}{.status.currentPrimary}{"; Target Primary: "}{.status.targetPrimary}{"\n"}' --namespace NAMESPACE
 ```
 
-Mitigation
-----------
+## Mitigation
 
 1. Verify that there are more than a single node with no taints, preventing pods to be scheduled in each availability zone.
 

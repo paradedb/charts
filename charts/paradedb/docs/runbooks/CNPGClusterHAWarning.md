@@ -1,8 +1,6 @@
-CNPGClusterHAWarning
-====================
+# CNPGClusterHAWarning
 
-Meaning
--------
+## Meaning
 
 The `CNPGClusterHAWarning` alert is triggered when the CloudNativePG cluster has fewer than 2 ready standby replicas.
 
@@ -12,15 +10,13 @@ This can happen during a normal failover or automated minor version upgrades. Th
 
 If the alert persists for longer than a few minutes, it may indicate a problem with the cluster. In that case, refer to the diagnosis and mitigation sections below.
 
-Impact
-------
+## Impact
 
 Having fewer than two available replicas puts the cluster at risk of downtime if another instance fails. The cluster is still able to operate normally, although the `-ro` and `-r` endpoints operate at reduced capacity.
 
 At `0` available ready replicas, a `CNPGClusterHACritical` alert will be triggered.
 
-Diagnosis
----------
+## Diagnosis
 
 You can identify the current primary instance with the [CloudNativePG Grafana Dashboard](https://grafana.com/grafana/dashboards/20417-cloudnativepg/) or via the following command:
 
@@ -60,17 +56,18 @@ Check the CloudNativePG operator logs:
 kubectl logs --namespace cnpg-system -l "app.kubernetes.io/name=cloudnative-pg"
 ```
 
-Mitigation
-----------
+## Mitigation
 
 > [!NOTE]
-> If using the ParadeDB BYOC refer to `docs/handbook/NotEnoughDiskSpace.md` provided with the Terraform module.
+> If you are using ParadeDB BYOC, refer to `docs/handbook/NotEnoughDiskSpace.md` included with the Terraform module.
 
-Refer to the [CloudNativePG Failure Modes](https://cloudnative-pg.io/documentation/current/failure_modes/) and [CloudNativePG Troubleshooting](https://cloudnative-pg.io/documentation/current/troubleshooting/) documentation for more information on how to troubleshoot and mitigate this issue.
+If the above diagnosis commands indicate that one of the instance' storage disk or WAL storage disk are full, increase the cluster storage size.
 
-If the issue is due to insufficient storage, you should increase the cluster storage size. See this documentation for more information on how to [Resize the CloudNativePG Cluster Storage](https://cloudnative-pg.io/documentation/current/troubleshooting/#storage-is-full).
+If the issue is due to insufficient storage, increase the cluster storage size. Refer to the CloudNativePG documentation for more information on how to [Resize the CloudNativePG Cluster Storage](https://cloudnative-pg.io/documentation/current/troubleshooting/#storage-is-full).
 
-If unable to determine the issue, you can attempt to recreate the affected pods. Make sure you do this only one pod at a time to avoid increasing the load on the primary instance unnecessarily.
+### Unknown
+
+If the cause of the issue cannot be determined with certainty, it may be possible to resolve the situation by recreating the affected pods. Recreating a pod involves deleting the pod, its storage PVC, and its WAL storage PVC. Note that pods should be **always** be recreated one-at-a-time to avoid increasing the load on the primary instance.
 
 Before doing so, carefully very that:
 
