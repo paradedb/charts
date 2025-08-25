@@ -1,0 +1,37 @@
+{{- if and .Values.backups.enabled (eq (include "cluster.barmanPluginEnabled" .) "true") }}
+apiVersion: barmancloud.cnpg.io/v1
+kind: ObjectStore
+metadata:
+  name: {{ include "cluster.fullname" . }}-backup
+  namespace: {{ include "cluster.namespace" . }}
+  {{- with .Values.cluster.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  labels:
+  {{- include "cluster.labels" . | nindent 4 }}
+  {{- with .Values.cluster.additionalLabels }}
+    {{ toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  retentionPolicy: {{ .Values.backups.retentionPolicy }}
+  configuration:
+    wal:
+      compression: {{ .Values.backups.barmanObjectStore.wal.compression }}
+      {{- if .Values.backups.barmanObjectStore.wal.encryption }}
+      encryption: {{ .Values.backups.barmanObjectStore.wal.encryption }}
+      {{- end }}
+      maxParallel: {{ .Values.backups.barmanObjectStore.wal.maxParallel }}
+    data:
+      compression: {{ .Values.backups.barmanObjectStore.data.compression }}
+      {{- if .Values.backups.barmanObjectStore.data.encryption }}
+      encryption: {{ .Values.backups.barmanObjectStore.data.encryption }}
+      {{- end }}
+      jobs: {{ .Values.backups.barmanObjectStore.data.jobs }}
+
+    {{- $d := dict "chartFullname" (include "cluster.fullname" .) "scope" .Values.backups.barmanObjectStore "secretPrefix" "backup" }}
+    {{- include "cluster.barmanObjectStoreConfig" $d | nindent 2 }}
+  retentionPolicy: {{ .Values.backups.barmanObjectStore.retentionPolicy }}
+  instanceSidecarConfiguration:
+    {{- .Values.backups.barmanObjectStore.instanceSidecarConfiguration | toYaml | nindent 4 }}
+{{- end }}

@@ -14,6 +14,11 @@ externalClusters:
       serverName: {{ .Values.recovery.clusterName }}
       {{- $d := dict "chartFullname" (include "cluster.fullname" .) "scope" .Values.recovery "secretPrefix" "recovery" -}}
       {{- include "cluster.barmanObjectStoreConfig" $d | nindent 4 }}
+  {{- else if eq .Values.recovery.method "plugin" }}
+  - name: pluginBarmanRecoveryCluster
+    plugin:
+      {{- omit .Values.recovery.pluginConfiguration "barmanObjectName" | toYaml | nindent 6 -}}
+      barmanObjectname: {{ include "cluster.fullname" . }}-recovery
   {{- end }}
 {{- else if eq .Values.mode "replica" }}
   - name: originCluster
