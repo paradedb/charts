@@ -31,7 +31,7 @@ spec:
 
     {{- $d := dict "chartFullname" (include "cluster.fullname" .) "scope" .Values.backups.barmanObjectStore "secretPrefix" "backup" }}
     {{- include "cluster.barmanObjectStoreConfig" $d | nindent 2 }}
-  retentionPolicy: {{ .Values.backups.barmanObjectStore.retentionPolicy }}
+  retentionPolicy: {{ .Values.backups.retentionPolicy }}
   instanceSidecarConfiguration:
     {{- .Values.backups.barmanObjectStore.instanceSidecarConfiguration | toYaml | nindent 4 }}
 {{- end }}
