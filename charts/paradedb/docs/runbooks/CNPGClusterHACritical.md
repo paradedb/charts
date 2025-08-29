@@ -10,7 +10,7 @@ On single-instance clusters, this alert will remain active at all times. If runn
 
 ## Impact
 
-Without standby replicas, the cluster is at high risk of downtime if the primary fails. While the primary instance remains online and able to serve queries, connections to the `-ro` endpoint will fail. If the primary instance goes down, the cluster will experience a full outage.
+Without standby replicas, the cluster is at high risk of downtime if the primary fails. While the primary instance remains online and able to serve queries, connections through the `-ro` endpoint will fail. If the primary instance goes down, the cluster will experience a full outage.
 
 ## Diagnosis
 
@@ -63,11 +63,11 @@ First, consult the [CloudNativePG Failure Modes](https://cloudnative-pg.io/docum
 > [!NOTE]
 > If you are using ParadeDB BYOC, refer to `docs/handbook/NotEnoughDiskSpace.md` included with the Terraform module.
 
-If the above diagnosis commands indicate that one of the instance's storage disk or WAL storage disk are full, increase the cluster storage size. Refer to the CloudNativePG documentation for more information on how to [Resize the CloudNativePG Cluster Storage](https://cloudnative-pg.io/documentation/current/troubleshooting/#storage-is-full).
+If the above diagnosis commands indicate that an instance’s storage or WAL disk is full, increase the cluster storage size. Refer to the CloudNativePG documentation for more information on how to [Resize the CloudNativePG Cluster Storage](https://cloudnative-pg.io/documentation/current/troubleshooting/#storage-is-full).
 
 ### Unknown
 
-If the cause of the issue cannot be determined with certainty, it may be possible to resolve the situation by recreating the affected pods. Recreating a pod involves deleting the pod, its storage PVC, and its WAL storage PVC. Note that pods should be **always** be recreated one-at-a-time to avoid increasing the load on the primary instance.
+If the root cause remains unclear, you may attempt to resolve the issue by recreating the affected pods. Recreating a pod involves deleting the pod, its storage PVC, and its WAL storage PVC. Note that pods should **always** be recreated one at a time to avoid increasing the load on the primary instance.
 
 Before doing so, carefully verify that:
 
