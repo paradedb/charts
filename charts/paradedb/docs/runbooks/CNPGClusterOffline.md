@@ -2,29 +2,29 @@
 
 ## Description
 
-This alert is triggered when there are no ready CloudNativePG instances.
+This alert is triggered when no CloudNativePG instances are ready.
 
 ## Impact
 
-Having an offline cluster means that your applications will not be able to access the database, leading to service disruption.
+When the cluster is offline, applications cannot access the database, resulting in a full service disruption.
 
 ## Diagnosis
 
-Use the [CloudNativePG Grafana Dashboard](https://grafana.com/grafana/dashboards/20417-cloudnativepg/).
+To investigate why the cluster is offline:
 
-Get the status of the CloudNativePG cluster instances:
+- Get the status of the CloudNativePG cluster instances:
 
 ```bash
 kubectl get pods -A -l "cnpg.io/podRole=instance" -o wide
 ```
 
-Check the logs of the affected CloudNativePG instances:
+- Check the logs of the affected CloudNativePG instances:
 
 ```bash
 kubectl logs --namespace <namespace> pod/<instance-pod-name>
 ```
 
-Check the CloudNativePG operator logs:
+- Check the CloudNativePG operator logs:
 
 ```bash
 kubectl logs --namespace cnpg-system -l "app.kubernetes.io/name=cloudnative-pg"
@@ -32,4 +32,4 @@ kubectl logs --namespace cnpg-system -l "app.kubernetes.io/name=cloudnative-pg"
 
 ## Mitigation
 
-Refer to the [CloudNativePG Failure Modes](https://cloudnative-pg.io/documentation/current/failure_modes/) and [CloudNativePG Troubleshooting](https://cloudnative-pg.io/documentation/current/troubleshooting/) documentation for more information on how to troubleshoot and mitigate this issue.
+Refer to the [CloudNativePG Failure Modes](https://cloudnative-pg.io/documentation/current/failure_modes/) and [CloudNativePG Troubleshooting](https://cloudnative-pg.io/documentation/current/troubleshooting/) documentation for guidance on troubleshooting and recovery.
