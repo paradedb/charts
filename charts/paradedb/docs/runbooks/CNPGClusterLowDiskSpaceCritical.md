@@ -24,4 +24,4 @@ Use the [CloudNativePG Grafana Dashboard](https://grafana.com/grafana/dashboards
 
 * Refer to this documentation for more information on how to [Resize the CloudNativePG Cluster Storage](https://cloudnative-pg.io/documentation/current/troubleshooting/#storage-is-full).
 
-* If using the ParadeDB BYOC Terraform module, refer to the `docs/handbook/NotEnoughDiskSpace.md` handbook to increase the disk space of the CloudNativePG cluster instances. This will require a restart of the ParadeDB and a primary switchover, which will cause a brief service disruption.
+* If using the ParadeDB BYOC Terraform module, refer to the `docs/handbook/NotEnoughDiskSpace.md` handbook to increase the disk space of the CloudNativePG cluster instances. This will require a switchover of the ParadeDB primary instance, which will cause a brief service disruption.

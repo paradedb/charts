@@ -56,9 +56,7 @@ kubectl logs --namespace cnpg-system -l "app.kubernetes.io/name=cloudnative-pg"
 
 ### Instance Failure
 
-First, consult the [CloudNativePG Failure Modes](https://cloudnative-pg.io/documentation/current/failure_modes/) and [CloudNativePG Troubleshooting](https://cloudnative-pg.io/documentation/current/troubleshooting/) documentation for more information on how to troubleshoot issues with inactive answers.
-
-and mitigate this issue.
+First, consult the [CloudNativePG Failure Modes](https://cloudnative-pg.io/documentation/current/failure_modes/) and [CloudNativePG Troubleshooting](https://cloudnative-pg.io/documentation/current/troubleshooting/) documentation for more information on the conditions when CloudNativePG is unable to heal instances and standard troubleshooting steps.
 
 ### Insufficient Storage
 
