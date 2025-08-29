@@ -1,6 +1,6 @@
 # CNPGClusterHACritical
 
-## Meaning
+## Description
 
 The `CNPGClusterHACritical` alert is triggered when the CloudNativePG cluster has no ready standby replicas.
 
@@ -10,11 +10,11 @@ On single-instance clusters, this alert will remain active at all times. If runn
 
 ## Impact
 
-Without standby replicas, the cluster is at high risk of downtime if the primary fails. While the primary remains online and can serve queries, connections to the -ro endpoint will fail. If the primary instance goes down, the cluster will experience a full outage.
+Without standby replicas, the cluster is at high risk of downtime if the primary fails. While the primary instance remains online and able to serve queries, connections to the `-ro` endpoint will fail. If the primary instance goes down, the cluster will experience a full outage.
 
 ## Diagnosis
 
-You can identify the current primary instance using the [CloudNativePG Grafana Dashboard](https://grafana.com/grafana/dashboards/20417-cloudnativepg/) or by running:
+Identify the current primary instance using the [CloudNativePG Grafana Dashboard](https://grafana.com/grafana/dashboards/20417-cloudnativepg/) or by running:
 
 ```bash
 kubectl get cluster paradedb -o 'jsonpath={"Current Primary: "}{.status.currentPrimary}{"; Target Primary: "}{.status.targetPrimary}{"\n"}' --namespace NAMESPACE

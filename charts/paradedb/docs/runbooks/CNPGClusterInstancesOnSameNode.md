@@ -1,6 +1,6 @@
 # CNPGClusterInstancesOnSameNode
 
-## Meaning
+## Description
 
 The `CNPGClusterInstancesOnSameNode` alert is raised when two or more database pods are scheduled on the same node. This is not the expected behavior for CloudNativePG clusters, as each instance should run on a separate node to ensure high availability and fault tolerance.
 

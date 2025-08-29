@@ -1,6 +1,6 @@
 # CNPGClusterHAWarning
 
-## Meaning
+## Description
 
 The `CNPGClusterHAWarning` alert is triggered when the CloudNativePG cluster has fewer than 2 ready standby replicas.
 
