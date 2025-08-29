@@ -1,6 +1,6 @@
 # CNPGClusterHighConnectionsCritical
 
-## Meaning
+## Description
 
 This alert is triggered when the number of connections to the CloudNativePG cluster instance exceeds 95% of its capacity.
 

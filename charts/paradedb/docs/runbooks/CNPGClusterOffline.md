@@ -1,6 +1,6 @@
 # CNPGClusterOffline
 
-## Meaning
+## Description
 
 This alert is triggered when there are no ready CloudNativePG instances.
 

@@ -1,6 +1,6 @@
 # CNPGClusterZoneSpreadWarning
 
-## Meaning
+## Description
 
 This alert is raised when pods are not evenly distributed across availability zones. To be more precise, the alert is raised when both of the following conditions are met:
 

@@ -1,6 +1,6 @@
 # CNPGClusterLowDiskSpaceCritical
 
-## Meaning
+## Description
 
 This alert is triggered when the disk space usage on the CloudNativePG cluster exceeds 90%. It can be triggered by either:
 
