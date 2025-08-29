@@ -18,13 +18,13 @@ To investigate why the cluster is offline:
 kubectl get pods -A -l "cnpg.io/podRole=instance" -o wide
 ```
 
-- Check the logs of the affected CloudNativePG instances:
+- Inspect the logs of the affected CloudNativePG instances:
 
 ```bash
 kubectl logs --namespace <namespace> pod/<instance-pod-name>
 ```
 
-- Check the CloudNativePG operator logs:
+- Inspect the CloudNativePG operator logs:
 
 ```bash
 kubectl logs --namespace cnpg-system -l "app.kubernetes.io/name=cloudnative-pg"

@@ -24,7 +24,7 @@ Since the primary is the only instance serving queries, avoid making any changes
 
 To inspect cluster health and instance status:
 
-- List cluster pods:
+- Get the status of the CloudNativePG cluster instances:
 
 ```bash
 kubectl get pods -A -l "cnpg.io/podRole=instance" -o wide
@@ -42,13 +42,13 @@ kubectl describe --namespace <namespace> pod/<pod-name>
 kubectl get cluster paradedb -o 'jsonpath={.status.phase}{"\n"}{.status.phaseReason}{"\n"}' --namespace <namespace>
 ```
 
-- Review logs for the affected instances:
+- Inspect the logs of the affected CloudNativePG instances:
 
 ```bash
 kubectl logs --namespace <namespace> pod/<instance-pod-name>
 ```
 
-- Review the CloudNativePG operator logs:
+- Inspect the CloudNativePG operator logs:
 
 ```bash
 kubectl logs --namespace cnpg-system -l "app.kubernetes.io/name=cloudnative-pg"
