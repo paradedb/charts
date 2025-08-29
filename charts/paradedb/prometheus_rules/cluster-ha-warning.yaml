@@ -4,7 +4,7 @@ alert: {{ $alert }}
 annotations:
   summary: ParadeDB CNPG Cluster less than 2 standby replicas.
   description: |-
-    ParadeDB CNPG Cluster "{{ .labels.job }}" has only {{ .value }} standby replicas, putting your cluster at risk if another instance fails. The cluster is still able to operate normally, although the `-ro` and `-r` endpoints are operating at reduced capacity.
+    ParadeDB CloudNativePG Cluster "{{ .labels.job }}" has only {{ .value }} standby replicas, putting your cluster at risk if another instance fails. The cluster is still able to operate normally, although the `-ro` and `-r` endpoints are operating at reduced capacity.
 
     This can happen during a normal fail-over or automated minor version upgrades. The replaced instance may need some time to catch-up with the cluster primary instance.
 

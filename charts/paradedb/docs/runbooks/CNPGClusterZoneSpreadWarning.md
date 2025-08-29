@@ -1,6 +1,6 @@
 # CNPGClusterZoneSpreadWarning
 
-## Meaning
+## Description
 
 This alert is raised when pods are not evenly distributed across availability zones. To be more precise, the alert is raised when both of the following conditions are met:
 
@@ -32,7 +32,7 @@ kubectl get nodes --label-columns topology.kubernetes.io/zone
 Identify the current primary instance with the following command:
 
 ```bash
-kubectl get cluster paradedb -o 'jsonpath={"Current Primary: "}{.status.currentPrimary}{"; Target Primary: "}{.status.targetPrimary}{"\n"}' --namespace NAMESPACE
+kubectl get cluster paradedb -o 'jsonpath={"Current Primary: "}{.status.currentPrimary}{"; Target Primary: "}{.status.targetPrimary}{"\n"}' --namespace <namespace>
 ```
 
 ## Mitigation
@@ -43,11 +43,11 @@ kubectl get cluster paradedb -o 'jsonpath={"Current Primary: "}{.status.currentP
 
 3. Delete the pods and PVCs that are not in the desired availability zone. The CloudNativePG operator will bring up a new pod to replace any deleted pod(s). Only one pod should be deleted at a time to avoid increasing the load on the primary instance.
 
-Before doing so, carefully very that:
+Before doing so, carefully verify that:
 
 * You are deleting the correct pod.
 * You are not deleting the active primary instance.
 
 ```bash
-kubectl delete --namespace NAMESPACE pod/POD_NAME pvc/POD_NAME pvc/POD_NAME-wal
+kubectl delete --namespace <namespace> pod/<pod-name> pvc/<pod-name> pvc/<pod-name>-wal
 ```

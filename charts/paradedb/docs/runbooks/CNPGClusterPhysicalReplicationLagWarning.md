@@ -1,6 +1,6 @@
 # CNPGClusterPhysicalReplicationLagWarning
 
-## Meaning
+## Description
 
 This alert is triggered when the physical replication lag of the CloudNativePG cluster exceeds `1s`.
 
@@ -43,7 +43,7 @@ You can check active PostgreSQL parameter configuration using the [CloudNativePG
 - Kill any long-running transactions that could be creating more changes than standby replicas are able to process.
 
 ```bash
-kubectl exec -it services/paradedb-rw --namespace NAMESPACE -- psql
+kubectl exec -it services/paradedb-rw --namespace <namespace> -- psql
 ```
 
 - Increase the Memory and CPU resources of ParadeDB instances if they are under heavy load. You can do this by increasing the resource requests by setting `cluster.resources.requests` and `cluster.resources.limits` in your Helm values. It is highly recommended that you set both `requests` and `limits` to the same value to achieve QoS `Guaranteed`. This will require a restart of the CloudNativePG cluster instances and a primary switchover, which will cause a brief service disruption.
@@ -70,7 +70,7 @@ If using the ParadeDB BYOC Terraform module, add the new storage to the cluster'
 4. Don't start with the active primary instance. Delete one of the standby replicas first.
 
 ```bash
-kubectl delete --namespace NAMESPACE pod/POD_NAME pvc/POD_NAME pvc/POD_NAME-wal
+kubectl delete --namespace <namespace> pod/<pod-name> pvc/<pod-name> pvc/<pod-name>-wal
 ```
 
 - In the event that the cluster has 9+ instances make sure that the `max_wal_senders` parameter is set to a value greater than or equal to the total number of instances in your cluster.
