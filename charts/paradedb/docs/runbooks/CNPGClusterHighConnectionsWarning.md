@@ -15,7 +15,7 @@ Use the [CloudNativePG Grafana Dashboard](https://grafana.com/grafana/dashboards
 You can check the current primary instance using the following command:
 
 ```bash
-kubectl get cluster paradedb -o 'jsonpath={"Current Primary: "}{.status.currentPrimary}{"; Target Primary: "}{.status.targetPrimary}{"\n"}' --namespace NAMESPACE
+kubectl get cluster paradedb -o 'jsonpath={"Current Primary: "}{.status.currentPrimary}{"; Target Primary: "}{.status.targetPrimary}{"\n"}' --namespace <namespace>
 ```
 
 ## Mitigation
