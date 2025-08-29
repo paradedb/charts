@@ -2,7 +2,7 @@
 {{- if not (has $alert .excludeRules) -}}
 alert: {{ $alert }}
 annotations:
-  summary: ParadeDB CNPG Cluster instances are located on the same node.
+  summary: Multiple ParadeDB CNPG Cluster instances are located on the same node.
   description: |-
     ParadeDB CloudNativePG  Cluster "{{ .namespace }}/{{ .cluster }}" has {{ .value }} instances on the same node {{ .labels.node }}.
 
