@@ -17,7 +17,7 @@ Without standby replicas, the cluster is at high risk of downtime if the primary
 Identify the current primary instance using the [CloudNativePG Grafana Dashboard](https://grafana.com/grafana/dashboards/20417-cloudnativepg/) or by running:
 
 ```bash
-kubectl get cluster paradedb -o 'jsonpath={"Current Primary: "}{.status.currentPrimary}{"; Target Primary: "}{.status.targetPrimary}{"\n"}' --namespace NAMESPACE
+kubectl get cluster paradedb -o 'jsonpath={"Current Primary: "}{.status.currentPrimary}{"; Target Primary: "}{.status.targetPrimary}{"\n"}' --namespace <namespace>
 ```
 
 Since the primary is the only instance serving queries, avoid making any changes that could disrupt it. To inspect cluster health and instance status:
@@ -31,13 +31,13 @@ kubectl get pods -A -l "cnpg.io/podRole=instance" -o wide
 - If any pods are Pending, describe them to identify the cause:
 
 ```bash
-kubectl describe --namespace NAMESPACE pod/POD_NAME
+kubectl describe --namespace <namespace> pod/<pod-name>
 ```
 
 - Check cluster phase and reason:
 
 ```bash
-kubectl get cluster paradedb -o 'jsonpath={.status.phase}{"\n"}{.status.phaseReason}{"\n"}' --namespace NAMESPACE
+kubectl get cluster paradedb -o 'jsonpath={.status.phase}{"\n"}{.status.phaseReason}{"\n"}' --namespace <namespace>
 ```
 
 - Review logs for affected instances:
@@ -63,20 +63,18 @@ First, consult the [CloudNativePG Failure Modes](https://cloudnative-pg.io/docum
 > [!NOTE]
 > If you are using ParadeDB BYOC, refer to `docs/handbook/NotEnoughDiskSpace.md` included with the Terraform module.
 
-If the above diagnosis commands indicate that one of the instance' storage disk or WAL storage disk are full, increase the cluster storage size.
-
-If the issue is due to insufficient storage, increase the cluster storage size. Refer to the CloudNativePG documentation for more information on how to [Resize the CloudNativePG Cluster Storage](https://cloudnative-pg.io/documentation/current/troubleshooting/#storage-is-full).
+If the above diagnosis commands indicate that one of the instance's storage disk or WAL storage disk are full, increase the cluster storage size. Refer to the CloudNativePG documentation for more information on how to [Resize the CloudNativePG Cluster Storage](https://cloudnative-pg.io/documentation/current/troubleshooting/#storage-is-full).
 
 ### Unknown
 
 If the cause of the issue cannot be determined with certainty, it may be possible to resolve the situation by recreating the affected pods. Recreating a pod involves deleting the pod, its storage PVC, and its WAL storage PVC. Note that pods should be **always** be recreated one-at-a-time to avoid increasing the load on the primary instance.
 
-Before doing so, carefully very that:
+Before doing so, carefully verify that:
 
 1. You are connected to the correct cluster.
 2. You are deleting the correct pod.
 3. You are not deleting the active primary instance.
 
 ```bash
-kubectl delete --namespace NAMESPACE pod/POD_NAME pvc/POD_NAME pvc/POD_NAME-wal
+kubectl delete --namespace <namespace> pod/<pod-name> pvc/<pod-name> pvc/<pod-name>-wal
 ```
