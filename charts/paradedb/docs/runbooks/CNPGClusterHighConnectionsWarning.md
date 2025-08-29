@@ -2,7 +2,7 @@
 
 ## Description
 
-This alert is triggered when the number of connections on the CloudNativePG cluster instance exceeds 85% of its configured capacity.
+The `CNPGClusterHighConnectionsWarning` alert is triggered when the number of connections on the CloudNativePG cluster instance exceeds 85% of its configured capacity.
 
 ## Impact
 

@@ -1,8 +1,8 @@
-# CNPGClusterPhysicalReplicationLagWarning
+# CNPGClusterHighPhysicalReplicationLagWarning
 
 ## Description
 
-This alert is triggered when physical replication lag in the CloudNativePG cluster exceeds 1 second.
+The `CNPGClusterHighPhysicalReplicationLagWarning` alert is triggered when physical replication lag in the CloudNativePG cluster exceeds 1 second.
 
 ## Impact
 

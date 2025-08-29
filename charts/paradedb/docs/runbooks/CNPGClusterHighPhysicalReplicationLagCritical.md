@@ -2,7 +2,7 @@
 
 ## Description
 
-This alert is triggered when physical replication lag in the CloudNativePG cluster exceeds 15 seconds.
+The `CNPGClusterHighPhysicalReplicationLagCritical` alert is triggered when physical replication lag in the CloudNativePG cluster exceeds 15 seconds.
 
 ## Impact
 

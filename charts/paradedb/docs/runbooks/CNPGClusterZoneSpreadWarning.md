@@ -2,7 +2,7 @@
 
 ## Description
 
-This alert is triggered when pods are not evenly distributed across availability zones. To be more precise, the alert is raised when the number of pods exceeds the number of zones and the cluster runs in fewer than three zones.
+The `CNPGClusterZoneSpreadWarning` alert is triggered when pods are not evenly distributed across availability zones. To be more precise, the alert is raised when the number of pods exceeds the number of zones and the cluster runs in fewer than three zones.
 
 This can be caused by insufficient nodes in the cluster or by misconfigured scheduling rules, such as pod affinity/anti-affinity rules or tolerations.
 

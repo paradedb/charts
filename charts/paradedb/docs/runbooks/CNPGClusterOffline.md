@@ -2,7 +2,7 @@
 
 ## Description
 
-This alert is triggered when no CloudNativePG instances are ready.
+The `CNPGClusterOffline` alert is triggered when no CloudNativePG instances are ready.
 
 ## Impact
 
