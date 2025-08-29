@@ -4,7 +4,7 @@ alert: {{ $alert }}
 annotations:
   summary: ParadeDB CNPG Cluster instances are located on the same node.
   description: |-
-    ParadeDB CNPG Cluster "{{ .namespace }}/{{ .cluster }}" has {{ .value }} instances on the same node {{ .labels.node }}.
+    ParadeDB CloudNativePG  Cluster "{{ .namespace }}/{{ .cluster }}" has {{ .value }} instances on the same node {{ .labels.node }}.
 
     A failure or scheduled downtime of a single node will lead to a potential service disruption and/or data loss.
   runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/{{ $alert }}.md
