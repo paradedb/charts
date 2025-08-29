@@ -4,7 +4,7 @@ alert: {{ $alert }}
 annotations:
   summary: ParadeDB CNPG Cluster has no standby replicas!
   description: |-
-    ParadeDB CNPG Cluster "{{ .labels.job }}" has no ready standby replicas. Your cluster at a severe risk of data loss and downtime if the primary instance fails.
+    ParadeDB CloudNativePG Cluster "{{ .labels.job }}" has no ready standby replicas. Your cluster is at a severe risk of data loss and downtime if the primary instance fails.
 
     The primary instance is still online and able to serve queries, although connections to the `-ro` endpoint will fail. The `-r` endpoint is operating at reduced capacity and all traffic is being served by the primary.
 
