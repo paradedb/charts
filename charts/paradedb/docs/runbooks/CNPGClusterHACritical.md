@@ -71,9 +71,9 @@ If the cause of the issue cannot be determined with certainty, it may be possibl
 
 Before doing so, carefully verify that:
 
-1. You are connected to the correct cluster.
-2. You are deleting the correct pod.
-3. You are not deleting the active primary instance.
+- You are connected to the correct cluster.
+- You are deleting the correct pod.
+- You are not deleting the active primary instance.
 
 ```bash
 kubectl delete --namespace <namespace> pod/<pod-name> pvc/<pod-name> pvc/<pod-name>-wal

@@ -20,8 +20,9 @@ Use the [CloudNativePG Grafana Dashboard](https://grafana.com/grafana/dashboards
 
 ## Mitigation
 
-* If you experience issues with the WAL (Write-Ahead Logging) volume and have set up continuous archiving, ensure that WAL archiving is functioning correctly. This is crucial to avoid a buildup of WAL files in the `pg_wal` folder. Monitor the `cnpg_collector_pg_wal_archive_status` metric, specifically ensuring that the number of `ready` files does not increase linearly.
+> [!NOTE]
+> If using the ParadeDB BYOC Terraform module, refer to the `docs/handbook/NotEnoughDiskSpace.md` handbook to increase the disk space of the CloudNativePG cluster instances. This will require a switchover of the ParadeDB primary instance, which will cause a brief service disruption.
 
-* Refer to this documentation for more information on how to [Resize the CloudNativePG Cluster Storage](https://cloudnative-pg.io/documentation/current/troubleshooting/#storage-is-full).
+If you experience issues with the WAL (Write-Ahead Logging) volume and have set up continuous archiving, ensure that WAL archiving is functioning correctly. This is crucial to avoid a buildup of WAL files in the `pg_wal` folder. Monitor the `cnpg_collector_pg_wal_archive_status` metric, specifically ensuring that the number of `ready` files does not increase linearly.
 
-* If using the ParadeDB BYOC Terraform module, refer to the `docs/handbook/NotEnoughDiskSpace.md` handbook to increase the disk space of the CloudNativePG cluster instances. This will require a switchover of the ParadeDB primary instance, which will cause a brief service disruption.
+Refer to this documentation for more information on how to [Resize the CloudNativePG Cluster Storage](https://cloudnative-pg.io/documentation/current/troubleshooting/#storage-is-full).
