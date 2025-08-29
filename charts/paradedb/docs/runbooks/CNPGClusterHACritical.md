@@ -10,7 +10,7 @@ On single-instance clusters, this alert will remain active at all times. If runn
 
 ## Impact
 
-Without standby replicas, the cluster is at high risk of downtime if the primary fails. While the primary instance remains online and able to serve queries, connections through the `-ro` endpoint will fail. If the primary instance goes down, the cluster will experience a full outage.
+Without standby replicas, the cluster will incur downtime if the primary fails. While the primary instance remains online and able to serve queries, connections through the `-ro` endpoint will fail.
 
 ## Diagnosis
 
@@ -20,7 +20,9 @@ Identify the current primary instance using the [CloudNativePG Grafana Dashboard
 kubectl get cluster paradedb -o 'jsonpath={"Current Primary: "}{.status.currentPrimary}{"; Target Primary: "}{.status.targetPrimary}{"\n"}' --namespace <namespace>
 ```
 
-Since the primary is the only instance serving queries, avoid making any changes that could disrupt it. To inspect cluster health and instance status:
+Since the primary is the only instance serving queries, avoid making any changes that could disrupt it.
+
+To inspect cluster health and instance status:
 
 - List cluster pods:
 
@@ -34,19 +36,19 @@ kubectl get pods -A -l "cnpg.io/podRole=instance" -o wide
 kubectl describe --namespace <namespace> pod/<pod-name>
 ```
 
-- Check cluster phase and reason:
+- Inspect the cluster phase and reason:
 
 ```bash
 kubectl get cluster paradedb -o 'jsonpath={.status.phase}{"\n"}{.status.phaseReason}{"\n"}' --namespace <namespace>
 ```
 
-- Review logs for affected instances:
+- Review logs for the affected instances:
 
 ```bash
 kubectl logs --namespace <namespace> pod/<instance-pod-name>
 ```
 
-- Review operator logs:
+- Review the CloudNativePG operator logs:
 
 ```bash
 kubectl logs --namespace cnpg-system -l "app.kubernetes.io/name=cloudnative-pg"
@@ -67,7 +69,7 @@ If the above diagnosis commands indicate that an instance’s storage or WAL dis
 
 ### Unknown
 
-If the root cause remains unclear, you may attempt to resolve the issue by recreating the affected pods. Recreating a pod involves deleting the pod, its storage PVC, and its WAL storage PVC. Note that pods should **always** be recreated one at a time to avoid increasing the load on the primary instance.
+If the root cause remains unclear, recreating the affected pods can sometimes resolve the issue. Recreating a pod involves deleting the pod, its storage PVC, and its WAL storage PVC. This will trigger a full rebuild of the node from a base backup and can take several hours, depending on the size of the database. Note that pods should **always** be recreated one at a time to avoid increasing the load on the primary instance.
 
 Before doing so, carefully verify that:
 
