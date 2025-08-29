@@ -10,7 +10,7 @@ annotations:
 
     This can happen during a normal fail-over or automated minor version upgrades in a cluster with 2 or less instances. The replaced instance may need some time to catch-up with the cluster primary instance.
 
-    This alarm will be constrantly triggered if your cluster is configured to run with only 1 instance. If this is intentional, you may want to silence it.
+    This alarm will be constantly triggered if your cluster is configured to run with only 1 instance. If this is intentional, you may want to silence it.
   runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/{{ $alert }}.md
 expr: |
   max by (job) (cnpg_pg_replication_streaming_replicas{namespace="{{ .namespace }}"} - cnpg_pg_replication_is_wal_receiver_up{namespace="{{ .namespace }}"}) < 1

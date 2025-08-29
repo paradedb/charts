@@ -24,39 +24,49 @@ You can identify the current primary instance with the [CloudNativePG Grafana Da
 kubectl get cluster paradedb -o 'jsonpath={"Current Primary: "}{.status.currentPrimary}{"; Target Primary: "}{.status.targetPrimary}{"\n"}' --namespace NAMESPACE
 ```
 
-Avoid making changes or operations that could negatively impact the primary instance as it is the only instance serving queries.
+You can identify the current primary instance using the [CloudNativePG Grafana Dashboard](https://grafana.com/grafana/dashboards/20417-cloudnativepg/) or by running:
 
-Get the status of the CloudNativePG cluster instances:
+```bash
+kubectl get cluster paradedb -o 'jsonpath={"Current Primary: "}{.status.currentPrimary}{"; Target Primary: "}{.status.targetPrimary}{"\n"}' --namespace NAMESPACE
+```
+
+Since the primary is the only instance serving queries, avoid making any changes that could disrupt it. To inspect cluster health and instance status:
+
+- List cluster pods:
 
 ```bash
 kubectl get pods -A -l "cnpg.io/podRole=instance" -o wide
 ```
 
-If the pods are Pending, describe the pods to identify the reason:
+- If any pods are Pending, describe them to identify the cause:
 
 ```bash
 kubectl describe --namespace NAMESPACE pod/POD_NAME
 ```
 
-Check the Cluster Phase and Phase Reason:
+- Check cluster phase and reason:
 
 ```bash
 kubectl get cluster paradedb -o 'jsonpath={.status.phase}{"\n"}{.status.phaseReason}{"\n"}' --namespace NAMESPACE
 ```
 
-Check the logs of the affected CloudNativePG instances:
+- Review logs for affected instances:
 
 ```bash
 kubectl logs --namespace <namespace> pod/<instance-pod-name>
 ```
 
-Check the CloudNativePG operator logs:
+- Review operator logs:
 
 ```bash
 kubectl logs --namespace cnpg-system -l "app.kubernetes.io/name=cloudnative-pg"
 ```
 
 ## Mitigation
+
+First, consult the [CloudNativePG Failure Modes](https://cloudnative-pg.io/documentation/current/failure_modes/) and [CloudNativePG Troubleshooting](https://cloudnative-pg.io/documentation/current/troubleshooting/) documentation for more information on the conditions when CloudNativePG is unable to heal instances and standard troubleshooting steps.
+
+### Insufficient Storage
 
 > [!NOTE]
 > If you are using ParadeDB BYOC, refer to `docs/handbook/NotEnoughDiskSpace.md` included with the Terraform module.
