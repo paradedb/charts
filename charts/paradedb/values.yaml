@@ -278,10 +278,10 @@ cluster:
     # -- Whether to enable monitoring
     enabled: false
     instrumentation:
-      # -- Enable logical_replication PostgreSQL metrics
-      logicalReplication: true
-      # -- Enable ParadeDB Index metrics
+      # -- Enable ParadeDB index metrics
       paradedb: true
+      # -- Enable Logic Replication metrics
+      logicalReplication: true
     podMonitor:
       # -- Whether to enable the PodMonitor
       enabled: true
