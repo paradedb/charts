@@ -278,7 +278,6 @@ cluster:
     # -- Whether to enable monitoring
     enabled: false
     instrumentation:
-      paradedb: true
       logicalReplication: true
     podMonitor:
       # -- Whether to enable the PodMonitor
