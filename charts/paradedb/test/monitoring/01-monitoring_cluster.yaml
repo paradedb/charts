@@ -18,7 +18,7 @@ cluster:
     enabled: true
     disableDefaultQueries: true
     instrumentation:
-      paradedb: true
+      paradedbIndex: true
       logicalReplication: true
     customQueries:
       - name: "pg_cache_hit_ratio"
