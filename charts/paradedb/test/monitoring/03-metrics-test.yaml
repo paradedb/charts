@@ -47,11 +47,36 @@ spec:
           - |
             apk --no-cache add curl kubectl
             set -e
-            POD_IP=$(kubectl -n $NAMESPACE get pods -l cnpg.io/podRole=instance -o jsonpath="{.items[0].status.podIP}")
-            echo "POD_IP: $POD_IP"
-            echo "pg_stat_subscription_latest_end_lsn"
-            curl "http://$POD_IP:9187/metrics" | grep pg_stat_subscription_latest_end_lsn
-            echo "paradedb_index_relation_size"
-            curl "http://$POD_IP:9187/metrics" | grep paradedb_index_relation_size
-            echo "paradedb_index_layer_segments"
-            curl "http://$POD_IP:9187/metrics" | grep paradedb_index_layer_segments
+            POD_URL="http://$(kubectl -n $NAMESPACE get pods -l cnpg.io/podRole=instance -o jsonpath="{.items[0].status.podIP}"):9187/metrics"
+            echo "POD_URL: $POD_URL"
+
+            echo                "pg_stat_subscription_received_lsn"
+            curl $POD_URL | grep pg_stat_subscription_received_lsn
+            echo                "pg_stat_subscription_last_msg_send_time"
+            curl $POD_URL | grep pg_stat_subscription_last_msg_send_time
+            echo                "pg_stat_subscription_last_msg_receipt_time"
+            curl $POD_URL | grep pg_stat_subscription_last_msg_receipt_time
+            echo                "pg_stat_subscription_latest_end_lsn"
+            curl $POD_URL | grep pg_stat_subscription_latest_end_lsn
+            echo                "pg_stat_subscription_latest_end_time"
+            curl $POD_URL | grep pg_stat_subscription_latest_end_time
+
+            echo                "paradedb_index_relation_size"
+            curl $POD_URL | grep paradedb_index_relation_size
+            echo                "paradedb_index_segments_count"
+            curl $POD_URL | grep paradedb_index_segments_count
+            echo                "paradedb_index_segments_min_size"
+            curl $POD_URL | grep paradedb_index_segments_min_size
+            echo                "paradedb_index_segments_max_size"
+            curl $POD_URL | grep paradedb_index_segments_max_size
+            echo                "paradedb_index_segments_avg_size"
+            curl $POD_URL | grep paradedb_index_segments_avg_size
+            echo                "paradedb_index_segments_merging"
+            curl $POD_URL | grep paradedb_index_segments_merging
+
+            echo                "paradedb_index_layer_segments_bucket"
+            curl $POD_URL | grep paradedb_index_layer_segments_bucket
+            echo                "paradedb_index_layer_segments_count"
+            curl $POD_URL | grep paradedb_index_layer_segments_count
+            echo                "paradedb_index_layer_segments_sum"
+            curl $POD_URL | grep paradedb_index_layer_segments_sum
