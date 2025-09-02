@@ -1,4 +1,4 @@
-{{- if .Values.cluster.monitoring.instrumentation.paradedb }}
+{{- if .Values.cluster.monitoring.instrumentation.paradedbIndex }}
 apiVersion: v1
 kind: ConfigMap
 metadata:

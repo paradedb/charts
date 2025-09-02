@@ -248,7 +248,7 @@
                                 "logicalReplication": {
                                     "type": "boolean"
                                 },
-                                "paradedb": {
+                                "paradedbIndex": {
                                     "type": "boolean"
                                 }
                             }

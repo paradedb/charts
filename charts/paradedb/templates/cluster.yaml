@@ -116,7 +116,7 @@ spec:
     enablePodMonitor: {{ and .Values.cluster.monitoring.enabled .Values.cluster.monitoring.podMonitor.enabled }}
     disableDefaultQueries: {{ .Values.cluster.monitoring.disableDefaultQueries }}
     customQueriesConfigMap:
-    {{- if .Values.cluster.monitoring.instrumentation.paradedb }}
+    {{- if .Values.cluster.monitoring.instrumentation.paradedbIndex }}
       - name: {{ include "cluster.fullname" . }}-monitoring-paradedb
         key: custom-queries
     {{- end }}
