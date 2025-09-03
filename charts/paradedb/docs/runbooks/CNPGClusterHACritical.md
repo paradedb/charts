@@ -1,49 +1,82 @@
-CNPGClusterHACritical
-=====================
+# CNPGClusterHACritical
 
-Meaning
--------
+## Description
 
 The `CNPGClusterHACritical` alert is triggered when the CloudNativePG cluster has no ready standby replicas.
 
-This can happen during either a normal failover or automated minor version upgrades in a cluster with 2 or less
-instances. The replaced instance may need some time to catch-up with the cluster primary instance.
+This alert may occur during a regular failover or a planned automated version upgrade on two-instance clusters, as there is a brief period when only the primary remains active while a failover completes.
 
-This alarm will be always triggered if your cluster is configured to run with only 1 instance. In this case you
-may want to silence it.
+On single-instance clusters this alert will remain active at all times. If running with a single instance is intentional, consider silencing the alert.
 
-Impact
-------
+## Impact
 
-Having no available replicas puts your cluster at a severe risk if the primary instance fails. The primary instance is
-still online and able to serve queries, although connections to the `-ro` endpoint will fail.
+Without standby replicas, the cluster will incur downtime if the primary fails. While the primary instance remains online and able to serve queries, connections through the `-ro` endpoint will fail.
 
-Diagnosis
----------
+## Diagnosis
 
-Use the [CloudNativePG Grafana Dashboard](https://grafana.com/grafana/dashboards/20417-cloudnativepg/).
+Identify the current primary instance using the [CloudNativePG Grafana Dashboard](https://grafana.com/grafana/dashboards/20417-cloudnativepg/) or by running:
 
-Get the status of the CloudNativePG cluster instances:
+```bash
+kubectl get cluster paradedb -o 'jsonpath={"Current Primary: "}{.status.currentPrimary}{"; Target Primary: "}{.status.targetPrimary}{"\n"}' --namespace <namespace>
+```
+
+Since the primary is the only instance serving queries, avoid making any changes that could disrupt it.
+
+To inspect cluster health and instance status:
+
+- Get the status of the CloudNativePG cluster instances:
 
 ```bash
 kubectl get pods -A -l "cnpg.io/podRole=instance" -o wide
 ```
 
-Check the logs of the affected CloudNativePG instances:
+- If any pods are Pending, describe them to identify the cause:
+
+```bash
+kubectl describe --namespace <namespace> pod/<pod-name>
+```
+
+- Inspect the cluster phase and reason:
+
+```bash
+kubectl get cluster paradedb -o 'jsonpath={.status.phase}{"\n"}{.status.phaseReason}{"\n"}' --namespace <namespace>
+```
+
+- Inspect the logs of the affected CloudNativePG instances:
 
 ```bash
 kubectl logs --namespace <namespace> pod/<instance-pod-name>
 ```
 
-Check the CloudNativePG operator logs:
+- Inspect the CloudNativePG operator logs:
 
 ```bash
 kubectl logs --namespace cnpg-system -l "app.kubernetes.io/name=cloudnative-pg"
 ```
 
-Mitigation
-----------
+## Mitigation
 
-Refer to the [CloudNativePG Failure Modes](https://cloudnative-pg.io/documentation/current/failure_modes/)
-and [CloudNativePG Troubleshooting](https://cloudnative-pg.io/documentation/current/troubleshooting/) documentation for
-more information on how to troubleshoot and mitigate this issue.
+### Instance Failure
+
+First, consult the [CloudNativePG Failure Modes](https://cloudnative-pg.io/documentation/current/failure_modes/) and [CloudNativePG Troubleshooting](https://cloudnative-pg.io/documentation/current/troubleshooting/) documentation for more information on the conditions when CloudNativePG is unable to heal instances and standard troubleshooting steps.
+
+### Insufficient Storage
+
+> [!NOTE]
+> If using the ParadeDB BYOC module, refer to `docs/handbook/NotEnoughDiskSpace.md` included with the Terraform module.
+
+If the above diagnosis commands indicate that an instance’s storage or WAL disk is full, increase the cluster storage size. Refer to the CloudNativePG documentation for more information on how to [Resize the CloudNativePG Cluster Storage](https://cloudnative-pg.io/documentation/current/troubleshooting/#storage-is-full).
+
+### Unknown
+
+If the root cause remains unclear, recreating the affected pods can sometimes resolve the issue. Recreating a pod involves deleting the pod, its storage PVC, and its WAL storage PVC. This will trigger a full rebuild of the node from a base backup and can take several hours, depending on the size of the database. Note that pods should **always** be recreated one at a time to avoid increasing the load on the primary instance.
+
+Before doing so, carefully verify that:
+
+- You are connected to the correct cluster.
+- You are deleting the correct pod.
+- You are not deleting the active primary instance.
+
+```bash
+kubectl delete --namespace <namespace> pod/<pod-name> pvc/<pod-name> pvc/<pod-name>-wal
+```
