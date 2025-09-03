@@ -117,7 +117,7 @@ spec:
     disableDefaultQueries: {{ .Values.cluster.monitoring.disableDefaultQueries }}
     customQueriesConfigMap:
     {{- if .Values.cluster.monitoring.instrumentation.paradedbIndex }}
-      - name: {{ include "cluster.fullname" . }}-monitoring-paradedb
+      - name: {{ include "cluster.fullname" . }}-monitoring-paradedb-index
         key: custom-queries
     {{- end }}
     {{- if .Values.cluster.monitoring.instrumentation.logicalReplication }}

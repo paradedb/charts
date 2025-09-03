@@ -14,7 +14,7 @@ spec:
   monitoring:
       disableDefaultQueries: true
       customQueriesConfigMap:
-        - name: monitoring-paradedb-monitoring-paradedb
+        - name: monitoring-paradedb-monitoring-paradedb-index
           key: custom-queries
         - name: monitoring-paradedb-monitoring-logical-replication
           key: custom-queries
@@ -143,7 +143,7 @@ data:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: monitoring-paradedb-monitoring-paradedb
+  name: monitoring-paradedb-monitoring-paradedb-index
 ---
 apiVersion: v1
 kind: ConfigMap
