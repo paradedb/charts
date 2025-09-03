@@ -213,8 +213,8 @@ refer to  the [CloudNativePG Documentation](https://cloudnative-pg.io/documentat
 | cluster.monitoring.customQueriesSecret | list | `[]` | The list of secrets containing the custom queries |
 | cluster.monitoring.disableDefaultQueries | bool | `false` | Whether the default queries should be injected. Set it to true if you don't want to inject default queries into the cluster. |
 | cluster.monitoring.enabled | bool | `false` | Whether to enable monitoring |
-| cluster.monitoring.instrumentation.logicalReplication | bool | `true` |  |
-| cluster.monitoring.instrumentation.paradedbIndex | bool | `true` |  |
+| cluster.monitoring.instrumentation.logicalReplication | bool | `false` | Enable Logic Replication metrics |
+| cluster.monitoring.instrumentation.paradedbIndex | bool | `false` | Enable ParadeDB index metrics |
 | cluster.monitoring.podMonitor.enabled | bool | `true` | Whether to enable the PodMonitor |
 | cluster.monitoring.podMonitor.metricRelabelings | list | `[]` | The list of metric relabelings for the PodMonitor. Applied to samples before ingestion. |
 | cluster.monitoring.podMonitor.relabelings | list | `[]` | The list of relabelings for the PodMonitor. Applied to samples before scraping. |
