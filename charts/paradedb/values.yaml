@@ -280,7 +280,7 @@ cluster:
     instrumentation:
       # -- Enable ParadeDB index metrics
       paradedbIndex: false
-      # -- Enable Logic Replication metrics
+      # -- Enable logical replication metrics
       logicalReplication: false
     podMonitor:
       # -- Whether to enable the PodMonitor
