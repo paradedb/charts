@@ -71,8 +71,6 @@ spec:
             curl $POD_URL | grep paradedb_index_segments_max_size
             echo                "paradedb_index_segments_avg_size"
             curl $POD_URL | grep paradedb_index_segments_avg_size
-            echo                "paradedb_index_segments_merging"
-            curl $POD_URL | grep paradedb_index_segments_merging
 
             echo                "paradedb_index_layer_segments_bucket"
             curl $POD_URL | grep paradedb_index_layer_segments_bucket

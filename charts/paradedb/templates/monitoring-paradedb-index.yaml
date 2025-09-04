@@ -19,7 +19,6 @@ data:
              , MIN(info.byte_size) AS segments_min_size
              , MAX(info.byte_size) AS segments_max_size
              , AVG(info.byte_size) AS segments_avg_size
-             , (SELECT COUNT(*) <> 0 FROM paradedb.merge_info(c.oid))::int AS segments_merging
         FROM pg_class c
         JOIN pg_namespace n ON n.oid = c.relnamespace
         JOIN pg_index i ON i.indexrelid = c.oid
@@ -54,9 +53,6 @@ data:
             usage: GAUGE
         - segments_avg_size:
             description: Average segment size in bytes
-            usage: GAUGE
-        - segments_merging:
-            description: Whether the index is in the process of merging
             usage: GAUGE
     paradedb_index_layer:
       query: |
