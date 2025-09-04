@@ -41,7 +41,6 @@ spec:
             echo "DB_URI: $DB_URI"
             echo "DB_URI_PUBLISHER: $DB_URI_PUBLISHER"
             echo "DB_URI_SUBSCRIBER: $DB_URI_SUBSCRIBER"
-            # Create publisher and subscriber databases for logical replication
             echo "Creating publisher and subscriber databases..."
 
             # Connect to ParadeDB and create the databases
@@ -51,7 +50,6 @@ spec:
             # Configure publisher
             psql $DB_URI_PUBLISHER -c "CREATE TABLE test_table (id SERIAL PRIMARY KEY, data TEXT);"
             psql $DB_URI_PUBLISHER -c "CREATE PUBLICATION test_pub FOR TABLE test_table;"
-            # Explicitly create a replication slot
             psql $DB_URI_PUBLISHER -c "SELECT pg_create_logical_replication_slot('test_sub_slot', 'pgoutput');"
 
             # Configure subscriber
