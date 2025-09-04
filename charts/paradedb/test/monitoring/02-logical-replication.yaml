@@ -42,7 +42,6 @@ spec:
             echo "DB_URI_PUBLISHER: $DB_URI_PUBLISHER"
             echo "DB_URI_SUBSCRIBER: $DB_URI_SUBSCRIBER"
             echo "Creating publisher and subscriber databases..."
-
             # Connect to ParadeDB and create the databases
             psql $DB_URI -c "CREATE DATABASE publisher;"
             psql $DB_URI -c "CREATE DATABASE subscriber;"
