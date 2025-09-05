@@ -1,0 +1,57 @@
+{{- if .Values.cluster.monitoring.instrumentation.logicalReplication }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "cluster.fullname" . }}-monitoring-logical-replication
+  namespace: {{ include "cluster.namespace" . }}
+  labels:
+    cnpg.io/reload: ""
+    {{- include "cluster.labels" . | nindent 4 }}
+data:
+  custom-queries: |
+    pg_stat_subscription:
+      query: |
+        SELECT current_database() AS datname
+             , subid
+             , subname
+             , worker_type
+             , relid
+             , received_lsn - '0/0' AS received_lsn
+             , last_msg_send_time
+             , last_msg_receipt_time
+             , latest_end_lsn - '0/0' AS latest_end_lsn
+             , latest_end_time
+        FROM pg_stat_subscription;
+      target_databases: ["*"]
+      metrics:
+        - datname:
+            description: Name of the database
+            usage: LABEL
+        - subid:
+            description: ID of the subscription
+            usage: LABEL
+        - subname:
+            description: Name of the subscription
+            usage: LABEL
+        - worker_type:
+            description: Type of the worker
+            usage: LABEL
+        - relid:
+            description: OID of the relation
+            usage: LABEL
+        - received_lsn:
+            description: Last written LSN received from the publisher
+            usage: GAUGE
+        - last_msg_send_time:
+            description: Timestamp of the last message sent
+            usage: GAUGE
+        - last_msg_receipt_time:
+            description: Timestamp of the last message receipt
+            usage: GAUGE
+        - latest_end_lsn:
+            description: Latest end LSN received
+            usage: GAUGE
+        - latest_end_time:
+            description: Timestamp of the latest end LSN processed
+            usage: GAUGE
+{{- end }}
