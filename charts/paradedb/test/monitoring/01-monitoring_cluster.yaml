@@ -1,13 +1,25 @@
-type: postgresql
+type: paradedb
 mode: standalone
 cluster:
-  instances: 2
+  instances: 1
+  postgresql:
+    parameters:
+      wal_level: "logical"
+      max_worker_processes: "20"
+      max_parallel_workers: "15"
+      max_wal_senders: "10"
+      max_replication_slots: "10"
+    pg_hba:
+      - host   publisher  postgres  all     md5
   storage:
     size: 256Mi
     storageClass: standard
   monitoring:
     enabled: true
     disableDefaultQueries: true
+    instrumentation:
+      paradedbIndex: true
+      logicalReplication: true
     customQueries:
       - name: "pg_cache_hit_ratio"
         query: "SELECT current_database() as datname, sum(heap_blks_hit) / (sum(heap_blks_hit) + sum(heap_blks_read)) as ratio FROM pg_statio_user_tables;"

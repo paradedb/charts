@@ -277,6 +277,11 @@ cluster:
   monitoring:
     # -- Whether to enable monitoring
     enabled: false
+    instrumentation:
+      # -- Enable ParadeDB index metrics
+      paradedbIndex: false
+      # -- Enable logical replication metrics
+      logicalReplication: false
     podMonitor:
       # -- Whether to enable the PodMonitor
       enabled: true
