@@ -25,7 +25,7 @@ data:
              , apply_error_count
              , sync_error_count
              , stats_reset
-            , ss.pid
+             , ss.pid
         FROM pg_subscription s
         LEFT JOIN pg_stat_subscription ss ON s.oid = ss.subid
         LEFT JOIN pg_stat_subscription_stats sss ON s.oid = sss.subid;
@@ -59,9 +59,6 @@ data:
             usage: GAUGE
         - latest_end_time:
             description: Timestamp of the latest end LSN processed
-            usage: GAUGE
-        - enabled:
-            description: Subscription status (enabled/disabled)
             usage: GAUGE
         - enabled:
             description: Subscription status (enabled/disabled)
