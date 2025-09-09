@@ -279,9 +279,9 @@ cluster:
     enabled: false
     instrumentation:
       # -- Enable ParadeDB index metrics
-      paradedbIndex: true
+      paradedbIndex: false
       # -- Enable logical replication metrics
-      logicalReplication: true
+      logicalReplication: false
     podMonitor:
       # -- Whether to enable the PodMonitor
       enabled: true
