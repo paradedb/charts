@@ -149,6 +149,14 @@ below. Refer to the table for the full list of parameters and place the configur
 
 There is a separate document outlining the recovery procedure here: **[Recovery](docs/recovery.md)**
 
+## Monitoring
+
+The ParadeDB Helm chart supports monitoring with Prometheus and Grafana. The chart includes a ConfigMap that works with the Grafana sidecar to automatically import dashboards. You can enable this by setting `monitoring.grafanaDashboards.create`.
+
+Alternatively, you can manually import the dashboards from the `monitoring` directory.
+
+Additionally, we recommend enabling kube-state-metrics CRD monitoring and adding the CNPG metrics. The configuration can be found in `monitoring/metrics-clusters_postgresql_cnpg_io.yaml`.
+
 ## Examples
 
 There are several configuration examples in the [examples](examples) directory. Refer to them for a basic setup and
@@ -246,6 +254,11 @@ refer to  the [CloudNativePG Documentation](https://cloudnative-pg.io/documentat
 | imageCatalog.create | bool | `true` | Whether to provision an image catalog. If imageCatalog.images is empty this option will be ignored. |
 | imageCatalog.images | list | `[]` | List of images to be provisioned in an image catalog. |
 | mode | string | `"standalone"` | Cluster mode of operation. Available modes: * `standalone` - default mode. Creates new or updates an existing CNPG cluster. * `replica` - Creates a replica cluster from an existing CNPG cluster. * `recovery` - Same as standalone but creates a cluster from a backup, object store or via pg_basebackup. |
+| monitoring.grafanaDashboard.annotations | object | `{}` | Annotations that ConfigMaps can have to get configured in Grafana. |
+| monitoring.grafanaDashboard.configMapName | string | `"paradedb-grafana-dashboard"` | The name of the ConfigMap containing the dashboard. |
+| monitoring.grafanaDashboard.create | bool | `true` |  |
+| monitoring.grafanaDashboard.labels | object | `{"grafana_dashboard":"1"}` | Labels that ConfigMaps should have to get configured in Grafana. |
+| monitoring.grafanaDashboard.namespace | string | `"monitoring"` | Allows overriding the namespace where the ConfigMap will be created, defaulting to the same one as the Release. |
 | nameOverride | string | `""` | Override the name of the chart |
 | namespaceOverride | string | `""` | Override the namespace of the chart |
 | poolers | list | `[]` | List of PgBouncer poolers |
