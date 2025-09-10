@@ -153,6 +153,14 @@ below. Refer to the table for the full list of parameters and place the configur
 
 There is a separate document outlining the recovery procedure here: **[Recovery](docs/recovery.md)**
 
+## Monitoring
+
+The ParadeDB Helm chart supports monitoring with Prometheus and Grafana. The chart includes a ConfigMap that works with the Grafana sidecar to automatically import dashboards. You can enable this by setting `monitoring.grafanaDashboards.create`.
+
+Alternatively, you can manually import the dashboards from the `monitoring` directory.
+
+Additionally, we recommend enabling kube-state-metrics CRD monitoring and adding the CNPG metrics. The configuration can be found in `monitoring/metrics-clusters_postgresql_cnpg_io.yaml`.
+
 ## Examples
 
 There are several configuration examples in the [examples](examples) directory. Refer to them for a basic setup and
