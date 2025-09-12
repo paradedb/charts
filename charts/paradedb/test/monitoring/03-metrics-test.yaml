@@ -60,6 +60,16 @@ spec:
             curl $POD_URL | grep pg_stat_subscription_latest_end_lsn
             echo                "pg_stat_subscription_latest_end_time"
             curl $POD_URL | grep pg_stat_subscription_latest_end_time
+            echo                "pg_stat_subscription_enabled"
+            curl $POD_URL | grep pg_stat_subscription_enabled
+            echo                "pg_stat_subscription_apply_error_count"
+            curl $POD_URL | grep pg_stat_subscription_apply_error_count
+            echo                "pg_stat_subscription_sync_error_count"
+            curl $POD_URL | grep pg_stat_subscription_sync_error_count
+            echo                "pg_stat_subscription_stats_reset"
+            curl $POD_URL | grep pg_stat_subscription_stats_reset
+            echo                "pg_stat_subscription_pid"
+            curl $POD_URL | grep pg_stat_subscription_pid
 
             echo                "paradedb_index_relation_size"
             curl $POD_URL | grep paradedb_index_relation_size
