@@ -2,7 +2,7 @@
 
 ## Meaning
 
-The `CNPGClusterLogicalReplicationDisabled` alert indicates that a CloudNativePG cluster with a Logical Replication Subscription has had a logical replication disabled.
+The `CNPGClusterLogicalReplicationDisabled` alert indicates that a CloudNativePG cluster with one or many Logical Replication Subscription(s) has had a logical replication subscription disabled.
 
 ## Impact
 
