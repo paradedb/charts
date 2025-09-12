@@ -90,3 +90,9 @@ poolers:
             targetLabel: cnpg_cluster
           - action: labeldrop
             regex: cluster
+monitoring:
+  grafanaDashboard:
+    create: true
+    configMapName: "paradedb-grafana-dashboard"
+    labels:
+      grafana_dashboard: "1"
