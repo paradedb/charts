@@ -24,6 +24,7 @@ externalClusters:
         {{- toYaml . | nindent 8 -}}
         {{ end }}
         barmanObjectname: {{ include "cluster.fullname" . }}-recovery
+        serverName: {{ .Values.recovery.clusterName }}
   {{- end }}
 {{- else if eq .Values.mode "replica" }}
   - name: originCluster

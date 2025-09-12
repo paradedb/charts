@@ -30,6 +30,7 @@ recovery:
       accessKey: "minio"
       secretKey: "minio123"
       region: "local"
+  clusterName: "paradedb"
   retentionPolicy: "30d"
   scheduledBackups: []
 
