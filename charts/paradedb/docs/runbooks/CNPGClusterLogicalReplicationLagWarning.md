@@ -32,8 +32,8 @@ The cluster is still operational, but queries to the subscriber will return stal
 ## Mitigation
 
 * Correct the PostgreSQL parameters by setting:
-  * Helm: `cluster.postgresql.parameters.max_logical_replication_workers`
-  * ParadeDB BYOC Terraform: `paradedb.postgresql.parameters.max_logical_replication_workers`
+* Helm: `cluster.postgresql.parameters.max_logical_replication_workers`
+* ParadeDB BYOC Terraform: `paradedb.postgresql.parameters.max_logical_replication_workers`
 
 * Make sure your instance types have sufficient network performance for your workload.
 
