@@ -71,6 +71,10 @@ jobs:
           helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
           helm install prometheus-crds prometheus-community/prometheus-operator-crds
 
+      - name: Install Barman Cloud
+        run: |
+          kubectl apply -f https://github.com/cloudnative-pg/plugin-barman-cloud/releases/download/v0.6.0/manifest.yaml
+
       - name: Install Chainsaw
         uses: kyverno/action-install-chainsaw@v0.2.12
         with:
