@@ -25,7 +25,7 @@ The cluster remains operational, but queries to the subscriber will return outda
 
 ## Mitigation
 
-Re-enable the logical replication subscription by running:
+Fix the root cause, if applicable, and re-enable the logical replication subscription by running:
 
 ```bash
 kubectl exec -it services/paradedb-rw --namespace NAMESPACE -- psql -c 'ALTER SUBSCRIPTION your_subscription_name ENABLE;'
