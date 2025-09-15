@@ -155,7 +155,7 @@ The ParadeDB Helm chart supports monitoring with Prometheus and Grafana. The cha
 
 Alternatively, you can manually import the dashboards from the `monitoring` directory.
 
-Additionally, we recommend enabling kube-state-metrics CRD monitoring and adding the CNPG metrics. The configuration can be found in `monitoring/metrics-clusters_postgresql_cnpg_io.yaml`.
+Additionally, we recommend enabling the `kube-state-metrics` CRD monitoring and adding the CNPG metrics. The configuration can be found in `monitoring/metrics-clusters_postgresql_cnpg_io.yaml`.
 
 ## Examples
 
