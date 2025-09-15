@@ -20,8 +20,8 @@ The cluster remains operational, but queries to the subscriber will return stale
 
 1. From the [CloudNativePG Grafana Dashboard](https://grafana.com/grafana/dashboards/20417-cloudnativepg/):
 
-   - Check the _Cluster Overview_ section for recent failover events. After a failover, replication lag is expected and may take several minutes to resolve, depending on data volume and subscriber load.
-   - In the _Logical Replication_ section, examine the _LSN Distance_ graph. Review both the absolute distance and its trend. A decreasing trend indicates recovery, while an increasing trend suggests the problem is worsening.
+- Check the _Cluster Overview_ section for recent failover events. After a failover, replication lag is expected and may take several minutes to resolve, depending on data volume and subscriber load.
+- In the _Logical Replication_ section, examine the _LSN Distance_ graph. Review both the absolute distance and its trend. A decreasing trend indicates recovery, while an increasing trend suggests the problem is worsening.
 
 2. In the _CloudNativePG Parameters_ section of the dashboard, verify the configuration values for `max_logical_replication_workers` and `max_worker_processes`. Ensure `max_worker_processes` is sized according to the formula above.
 
@@ -104,9 +104,9 @@ kubectl logs -f --all-containers --namespace <namespace> pod/POD_NAME
 
 ```sql
 SELECT slot_name, slot_type, plugin,
-        active, active_pid,
-        restart_lsn, confirmed_flush_lsn,
-        wal_status
+       active, active_pid,
+       restart_lsn, confirmed_flush_lsn,
+       wal_status
 FROM pg_replication_slots
 ORDER BY slot_name;
 ```

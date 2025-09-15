@@ -2,7 +2,7 @@
 {{- if not (has $alert .excludeRules) -}}
 alert: {{ $alert }}
 annotations:
-  summary: ParadeDB CNPG Cluster High Logical Replication LSN distance
+  summary: ParadeDB CNPG Cluster High Logical Replication LSN distance.
   description: |-
     ParadeDB CloudNativePG Cluster's "{{ .namespace }}/{{ .cluster }}" "{{ .subname }}" subscription is experiencing a high logical replication LSN distance of {{ .value }}GB.
 

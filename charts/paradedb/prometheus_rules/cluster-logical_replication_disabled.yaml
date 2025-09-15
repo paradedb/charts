@@ -2,7 +2,7 @@
 {{- if not (has $alert .excludeRules) -}}
 alert: {{ $alert }}
 annotations:
-  summary: ParadeDB CNPG Cluster logical replication subscription disabled
+  summary: ParadeDB CNPG Cluster logical replication subscription disabled!
   description: |-
     ParadeDB CloudNativePG Cluster's "{{ .namespace }}/{{ .cluster }}" "{{ .subname }}" subscription has been disabled.
   runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/{{ $alert }}.md
