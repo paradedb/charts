@@ -47,14 +47,14 @@ spec:
     matchLabels:
       cnpg.io/cluster: monitoring-paradedb
   podMetricsEndpoints:
-    - bearerTokenSecret:
-        key: ''
-        name: ''
+    - port: metrics
       relabelings:
-        - targetLabel: environment
+        - action: replace
           replacement: test
-        - targetLabel: team
+          targetLabel: environment
+        - action: replace
           replacement: alpha
+          targetLabel: team
       metricRelabelings:
         - action: replace
           sourceLabels:
@@ -72,16 +72,14 @@ spec:
     matchLabels:
       cnpg.io/poolerName: monitoring-paradedb-pooler-rw
   podMetricsEndpoints:
-    - bearerTokenSecret:
-        key: ''
-        name: ''
+    - port: metrics
       relabelings:
-        - targetLabel: type
+        - action: replace
           replacement: rw
-          action: replace
-        - targetLabel: team
+          targetLabel: type
+        - action: replace
           replacement: alpha
-          action: replace
+          targetLabel: team
       metricRelabelings:
         - action: replace
           sourceLabels:
@@ -99,16 +97,14 @@ spec:
     matchLabels:
       cnpg.io/poolerName: monitoring-paradedb-pooler-ro
   podMetricsEndpoints:
-    - bearerTokenSecret:
-        key: ''
-        name: ''
+    - port: metrics
       relabelings:
-        - targetLabel: type
+        - action: replace
           replacement: ro
-          action: replace
-        - targetLabel: team
+          targetLabel: type
+        - action: replace
           replacement: alpha
-          action: replace
+          targetLabel: team
       metricRelabelings:
         - action: replace
           sourceLabels:
