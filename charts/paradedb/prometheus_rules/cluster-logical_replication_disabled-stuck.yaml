@@ -4,7 +4,7 @@ alert: {{ $alert }}
 annotations:
   summary: ParadeDB CNPG Cluster logical replication subscription stuck
   description: |-
-    ParadeDB CloudNativePG Cluster's "{{ .namespace }}/{{ .cluster }}" "{{ "{{ .subname }}" }}" subscription is stuck.
+    ParadeDB CloudNativePG Cluster's "{{ .namespace }}/{{ .cluster }}" "{{ .subname }}" subscription is stuck.
   runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/{{ $alert }}.md
 expr: |
   label_replace(max by (namespace, job, subname) (cnpg_pg_stat_subscription_enabled), "cluster", "$1", "job", ".+/(.+)") == 1 and label_replace(max by (namespace, job, subname) (cnpg_pg_stat_subscription_pid), "cluster", "$1", "job", ".+/(.+)") == "" and label_replace(max by (namespace, job, subname) (cnpg_pg_stat_subscription_received_lsn - cnpg_pg_stat_subscription_latest_end_lsn), "cluster", "$1", "job", ".+/(.+)") / 1024^3 > 1

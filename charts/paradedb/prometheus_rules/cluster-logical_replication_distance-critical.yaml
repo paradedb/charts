@@ -4,7 +4,7 @@ alert: {{ $alert }}
 annotations:
   summary: ParadeDB CNPG Cluster Very High Logical Replication LSN distance
   description: |-
-    ParadeDB CloudNativePG Cluster's "{{ .namespace }}/{{ .cluster }}" "{{ "{{ .subname }}" }}" subscription is experiencing a very high logical replication LSN distance of {{ .value }}GB!
+    ParadeDB CloudNativePG Cluster's "{{ .namespace }}/{{ .cluster }}" "{{ .subname }}" subscription is experiencing a very high logical replication LSN distance of {{ .value }}GB!
 
     High logical replication lag indicates network issues, busy instances, slow queries or suboptimal configuration.
   runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/{{ $alert }}.md
