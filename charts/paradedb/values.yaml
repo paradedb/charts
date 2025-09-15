@@ -279,13 +279,13 @@ cluster:
     enabled: false
     instrumentation:
       # -- Enable ParadeDB index metrics
-      paradedbIndex: false
+      paradedbIndex: true
       # -- Enable logical replication metrics
-      logicalReplication: false
+      logicalReplication: true
     podMonitor:
       # -- Whether to enable the PodMonitor
       enabled: true
-      # --The list of relabelings for the PodMonitor.
+      # -- The list of relabelings for the PodMonitor.
       # Applied to samples before scraping.
       relabelings: []
       # -- The list of metric relabelings for the PodMonitor.

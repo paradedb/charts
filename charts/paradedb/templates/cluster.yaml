@@ -115,6 +115,7 @@ spec:
   monitoring:
     enablePodMonitor: {{ and .Values.cluster.monitoring.enabled .Values.cluster.monitoring.podMonitor.enabled }}
     disableDefaultQueries: {{ .Values.cluster.monitoring.disableDefaultQueries }}
+    {{- if or .Values.cluster.monitoring.instrumentation.paradedbIndex .Values.cluster.monitoring.instrumentation.logicalReplication (not (empty .Values.cluster.monitoring.customQueries)) }}
     customQueriesConfigMap:
     {{- if .Values.cluster.monitoring.instrumentation.paradedbIndex }}
       - name: {{ include "cluster.fullname" . }}-monitoring-paradedb-index
@@ -127,6 +128,7 @@ spec:
     {{- if not (empty .Values.cluster.monitoring.customQueries) }}
       - name: {{ include "cluster.fullname" . }}-monitoring-user-metrics
         key: custom-queries
+    {{- end }}
     {{- end }}
     {{- if not (empty .Values.cluster.monitoring.customQueriesSecret) }}
     {{- with .Values.cluster.monitoring.customQueriesSecret }}
