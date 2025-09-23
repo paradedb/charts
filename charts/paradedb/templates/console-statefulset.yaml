@@ -52,7 +52,7 @@ spec:
             - |
               apt update
               apt install -y postgresql-client
-              apt install -y screen curl wget jq unzip gzip nano vim util-linux less htop build-essential pkg-config libssl-dev tmux
+              apt install -y screen curl wget jq unzip gzip nano vim util-linux less htop build-essential pkg-config libssl-dev tmux libfontconfig1-dev
               curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
               source /root/.cargo/env
               # Create symlinks for universal access
