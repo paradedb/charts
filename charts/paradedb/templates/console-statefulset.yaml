@@ -55,7 +55,12 @@ spec:
               apt install -y screen curl wget jq unzip gzip nano vim util-linux less htop build-essential pkg-config libssl-dev tmux
               curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
               source /root/.cargo/env
+              # Create symlinks for universal access
+              ln -sf /root/.cargo/bin/* /usr/local/bin/
               cat <<EOF > /root/.bashrc
+              # Source cargo environment for universal access
+              source /root/.cargo/env
+
               echo -e "\nHere are some examples for connecting and running queries on the cluster:"
               echo '  nohup psql \$DB_SUPERUSER_URI"/DB_NAME" -c "SELECT 1;" 2>&1 > command.log &'
               echo -e "\nTo check up on the command, use:"
