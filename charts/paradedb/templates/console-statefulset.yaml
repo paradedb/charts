@@ -28,7 +28,7 @@ spec:
         accessModes: [ "ReadWriteOnce" ]
         resources:
           requests:
-            storage: 1Gi
+            storage: 5Gi
   template:
     metadata:
       {{- with .Values.cluster.annotations }}
@@ -52,7 +52,9 @@ spec:
             - |
               apt update
               apt install -y postgresql-client
-              apt install -y screen curl wget jq unzip gzip nano vim util-linux less htop
+              apt install -y screen curl wget jq unzip gzip nano vim util-linux less htop build-essential pkg-config libssl-dev tmux
+              curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+              source /root/.cargo/env
               cat <<EOF > /root/.bashrc
               echo -e "\nHere are some examples for connecting and running queries on the cluster:"
               echo '  nohup psql \$DB_SUPERUSER_URI"/DB_NAME" -c "SELECT 1;" 2>&1 > command.log &'
