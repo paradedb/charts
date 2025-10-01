@@ -2,7 +2,7 @@
 
 ## Description
 
-The `CNPGClusterLowDiskSpaceWarning` alert is triggered when disk usage on any CloudNativePG cluster volume exceeds 90%. It may occur on the following volumes:
+The `CNPGClusterLowDiskSpaceWarning` alert is triggered when disk usage on any CloudNativePG cluster volume exceeds 70%. It may occur on the following volumes:
 
 - The PVC hosting `PGDATA` (`storage` section)
 - The PVC hosting WAL files (`walStorage` section)
