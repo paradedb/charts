@@ -88,13 +88,14 @@ spec:
             selector: batch.kubernetes.io/job-name=data-test-replica
         - script:
             content: |
-              set -euo pipefail
-              kubectl -n $NAMESPACE get pod -l job-name=data-test-replica -o name
-              # Grab logs from the (possibly terminated) pod
-              kubectl -n $NAMESPACE logs -l job-name=data-test-replica --all-containers --tail=-1 --timestamps || true
-              # If the pod restarted, also try --previous
-              for p in $(kubectl -n $NAMESPACE get pod -l job-name=data-test-replica -o name); do
-                kubectl -n $NAMESPACE logs $p --all-containers --previous --tail=-1 --timestamps || true
+              set -eu
+              # List pods (may be empty if the Job never applied)
+              kubectl -n "$NAMESPACE" get pod -l job-name=data-test-replica -o name || true
+              # Try current logs
+              kubectl -n "$NAMESPACE" logs -l job-name=data-test-replica --all-containers --tail=-1 --timestamps || true
+              # Try previous logs for restarted containers
+              for p in $(kubectl -n "$NAMESPACE" get pod -l job-name=data-test-replica -o name 2>/dev/null); do
+                kubectl -n "$NAMESPACE" logs "$p" --all-containers --previous --tail=-1 --timestamps || true
               done
     - name: Create a replica cluster from object store
       try:

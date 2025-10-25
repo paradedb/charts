@@ -11,59 +11,58 @@ spec:
       containers:
       - name: data-test
         image: alpine:3.19
-        command: ["/bin/sh","-c"]
-        args:
-        - |
-          set -euo pipefail
-          apk --no-cache add postgresql-client
-
-          HOST="replica-paradedb-rw.$NAMESPACE.svc"
-          PORT="5432"
-          USER="postgres"
-          DB_MAIN="paradedb"
-          DB_CHECK="mygooddb"
-
-          # pull the replica password directly; don't sed swap with source
-          PGPASSWORD="$(echo -n "$REPLICA_PASSWORD" )"
-          export PGPASSWORD
-
-          uri_base="host=$HOST port=$PORT user=$USER sslmode=disable"
-
-          # bounded readiness retry
-          for i in $(seq 1 60); do
-            if psql "$uri_base dbname=postgres" -c "select 1" >/dev/null 2>&1; then
-              break
-            fi
-            echo "waiting for DB..." ; sleep 5
-          done
-
-          # table existence on the *replica*
-          if [ "$(psql "$uri_base dbname=$DB_CHECK" -t -A -q -c \
-                "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'mygoodtable');")" != "t" ]; then
-            echo "table mygoodtable not visible on replica" >&2
-            exit 1
-          fi
-
-          # BM25 query
-          RESULT="$(psql "$uri_base dbname=$DB_MAIN" -t -A -q <<'SQL'
-            SELECT description
-            FROM mock_items_paradedb_enterprise
-            WHERE description @@@ '"bluetooth speaker"~1'
-            LIMIT 1;
-SQL
-          )"
-          echo "RESULT=<$RESULT>"
-          [ "$RESULT" = "Bluetooth-enabled speaker" ] || { echo "BM25 query mismatch"; exit 1; }
-
-          SIZE_RESULT="$(psql "$uri_base dbname=$DB_MAIN" -t -A -q <<'SQL'
-            SELECT pg_size_pretty(pg_relation_size('search_idx_paradedb_enterprise'));
-SQL
-          )"
-          echo "SIZE_RESULT=<$SIZE_RESULT>"
-          [ "$SIZE_RESULT" != "0 bytes" ] || { echo "Index size is 0"; exit 1; }
         env:
         - name: REPLICA_PASSWORD
           valueFrom:
             secretKeyRef:
               name: replica-paradedb-superuser
               key: password
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        command: ["/bin/sh","-c"]
+        args:
+        - |
+          set -eu
+          apk --no-cache add postgresql-client
+
+          HOST="replica-paradedb-rw.${POD_NAMESPACE}.svc"
+          PORT="5432"
+          USER="postgres"
+          DB_MAIN="paradedb"
+          DB_CHECK="mygooddb"
+
+          export PGPASSWORD="$REPLICA_PASSWORD"
+          uri_base="host=$HOST port=$PORT user=$USER sslmode=disable"
+
+          # Readiness loop (max ~5m)
+          i=0
+          until psql "$uri_base dbname=postgres" -c "select 1" >/dev/null 2>&1; do
+            i=$((i+1))
+            [ "$i" -le 60 ] || { echo "replica never accepted SQL"; exit 1; }
+            echo "waiting for DB... ($i/60)"
+            sleep 5
+          done
+
+          # Table existence on the replica
+          HAS_TABLE="$(psql -A -t -q "$uri_base dbname=$DB_CHECK" \
+            -c "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'mygoodtable');")"
+          [ "$HAS_TABLE" = "t" ] || { echo "table mygoodtable not visible on replica"; exit 1; }
+
+          # BM25 query (no heredoc; printf pipe instead)
+          RESULT="$(printf '%s\n' \
+            "SELECT description" \
+            "FROM mock_items_paradedb_enterprise" \
+            "WHERE description @@@ '\"bluetooth speaker\"~1'" \
+            "LIMIT 1;" \
+            | psql -A -t -q "$uri_base dbname=$DB_MAIN")"
+          echo "RESULT=<${RESULT}>"
+          [ "$RESULT" = "Bluetooth-enabled speaker" ] || { echo "BM25 query mismatch"; exit 1; }
+
+          # Index size must be non-zero
+          SIZE_RESULT="$(printf '%s\n' \
+            "SELECT pg_size_pretty(pg_relation_size('search_idx_paradedb_enterprise'));" \
+            | psql -A -t -q "$uri_base dbname=$DB_MAIN")"
+          echo "SIZE_RESULT=<${SIZE_RESULT}>"
+          [ "$SIZE_RESULT" != "0 bytes" ] || { echo "Index size is 0"; exit 1; }
