@@ -3,7 +3,7 @@ kind: Job
 metadata:
   name: data-test-replica
   annotations:
-    paradedb.com/job-hash: "v5"   # bump to force re-apply
+    paradedb.com/job-hash: "v6"   # bump this if you tweak the script so Chainsaw reapplies it
 spec:
   backoffLimit: 0
   ttlSecondsAfterFinished: 600
@@ -18,7 +18,7 @@ spec:
           valueFrom:
             secretKeyRef:
               name: replica-paradedb-superuser
-              key: uri              # has host/service & maybe sslmode, but wrong password
+              key: uri            # e.g. postgres://postgres:<pass>@replica-paradedb-rw:5432/*
         - name: SOURCE_USER
           valueFrom:
             secretKeyRef:
@@ -36,26 +36,27 @@ spec:
           apk --no-cache add postgresql-client
 
           # Extract host:port and (optional) sslmode from the replica URI.
-          # Examples handled:
+          # Handles e.g.:
           #   postgres://postgres:xxx@replica-paradedb-rw:5432/*
           #   postgres://postgres:xxx@replica-paradedb-rw:5432/postgres?sslmode=require
           H="$(echo "$REPLICA_URI" | sed -n 's~.*://[^@]*@\(.*\)/.*~\1~p')"     # host[:port][?params]
           SSLMODE="$(echo "$REPLICA_URI" | sed -n 's~.*sslmode=\([^&]*\).*~\1~p' || true)"
           [ -n "$H" ] || { echo "failed to parse host from replica URI"; exit 1; }
 
+          # Build base URI using SOURCE (primary) credentials + REPLICA host/port[/params]
           BASE="postgres://$SOURCE_USER:$(printf %s "$SOURCE_PASS" | sed 's/[[:cntrl:]]//g')@$H"
 
           # Helper: run psql against a db with the combined URI (preserves sslmode if present)
           psql_uri() {
-            db="$1"
-            if [ -n "$SSLMODE" ]; then
-              psql "$BASE/$db?sslmode=$SSLMODE"
+            db="$1"; shift
+            if [ -n "${SSLMODE:-}" ]; then
+              psql "$BASE/$db?sslmode=$SSLMODE" "$@"
             else
-              psql "$BASE/$db"
+              psql "$BASE/$db" "$@"
             fi
           }
 
-          # Wait up to ~4m for SQL
+          # Wait up to ~4m for SQL readiness
           i=0
           until psql_uri postgres -c "select 1" >/dev/null 2>&1; do
             i=$((i+1))
