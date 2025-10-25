@@ -74,23 +74,6 @@ spec:
                 replica ../../
         - assert:
             file: ./04-replica_cluster-assert.yaml
-    - name: Wait for replica to be healthy
-      try:
-        - script:
-            content: |
-              set -euo pipefail
-              # Replace the Cluster name if different
-              kubectl -n $NAMESPACE wait --for=jsonpath='{.status.phase}'=Healthy cluster/replica-paradedb --timeout=6m
-              kubectl -n $NAMESPACE wait --for=jsonpath='{.status.readyInstances}'=1 cluster/replica-paradedb --timeout=2m
-              # Optional: SQL-level readiness check
-              for i in $(seq 1 60); do
-                if PGPASSWORD=$(kubectl -n $NAMESPACE get secret replica-paradedb-superuser -o jsonpath='{.data.password}' | base64 -d) \
-                  psql "host=replica-paradedb-rw.$NAMESPACE.svc port=5432 user=postgres dbname=postgres sslmode=disable" -c "select 1" >/dev/null 2>&1; then
-                  echo "Replica accepts connections"
-                  break
-                fi
-                echo "Waiting for SQL on replica..." ; sleep 5
-              done 
     - name: Verify the data on the replica cluster exists
       try:
         - apply:
