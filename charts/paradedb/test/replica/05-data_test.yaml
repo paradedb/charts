@@ -2,9 +2,8 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: data-test-replica
-  # Force a real diff so Helm/Chainsaw re-applies even if the name is same
   annotations:
-    paradedb.com/job-hash: "v3"
+    paradedb.com/job-hash: "v5"   # bump to force re-apply
 spec:
   backoffLimit: 0
   ttlSecondsAfterFinished: 600
@@ -15,38 +14,64 @@ spec:
       - name: data-test
         image: alpine:3.19
         env:
-        - name: DB_URI
+        - name: REPLICA_URI
           valueFrom:
             secretKeyRef:
               name: replica-paradedb-superuser
-              key: uri          # e.g. postgres://postgres:<pass>@replica-paradedb-rw:5432/*
+              key: uri              # has host/service & maybe sslmode, but wrong password
+        - name: SOURCE_USER
+          valueFrom:
+            secretKeyRef:
+              name: source-paradedb-superuser
+              key: username
+        - name: SOURCE_PASS
+          valueFrom:
+            secretKeyRef:
+              name: source-paradedb-superuser
+              key: password
         command: ["/bin/sh","-c"]
         args:
         - |
           set -eu
           apk --no-cache add postgresql-client
 
-          # Normalize base URI: strip trailing path or /* and ensure one slash
-          BASE_URI="${DB_URI%/*}/"
-          BASE_URI="${BASE_URI%/*}/"
+          # Extract host:port and (optional) sslmode from the replica URI.
+          # Examples handled:
+          #   postgres://postgres:xxx@replica-paradedb-rw:5432/*
+          #   postgres://postgres:xxx@replica-paradedb-rw:5432/postgres?sslmode=require
+          H="$(echo "$REPLICA_URI" | sed -n 's~.*://[^@]*@\(.*\)/.*~\1~p')"     # host[:port][?params]
+          SSLMODE="$(echo "$REPLICA_URI" | sed -n 's~.*sslmode=\([^&]*\).*~\1~p' || true)"
+          [ -n "$H" ] || { echo "failed to parse host from replica URI"; exit 1; }
 
-          # Wait up to 4m using the *secret URI itself* (guarantees right password)
+          BASE="postgres://$SOURCE_USER:$(printf %s "$SOURCE_PASS" | sed 's/[[:cntrl:]]//g')@$H"
+
+          # Helper: run psql against a db with the combined URI (preserves sslmode if present)
+          psql_uri() {
+            db="$1"
+            if [ -n "$SSLMODE" ]; then
+              psql "$BASE/$db?sslmode=$SSLMODE"
+            else
+              psql "$BASE/$db"
+            fi
+          }
+
+          # Wait up to ~4m for SQL
           i=0
-          until psql "${BASE_URI}postgres" -c "select 1" >/dev/null 2>&1; do
+          until psql_uri postgres -c "select 1" >/dev/null 2>&1; do
             i=$((i+1))
-            [ "$i" -le 120 ] || { echo "replica never accepted SQL with secret URI"; exit 1; }
-            echo "waiting for DB with secret URI... ($i/120)"
+            [ "$i" -le 120 ] || { echo "replica never accepted SQL with source creds"; exit 1; }
+            echo "waiting for DB with source creds... ($i/120)"
             sleep 2
           done
 
           PSQLOPTS="-A -t -q"
 
-          # Sanity: whoami
-          CURR_USER="$(psql $PSQLOPTS "${BASE_URI}postgres" -c 'select current_user;')"
+          # Who am I?
+          CURR_USER="$(psql_uri postgres $PSQLOPTS -c 'select current_user;')"
           echo "current_user=<${CURR_USER}>"
 
           # Table exists on replica
-          HAS_TABLE="$(psql $PSQLOPTS "${BASE_URI}mygooddb" \
+          HAS_TABLE="$(psql_uri mygooddb $PSQLOPTS \
             -c "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'mygoodtable');")"
           [ "$HAS_TABLE" = "t" ] || { echo "table mygoodtable not visible on replica"; exit 1; }
 
@@ -56,13 +81,13 @@ spec:
             "FROM mock_items_paradedb_enterprise" \
             "WHERE description @@@ '\"bluetooth speaker\"~1'" \
             "LIMIT 1;" \
-            | psql $PSQLOPTS "${BASE_URI}paradedb")"
+            | psql_uri paradedb $PSQLOPTS)"
           echo "RESULT=<${RESULT}>"
           [ "$RESULT" = "Bluetooth-enabled speaker" ] || { echo "BM25 query mismatch"; exit 1; }
 
           # Index size must be > 0
           SIZE_RESULT="$(printf '%s\n' \
             "SELECT pg_size_pretty(pg_relation_size('search_idx_paradedb_enterprise'));" \
-            | psql $PSQLOPTS "${BASE_URI}paradedb")"
+            | psql_uri paradedb $PSQLOPTS)"
           echo "SIZE_RESULT=<${SIZE_RESULT}>"
           [ "$SIZE_RESULT" != "0 bytes" ] || { echo "Index size is 0"; exit 1; }
