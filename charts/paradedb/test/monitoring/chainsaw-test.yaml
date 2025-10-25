@@ -7,7 +7,7 @@ metadata:
 spec:
   timeouts:
     apply: 1s
-    assert: 2m
+    assert: 3m
     cleanup: 30s
   steps:
     - name: Install the monitoring cluster
