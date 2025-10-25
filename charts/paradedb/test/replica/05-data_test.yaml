@@ -2,59 +2,93 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: data-test-replica
+  annotations:
+    paradedb.com/job-hash: "v6"   # bump this if you tweak the script so Chainsaw reapplies it
 spec:
+  backoffLimit: 0
+  ttlSecondsAfterFinished: 600
   template:
     spec:
-      restartPolicy: OnFailure
+      restartPolicy: Never
       containers:
       - name: data-test
-        env:
-          - name: DB_URI
-            valueFrom:
-              secretKeyRef:
-                name: replica-paradedb-superuser
-                key: uri
-          - name: REPLICA_PASSWORD
-            valueFrom:
-              secretKeyRef:
-                name: replica-paradedb-superuser
-                key: password
-          - name: SOURCE_PASSWORD
-            valueFrom:
-              secretKeyRef:
-                name: source-paradedb-superuser
-                key: password
         image: alpine:3.19
-        command: ['sh', '-c']
+        env:
+        - name: REPLICA_URI
+          valueFrom:
+            secretKeyRef:
+              name: replica-paradedb-superuser
+              key: uri            # e.g. postgres://postgres:<pass>@replica-paradedb-rw:5432/*
+        - name: SOURCE_USER
+          valueFrom:
+            secretKeyRef:
+              name: source-paradedb-superuser
+              key: username
+        - name: SOURCE_PASS
+          valueFrom:
+            secretKeyRef:
+              name: source-paradedb-superuser
+              key: password
+        command: ["/bin/sh","-c"]
         args:
-         - |
-           set -e
-           apk --no-cache add postgresql-client
-           DB_URI=$(echo $DB_URI | sed "s|/\*|/|" )
-           DB_URI=$(echo $DB_URI | sed "s|$REPLICA_PASSWORD|$SOURCE_PASSWORD|" )
-           echo "DB_URI: $DB_URI"
-           test "$(psql "${DB_URI}mygooddb" -t -c 'SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = $$mygoodtable$$)' --csv -q)" = "t"
-           RESULT=$(psql "${DB_URI}paradedb" -t) <<-EOSQL
-             SELECT description
-             FROM mock_items_paradedb_enterprise
-             WHERE description @@@ '"bluetooth speaker"~1'
-             LIMIT 1;
-           EOSQL
-           echo -$RESULT-
-           if [ "$RESULT" = " Bluetooth-enabled speaker" ]; then
-             echo "Test for description search on replicas passed."
-           else
-             echo "Test for description search on replicas failed."
-             exit 1
-           fi
-           
-           SIZE_RESULT=$(psql "${DB_URI}paradedb" -t) <<-EOSQL
-             SELECT pg_size_pretty(pg_relation_size('search_idx_paradedb_enterprise'));
-           EOSQL
-           echo -$SIZE_RESULT-
-           if [ "$SIZE_RESULT" != " 0 bytes" ]; then
-             echo "Test for index size on replicas passed."
-           else
-             echo "Test for index size on replicas failed."
-             exit 1
-           fi
+        - |
+          set -eu
+          apk --no-cache add postgresql-client
+
+          # Extract host:port and (optional) sslmode from the replica URI.
+          # Handles e.g.:
+          #   postgres://postgres:xxx@replica-paradedb-rw:5432/*
+          #   postgres://postgres:xxx@replica-paradedb-rw:5432/postgres?sslmode=require
+          H="$(echo "$REPLICA_URI" | sed -n 's~.*://[^@]*@\(.*\)/.*~\1~p')"     # host[:port][?params]
+          SSLMODE="$(echo "$REPLICA_URI" | sed -n 's~.*sslmode=\([^&]*\).*~\1~p' || true)"
+          [ -n "$H" ] || { echo "failed to parse host from replica URI"; exit 1; }
+
+          # Build base URI using SOURCE (primary) credentials + REPLICA host/port[/params]
+          BASE="postgres://$SOURCE_USER:$(printf %s "$SOURCE_PASS" | sed 's/[[:cntrl:]]//g')@$H"
+
+          # Helper: run psql against a db with the combined URI (preserves sslmode if present)
+          psql_uri() {
+            db="$1"; shift
+            if [ -n "${SSLMODE:-}" ]; then
+              psql "$BASE/$db?sslmode=$SSLMODE" "$@"
+            else
+              psql "$BASE/$db" "$@"
+            fi
+          }
+
+          # Wait up to ~4m for SQL readiness
+          i=0
+          until psql_uri postgres -c "select 1" >/dev/null 2>&1; do
+            i=$((i+1))
+            [ "$i" -le 120 ] || { echo "replica never accepted SQL with source creds"; exit 1; }
+            echo "waiting for DB with source creds... ($i/120)"
+            sleep 2
+          done
+
+          PSQLOPTS="-A -t -q"
+
+          # Who am I?
+          CURR_USER="$(psql_uri postgres $PSQLOPTS -c 'select current_user;')"
+          echo "current_user=<${CURR_USER}>"
+
+          # Table exists on replica
+          HAS_TABLE="$(psql_uri mygooddb $PSQLOPTS \
+            -c "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'mygoodtable');")"
+          [ "$HAS_TABLE" = "t" ] || { echo "table mygoodtable not visible on replica"; exit 1; }
+
+          # BM25 query
+          RESULT="$(printf '%s\n' \
+            "SELECT description" \
+            "FROM mock_items_paradedb_enterprise" \
+            "WHERE description @@@ '\"bluetooth speaker\"~1'" \
+            "LIMIT 1;" \
+            | psql_uri paradedb $PSQLOPTS)"
+          echo "RESULT=<${RESULT}>"
+          [ "$RESULT" = "Bluetooth-enabled speaker" ] || { echo "BM25 query mismatch"; exit 1; }
+
+          # Index size must be > 0
+          SIZE_RESULT="$(printf '%s\n' \
+            "SELECT pg_size_pretty(pg_relation_size('search_idx_paradedb_enterprise'));" \
+            | psql_uri paradedb $PSQLOPTS)"
+          echo "SIZE_RESULT=<${SIZE_RESULT}>"
+          [ "$SIZE_RESULT" != "0 bytes" ] || { echo "Index size is 0"; exit 1; }

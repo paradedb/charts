@@ -3,4 +3,6 @@ kind: Job
 metadata:
   name: data-test-replica
 status:
-  succeeded: 1
+  conditions:
+  - type: Complete
+    status: "True"
