@@ -102,6 +102,11 @@ spec:
               kubectl -n "$NAMESPACE" get svc replica-paradedb-rw replica-paradedb-ro -o wide || true
               kubectl -n "$NAMESPACE" get endpointslice -l kubernetes.io/service-name=replica-paradedb-rw -o yaml | sed -n '1,160p' || true
               kubectl -n "$NAMESPACE" get endpointslice -l kubernetes.io/service-name=replica-paradedb-ro -o yaml | sed -n '1,160p' || true
+              echo "==== Data test job details ===="
+              # Show what Chainsaw actually applied
+              kubectl -n "$NAMESPACE" get job data-test-replica -o yaml | sed -n '1,240p'
+              # Show the replica superuser secret (the source of truth)
+              kubectl -n "$NAMESPACE" get secret replica-paradedb-superuser -o jsonpath='{.data.username}{"\n"}{.data.uri}{"\n"}' | base64 -d; echo
     - name: Create a replica cluster from object store
       try:
         - script:

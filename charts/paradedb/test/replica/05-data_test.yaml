@@ -2,6 +2,9 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: data-test-replica
+  # Force a real diff so Helm/Chainsaw re-applies even if the name is same
+  annotations:
+    paradedb.com/job-hash: "v3"
 spec:
   backoffLimit: 0
   ttlSecondsAfterFinished: 600
@@ -16,22 +19,18 @@ spec:
           valueFrom:
             secretKeyRef:
               name: replica-paradedb-superuser
-              key: uri    # postgres://postgres:<pass>@replica-paradedb-rw:5432/*
-        - name: POD_NAMESPACE
-          valueFrom:
-            fieldRef:
-              fieldPath: metadata.namespace
+              key: uri          # e.g. postgres://postgres:<pass>@replica-paradedb-rw:5432/*
         command: ["/bin/sh","-c"]
         args:
         - |
           set -eu
           apk --no-cache add postgresql-client
 
-          # Normalize: strip any trailing path or "/*", ensure a single slash
+          # Normalize base URI: strip trailing path or /* and ensure one slash
           BASE_URI="${DB_URI%/*}/"
           BASE_URI="${BASE_URI%/*}/"
 
-          # Wait for SQL using the secret URI (has the right password)
+          # Wait up to 4m using the *secret URI itself* (guarantees right password)
           i=0
           until psql "${BASE_URI}postgres" -c "select 1" >/dev/null 2>&1; do
             i=$((i+1))
@@ -61,7 +60,7 @@ spec:
           echo "RESULT=<${RESULT}>"
           [ "$RESULT" = "Bluetooth-enabled speaker" ] || { echo "BM25 query mismatch"; exit 1; }
 
-          # Index size > 0
+          # Index size must be > 0
           SIZE_RESULT="$(printf '%s\n' \
             "SELECT pg_size_pretty(pg_relation_size('search_idx_paradedb_enterprise'));" \
             | psql $PSQLOPTS "${BASE_URI}paradedb")"
