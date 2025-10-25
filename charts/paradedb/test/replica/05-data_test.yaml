@@ -3,58 +3,67 @@ kind: Job
 metadata:
   name: data-test-replica
 spec:
+  backoffLimit: 0
+  ttlSecondsAfterFinished: 600
   template:
     spec:
-      restartPolicy: OnFailure
+      restartPolicy: Never
       containers:
       - name: data-test
-        env:
-          - name: DB_URI
-            valueFrom:
-              secretKeyRef:
-                name: replica-paradedb-superuser
-                key: uri
-          - name: REPLICA_PASSWORD
-            valueFrom:
-              secretKeyRef:
-                name: replica-paradedb-superuser
-                key: password
-          - name: SOURCE_PASSWORD
-            valueFrom:
-              secretKeyRef:
-                name: source-paradedb-superuser
-                key: password
         image: alpine:3.19
-        command: ['sh', '-c']
+        command: ["/bin/sh","-c"]
         args:
-         - |
-           set -e
-           apk --no-cache add postgresql-client
-           DB_URI=$(echo $DB_URI | sed "s|/\*|/|" )
-           DB_URI=$(echo $DB_URI | sed "s|$REPLICA_PASSWORD|$SOURCE_PASSWORD|" )
-           echo "DB_URI: $DB_URI"
-           test "$(psql "${DB_URI}mygooddb" -t -c 'SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = $$mygoodtable$$)' --csv -q)" = "t"
-           RESULT=$(psql "${DB_URI}paradedb" -t) <<-EOSQL
-             SELECT description
-             FROM mock_items_paradedb_enterprise
-             WHERE description @@@ '"bluetooth speaker"~1'
-             LIMIT 1;
-           EOSQL
-           echo -$RESULT-
-           if [ "$RESULT" = " Bluetooth-enabled speaker" ]; then
-             echo "Test for description search on replicas passed."
-           else
-             echo "Test for description search on replicas failed."
-             exit 1
-           fi
-           
-           SIZE_RESULT=$(psql "${DB_URI}paradedb" -t) <<-EOSQL
-             SELECT pg_size_pretty(pg_relation_size('search_idx_paradedb_enterprise'));
-           EOSQL
-           echo -$SIZE_RESULT-
-           if [ "$SIZE_RESULT" != " 0 bytes" ]; then
-             echo "Test for index size on replicas passed."
-           else
-             echo "Test for index size on replicas failed."
-             exit 1
-           fi
+        - |
+          set -euo pipefail
+          apk --no-cache add postgresql-client
+
+          HOST="replica-paradedb-rw.$NAMESPACE.svc"
+          PORT="5432"
+          USER="postgres"
+          DB_MAIN="paradedb"
+          DB_CHECK="mygooddb"
+
+          # pull the replica password directly; don't sed swap with source
+          PGPASSWORD="$(echo -n "$REPLICA_PASSWORD" )"
+          export PGPASSWORD
+
+          uri_base="host=$HOST port=$PORT user=$USER sslmode=disable"
+
+          # bounded readiness retry
+          for i in $(seq 1 60); do
+            if psql "$uri_base dbname=postgres" -c "select 1" >/dev/null 2>&1; then
+              break
+            fi
+            echo "waiting for DB..." ; sleep 5
+          done
+
+          # table existence on the *replica*
+          if [ "$(psql "$uri_base dbname=$DB_CHECK" -t -A -q -c \
+                "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'mygoodtable');")" != "t" ]; then
+            echo "table mygoodtable not visible on replica" >&2
+            exit 1
+          fi
+
+          # BM25 query
+          RESULT="$(psql "$uri_base dbname=$DB_MAIN" -t -A -q <<'SQL'
+            SELECT description
+            FROM mock_items_paradedb_enterprise
+            WHERE description @@@ '"bluetooth speaker"~1'
+            LIMIT 1;
+SQL
+          )"
+          echo "RESULT=<$RESULT>"
+          [ "$RESULT" = "Bluetooth-enabled speaker" ] || { echo "BM25 query mismatch"; exit 1; }
+
+          SIZE_RESULT="$(psql "$uri_base dbname=$DB_MAIN" -t -A -q <<'SQL'
+            SELECT pg_size_pretty(pg_relation_size('search_idx_paradedb_enterprise'));
+SQL
+          )"
+          echo "SIZE_RESULT=<$SIZE_RESULT>"
+          [ "$SIZE_RESULT" != "0 bytes" ] || { echo "Index size is 0"; exit 1; }
+        env:
+        - name: REPLICA_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: replica-paradedb-superuser
+              key: password
