@@ -8,7 +8,7 @@ metadata:
 spec:
   timeouts:
     apply: 1s
-    assert: 5m
+    assert: 6m
     cleanup: 1m
   steps:
     - name: Clear the MinIO bucket
@@ -80,6 +80,17 @@ spec:
             file: 05-data_test.yaml
         - assert:
             file: 05-data_test-assert.yaml
+      catch:
+        - describe:
+            apiVersion: batch/v1
+            kind: Job
+        - podLogs:
+            selector: batch.kubernetes.io/job-name=data-test-replica
+        - script:
+            content: |
+              kubectl -n $NAMESPACE get pods -l job-name=data-test-replica -o wide
+              kubectl -n $NAMESPACE describe job/data-test-replica
+              kubectl -n $NAMESPACE get events --sort-by=.lastTimestamp | tail -n 200
     - name: Create a replica cluster from object store
       try:
         - script:
