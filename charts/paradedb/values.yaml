@@ -179,7 +179,7 @@ recovery:
 
 cluster:
   # -- Number of instances
-  instances: 3
+  instances: 1
 
   # -- Name of the container image, supporting both tags (<image>:<tag>) and digests for deterministic and repeatable deployments:
   # <image>:<tag>@sha256:<digestValue>
