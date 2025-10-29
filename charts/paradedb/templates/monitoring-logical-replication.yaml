@@ -23,7 +23,7 @@ data:
              , latest_end_time
              , CASE
                  WHEN received_lsn IS NOT NULL AND latest_end_lsn IS NOT NULL
-                 THEN pg_wal_lsn_diff(received_lsn, latest_end_lsn)
+                 THEN GREATEST(0, pg_wal_lsn_diff(received_lsn, latest_end_lsn))
                  ELSE NULL
                END AS buffered_lag_bytes
              , CASE
