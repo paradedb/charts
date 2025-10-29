@@ -16,11 +16,26 @@ data:
              , subname
              , worker_type
              , relid
-             , received_lsn - '0/0' AS received_lsn
+             , pg_wal_lsn_diff(received_lsn, '0/0') AS received_lsn
              , last_msg_send_time
              , last_msg_receipt_time
-             , latest_end_lsn - '0/0' AS latest_end_lsn
+             , pg_wal_lsn_diff(latest_end_lsn, '0/0') AS latest_end_lsn
              , latest_end_time
+             , CASE
+                 WHEN received_lsn IS NOT NULL AND latest_end_lsn IS NOT NULL
+                 THEN pg_wal_lsn_diff(received_lsn, latest_end_lsn)
+                 ELSE NULL
+               END AS buffered_lag_bytes
+             , CASE
+                 WHEN last_msg_receipt_time IS NOT NULL
+                 THEN EXTRACT(EPOCH FROM (NOW() - last_msg_receipt_time))
+                 ELSE NULL
+               END AS receipt_lag_seconds
+             , CASE
+                 WHEN latest_end_time IS NOT NULL
+                 THEN EXTRACT(EPOCH FROM (NOW() - latest_end_time))
+                 ELSE NULL
+               END AS apply_lag_seconds
         FROM pg_stat_subscription;
       target_databases: ["*"]
       metrics:
@@ -53,5 +68,14 @@ data:
             usage: GAUGE
         - latest_end_time:
             description: Timestamp of the latest end LSN processed
+            usage: GAUGE
+        - buffered_lag_bytes:
+            description: Bytes buffered but not yet applied (received_lsn - latest_end_lsn)
+            usage: GAUGE
+        - receipt_lag_seconds:
+            description: Seconds since last message receipt
+            usage: GAUGE
+        - apply_lag_seconds:
+            description: Seconds since last apply operation
             usage: GAUGE
 {{- end }}
