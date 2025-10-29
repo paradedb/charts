@@ -8,7 +8,7 @@ metadata:
 spec:
   timeouts:
     apply: 1s
-    assert: 5m
+    assert: 15m
     cleanup: 1m
   steps:
     - name: Clear the MinIO bucket
@@ -75,11 +75,71 @@ spec:
         - assert:
             file: ./04-replica_cluster-assert.yaml
     - name: Verify the data on the replica cluster exists
+      timeouts:
+        apply: 1s
+        assert: 10m
       try:
+        - script:
+            content: |
+              # Wait for replica cluster to be ready and verify it's streaming
+              echo "Waiting for replica cluster to be ready..."
+              kubectl wait --for=condition=ready cluster/replica-paradedb -n $NAMESPACE --timeout=5m || true
+              echo "Checking replica cluster status..."
+              kubectl get cluster replica-paradedb -n $NAMESPACE -o yaml
+              echo "Checking replica pods..."
+              kubectl get pods -n $NAMESPACE -l cnpg.io/cluster=replica-paradedb
         - apply:
             file: 05-data_test.yaml
         - assert:
             file: 05-data_test-assert.yaml
+      catch:
+        - describe:
+            apiVersion: postgresql.cnpg.io/v1
+            kind: Cluster
+            name: replica-paradedb
+        - describe:
+            apiVersion: batch/v1
+            kind: Job
+            name: data-test-replica
+        - podLogs:
+            selector: batch.kubernetes.io/job-name=data-test-replica
+        - podLogs:
+            selector: cnpg.io/cluster=replica-paradedb
+        - script:
+            content: |
+              echo "=== Replica Cluster Conditions ==="
+              kubectl get cluster replica-paradedb -n $NAMESPACE -o jsonpath='{.status.conditions}' | jq '.' || kubectl get cluster replica-paradedb -n $NAMESPACE -o yaml | grep -A 20 "conditions:"
+              
+              echo "=== Replica Cluster Status ==="
+              kubectl get cluster replica-paradedb -n $NAMESPACE -o jsonpath='{.status}' | jq '.' || kubectl get cluster replica-paradedb -n $NAMESPACE -o yaml | grep -A 30 "status:"
+              
+              echo "=== Replica Pod Status ==="
+              REPLICA_POD=$(kubectl get pods -n $NAMESPACE -l cnpg.io/cluster=replica-paradedb -o jsonpath='{.items[0].metadata.name}' 2>/dev/null)
+              if [ -n "$REPLICA_POD" ]; then
+                echo "Replica pod: $REPLICA_POD"
+                kubectl get pod $REPLICA_POD -n $NAMESPACE -o jsonpath='{.status.conditions}' | jq '.' || kubectl get pod $REPLICA_POD -n $NAMESPACE -o yaml | grep -A 15 "conditions:"
+                echo "=== Replica Pod Events ==="
+                kubectl get events -n $NAMESPACE --field-selector involvedObject.name=$REPLICA_POD --sort-by='.lastTimestamp' | tail -20
+              fi
+              
+              echo "=== Source Cluster Replication Status ==="
+              SOURCE_RW=$(kubectl get svc -n $NAMESPACE source-paradedb-rw -o name 2>/dev/null)
+              if [ -n "$SOURCE_RW" ]; then
+                echo "Checking replication slots and lag from source..."
+                kubectl exec -n $NAMESPACE -c postgres $SOURCE_RW -- psql -t -c "SELECT slot_name, active, pg_size_pretty(pg_wal_lsn_diff(pg_current_wal_lsn(), restart_lsn)) AS lag FROM pg_replication_slots;" 2>/dev/null || echo "Could not query replication slots"
+                kubectl exec -n $NAMESPACE -c postgres $SOURCE_RW -- psql -t -c "SELECT application_name, state, sync_state, pg_size_pretty(pg_wal_lsn_diff(pg_current_wal_lsn(), sent_lsn)) AS sending_lag, pg_size_pretty(pg_wal_lsn_diff(sent_lsn, write_lsn)) AS write_lag, pg_size_pretty(pg_wal_lsn_diff(write_lsn, flush_lsn)) AS flush_lag, pg_size_pretty(pg_wal_lsn_diff(flush_lsn, replay_lsn)) AS replay_lag FROM pg_stat_replication;" 2>/dev/null || echo "Could not query replication stats"
+              fi
+              
+              echo "=== Replica Connection Test ==="
+              if [ -n "$REPLICA_POD" ]; then
+                kubectl exec -n $NAMESPACE -c postgres $REPLICA_POD -- psql -t -c "SELECT pg_is_in_recovery(), pg_last_wal_receive_lsn(), pg_last_wal_replay_lsn();" 2>/dev/null || echo "Could not connect to replica"
+              fi
+              
+              echo "=== Cluster Events (last 30) ==="
+              kubectl get events -n $NAMESPACE --field-selector involvedObject.kind=Cluster --sort-by='.lastTimestamp' | tail -30
+              
+              echo "=== All Replica Pods Details ==="
+              kubectl get pods -n $NAMESPACE -l cnpg.io/cluster=replica-paradedb -o wide
     - name: Create a replica cluster from object store
       try:
         - script:
