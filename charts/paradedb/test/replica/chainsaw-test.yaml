@@ -23,15 +23,18 @@ spec:
             kind: Job
         - podLogs:
             selector: batch.kubernetes.io/job-name=minio_cleanup
-    - name: Install a source cluster
+    - name: Install a source cluster with Enterprise
       try:
         - script:
             content: |
+              # Create Docker registry secret for Enterprise
+              kubectl -n $NAMESPACE create secret docker-registry paradedb-enterprise-registry-cred --docker-server="https://index.docker.io/v1/" --docker-username="$PARADEDB_ENTERPRISE_DOCKER_USERNAME" --docker-password="$PARADEDB_ENTERPRISE_DOCKER_PAT"
+              
               kubectl -n $NAMESPACE create secret generic kube-root-ca.crt --from-literal=ca.crt="$(kubectl -n kube-system get configmaps kube-root-ca.crt -o jsonpath='{.data.ca\.crt}')" --dry-run=client -o yaml | kubectl apply -f -
               helm upgrade \
                 --install \
                 --namespace $NAMESPACE \
-                --values ./01-source_cluster.yaml \
+                --values ./01-source_cluster_enterprise.yaml \
                 --wait \
                 source ../../
         - assert:
@@ -62,19 +65,19 @@ spec:
             file: ./03-checkpoint.yaml
         - assert:
             file: ./03-backup_completed-assert.yaml
-    - name: Create a replica cluster from pg_basebackup
+    - name: Create a replica cluster from pg_basebackup (Enterprise - should succeed)
       try:
         - script:
             content: |
               helm upgrade \
                 --install \
                 --namespace $NAMESPACE \
-                --values ./04-replica_cluster.yaml \
+                --values ./04-replica_cluster_enterprise.yaml \
                 --wait \
                 replica ../../
         - assert:
             file: ./04-replica_cluster-assert.yaml
-    - name: Verify the data on the replica cluster exists
+    - name: Verify the data on the replica cluster exists (Enterprise)
       timeouts:
         apply: 1s
         assert: 10m
@@ -140,6 +143,93 @@ spec:
               
               echo "=== All Replica Pods Details ==="
               kubectl get pods -n $NAMESPACE -l cnpg.io/cluster=replica-paradedb -o wide
+    - name: Test Community Edition replica (should fail with expected error)
+      try:
+        - script:
+            content: |
+              # Uninstall the Enterprise replica
+              helm uninstall --namespace $NAMESPACE replica
+              
+              # Wait for cleanup
+              kubectl wait --for=delete cluster/replica-paradedb -n $NAMESPACE --timeout=2m || true
+              
+              # Install Community replica
+              helm upgrade \
+                --install \
+                --namespace $NAMESPACE \
+                --values ./04-replica_cluster.yaml \
+                --wait \
+                replica ../../
+              
+              # Wait for it to be ready
+              kubectl wait --for=condition=ready cluster/replica-paradedb -n $NAMESPACE --timeout=5m || true
+        - script:
+            content: |
+              # Create a job to test reading from replica - this should fail
+              kubectl apply -n $NAMESPACE -f - <<EOF
+              apiVersion: batch/v1
+              kind: Job
+              metadata:
+                name: data-test-replica-community
+              spec:
+                template:
+                  spec:
+                    restartPolicy: OnFailure
+                    containers:
+                    - name: data-test
+                      env:
+                        - name: DB_URI
+                          valueFrom:
+                            secretKeyRef:
+                              name: replica-paradedb-superuser
+                              key: uri
+                        - name: REPLICA_PASSWORD
+                          valueFrom:
+                            secretKeyRef:
+                              name: replica-paradedb-superuser
+                              key: password
+                        - name: SOURCE_PASSWORD
+                          valueFrom:
+                            secretKeyRef:
+                              name: source-paradedb-superuser
+                              key: password
+                      image: alpine:3.19
+                      command: ['sh', '-c']
+                      args:
+                       - |
+                         set -e
+                         apk --no-cache add postgresql-client
+                         DB_URI=\$(echo \$DB_URI | sed "s|/\*|/|" )
+                         DB_URI=\$(echo \$DB_URI | sed "s|\$REPLICA_PASSWORD|\$SOURCE_PASSWORD|" )
+                         
+                         # This query should fail with Enterprise-only error
+                         if psql "\${DB_URI}paradedb" -t -c "SELECT description FROM mock_items_paradedb_enterprise WHERE description @@@ '\"bluetooth speaker\"~1' LIMIT 1;" 2>&1 | grep -q "Serving reads from a standby requires write-ahead log (WAL) integration"; then
+                           echo "SUCCESS: Got expected error message for Community edition reading from standby"
+                           exit 0
+                         else
+                           echo "FAILURE: Did not get expected error message"
+                           exit 1
+                         fi
+              EOF
+              
+              # Wait for job to complete
+              kubectl wait --for=condition=complete job/data-test-replica-community -n $NAMESPACE --timeout=2m
+        - script:
+            content: |
+              # Cleanup the test job
+              kubectl delete job data-test-replica-community -n $NAMESPACE || true
+              
+              # Uninstall Community replica
+              helm uninstall --namespace $NAMESPACE replica
+      catch:
+        - podLogs:
+            selector: batch.kubernetes.io/job-name=data-test-replica-community
+        - podLogs:
+            selector: cnpg.io/cluster=replica-paradedb
+        - script:
+            content: |
+              kubectl get pods -n $NAMESPACE
+              kubectl get jobs -n $NAMESPACE
     - name: Create a replica cluster from object store
       try:
         - script:
