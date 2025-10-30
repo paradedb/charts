@@ -125,24 +125,9 @@ spec:
                 kubectl get events -n $NAMESPACE --field-selector involvedObject.name=$REPLICA_POD --sort-by='.lastTimestamp' | tail -20
               fi
               
-              echo "=== Source Cluster Replication Status ==="
-              SOURCE_RW=$(kubectl get svc -n $NAMESPACE source-paradedb-rw -o name 2>/dev/null)
-              if [ -n "$SOURCE_RW" ]; then
-                echo "Checking replication slots and lag from source..."
-                kubectl exec -n $NAMESPACE -c postgres $SOURCE_RW -- psql -t -c "SELECT slot_name, active, pg_size_pretty(pg_wal_lsn_diff(pg_current_wal_lsn(), restart_lsn)) AS lag FROM pg_replication_slots;" 2>/dev/null || echo "Could not query replication slots"
-                kubectl exec -n $NAMESPACE -c postgres $SOURCE_RW -- psql -t -c "SELECT application_name, state, sync_state, pg_size_pretty(pg_wal_lsn_diff(pg_current_wal_lsn(), sent_lsn)) AS sending_lag, pg_size_pretty(pg_wal_lsn_diff(sent_lsn, write_lsn)) AS write_lag, pg_size_pretty(pg_wal_lsn_diff(write_lsn, flush_lsn)) AS flush_lag, pg_size_pretty(pg_wal_lsn_diff(flush_lsn, replay_lsn)) AS replay_lag FROM pg_stat_replication;" 2>/dev/null || echo "Could not query replication stats"
-              fi
-              
-              echo "=== Replica Connection Test ==="
-              if [ -n "$REPLICA_POD" ]; then
-                kubectl exec -n $NAMESPACE -c postgres $REPLICA_POD -- psql -t -c "SELECT pg_is_in_recovery(), pg_last_wal_receive_lsn(), pg_last_wal_replay_lsn();" 2>/dev/null || echo "Could not connect to replica"
-              fi
-              
               echo "=== Cluster Events (last 30) ==="
               kubectl get events -n $NAMESPACE --field-selector involvedObject.kind=Cluster --sort-by='.lastTimestamp' | tail -30
               
-              echo "=== All Replica Pods Details ==="
-              kubectl get pods -n $NAMESPACE -l cnpg.io/cluster=replica-paradedb -o wide
     - name: Create a replica cluster from object store
       try:
         - script:
