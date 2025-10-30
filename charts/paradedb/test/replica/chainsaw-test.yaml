@@ -23,6 +23,52 @@ spec:
             kind: Job
         - podLogs:
             selector: batch.kubernetes.io/job-name=minio_cleanup
+    - name: Install a ParadeDB Community source cluster
+      try:
+        - script:
+            content: |
+              helm upgrade \
+                --install \
+                --namespace $NAMESPACE \
+                --values ./10-community_source_cluster.yaml \
+                --wait \
+                source-community ../../
+        - assert:
+            file: ./10-community_source_cluster-assert.yaml
+      catch:
+        - describe:
+            apiVersion: postgresql.cnpg.io/v1
+            kind: Cluster
+    - name: Attempt to create a ParadeDB Community replica (expect failure)
+      try:
+        - script:
+            content: |
+              set +e
+              output=$(helm upgrade \
+                --install \
+                --namespace $NAMESPACE \
+                --values ./11-community_replica_cluster.yaml \
+                --wait \
+                replica-community ../../ 2>&1)
+              status=$?
+              echo "$output"
+              if [ $status -eq 0 ]; then
+                echo "Expected replica install to fail for ParadeDB Community but it succeeded" >&2
+                exit 1
+              fi
+              echo "$output" | grep -F "Replica mode requires ParadeDB Enterprise" >/dev/null
+      catch:
+        - describe:
+            apiVersion: postgresql.cnpg.io/v1
+            kind: Cluster
+        - podLogs:
+            selector: cnpg.io/cluster=replica-community-paradedb
+    - name: Cleanup the ParadeDB Community replica attempt
+      try:
+        - script:
+            content: |
+              helm uninstall --namespace $NAMESPACE source-community || true
+              helm uninstall --namespace $NAMESPACE replica-community || true
     - name: Install a source cluster with Enterprise
       try:
         - script:
