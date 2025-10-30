@@ -80,7 +80,7 @@ spec:
     - name: Verify the data on the replica cluster exists
       timeouts:
         apply: 1s
-        assert: 10m
+        assert: 4m
       try:
         - script:
             content: |
