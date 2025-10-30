@@ -1,0 +1,9 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: data-write-community
+spec:
+  completions: 1
+  parallelism: 1
+status:
+  succeeded: 1

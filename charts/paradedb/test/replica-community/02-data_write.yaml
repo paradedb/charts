@@ -1,0 +1,50 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: data-write-community
+spec:
+  template:
+    spec:
+      containers:
+      - name: postgres-client
+        image: postgres:17
+        env:
+        - name: PGHOST
+          value: source-community-paradedb-rw
+        - name: PGPORT
+          value: "5432"
+        - name: PGUSER
+          value: postgres
+        - name: PGPASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: source-community-paradedb-superuser
+              key: password
+        - name: PGDATABASE
+          value: postgres
+        command:
+        - /bin/bash
+        - -c
+        - |
+          set -e
+
+          echo "Creating test data in source community cluster..."
+
+          # Create test table and data
+          psql << 'EOF'
+          CREATE TABLE IF NOT EXISTS test_replication (
+              id SERIAL PRIMARY KEY,
+              message TEXT,
+              created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+          );
+
+          INSERT INTO test_replication (message) VALUES
+              ('Community test message 1'),
+              ('Community test message 2'),
+              ('Community test message 3');
+
+          SELECT COUNT(*) as records_inserted FROM test_replication;
+          EOF
+
+          echo "Data insertion completed successfully!"
+      restartPolicy: Never

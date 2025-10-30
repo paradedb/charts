@@ -1,0 +1,22 @@
+type: paradedb
+mode: replica
+
+cluster:
+  instances: 1
+  storage:
+    size: 256Mi
+
+replica:
+  bootstrap:
+    source: pg_basebackup
+  origin:
+    pg_basebackup:
+      host: "source-community-paradedb-rw"
+      username: "streaming_replica"
+      sslMode: "require"
+      sslKeySecret:
+        name: source-community-paradedb-replication
+        key: tls.key
+      sslCertSecret:
+        name: source-community-paradedb-replication
+        key: tls.crt
