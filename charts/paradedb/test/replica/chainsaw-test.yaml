@@ -1,6 +1,6 @@
 ##
-# This test create a source CNPG cluster with MinIO backups and then creates a replica cluster bootstrapped with
-# pg_basebackup, object store, and a hybrid one, using both.
+# This test create a source CNPG cluster with ParadeDB Enterprise (required for WALs) and with MinIO backups
+# and then creates a replica cluster bootstrapped with pg_basebackup, object store, and a hybrid one, using both.
 apiVersion: chainsaw.kyverno.io/v1alpha1
 kind: Test
 metadata:
@@ -8,7 +8,7 @@ metadata:
 spec:
   timeouts:
     apply: 1s
-    assert: 15m
+    assert: 4m
     cleanup: 1m
   steps:
     - name: Clear the MinIO bucket
@@ -27,7 +27,7 @@ spec:
       try:
         - script:
             content: |
-              # Create Docker registry secret for Enterprise
+              # Create Docker registry secret for ParadeDB Enterprise
               kubectl -n $NAMESPACE create secret docker-registry paradedb-enterprise-registry-cred --docker-server="https://index.docker.io/v1/" --docker-username="$PARADEDB_ENTERPRISE_DOCKER_USERNAME" --docker-password="$PARADEDB_ENTERPRISE_DOCKER_PAT"
               
               kubectl -n $NAMESPACE create secret generic kube-root-ca.crt --from-literal=ca.crt="$(kubectl -n kube-system get configmaps kube-root-ca.crt -o jsonpath='{.data.ca\.crt}')" --dry-run=client -o yaml | kubectl apply -f -
@@ -65,7 +65,7 @@ spec:
             file: ./03-checkpoint.yaml
         - assert:
             file: ./03-backup_completed-assert.yaml
-    - name: Create a replica cluster from pg_basebackup (Enterprise - should succeed)
+    - name: Create a replica cluster from pg_basebackup
       try:
         - script:
             content: |
@@ -77,7 +77,7 @@ spec:
                 replica ../../
         - assert:
             file: ./04-replica_cluster-assert.yaml
-    - name: Verify the data on the replica cluster exists (Enterprise)
+    - name: Verify the data on the replica cluster exists
       timeouts:
         apply: 1s
         assert: 10m
@@ -127,7 +127,6 @@ spec:
               
               echo "=== Cluster Events (last 30) ==="
               kubectl get events -n $NAMESPACE --field-selector involvedObject.kind=Cluster --sort-by='.lastTimestamp' | tail -30
-              
     - name: Create a replica cluster from object store
       try:
         - script:
