@@ -1,7 +1,7 @@
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
-  name: replica-paradedb
+  name: replica-community-paradedb
 spec:
   replica:
     enabled: true

@@ -1,10 +1,10 @@
 apiVersion: postgresql.cnpg.io/v1
 kind: Backup
 metadata:
-  name: post-init-backup
+  name: backup-community-source
 spec:
   cluster:
-    name: source-paradedb
+    name: source-community-paradedb
   method: barmanObjectStore
 status:
   phase: running

@@ -12,17 +12,17 @@ spec:
           - name: DB_URI
             valueFrom:
               secretKeyRef:
-                name: replica-hybrid-paradedb-superuser
+                name: replica-community-hybrid-paradedb-superuser
                 key: uri
           - name: REPLICA_PASSWORD
             valueFrom:
               secretKeyRef:
-                name: replica-hybrid-paradedb-superuser
+                name: replica-community-hybrid-paradedb-superuser
                 key: password
           - name: SOURCE_PASSWORD
             valueFrom:
               secretKeyRef:
-                name: source-paradedb-superuser
+                name: source-community-paradedb-superuser
                 key: password
         image: alpine:3.19
         command: ['sh', '-c']
@@ -34,27 +34,42 @@ spec:
            DB_URI=$(echo $DB_URI | sed "s|$REPLICA_PASSWORD|$SOURCE_PASSWORD|" )
            echo "DB_URI: $DB_URI"
            test "$(psql "${DB_URI}mygooddb" -t -c 'SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = $$mygoodtable$$)' --csv -q)" = "t"
-           RESULT=$(psql "${DB_URI}paradedb" -t) <<-EOSQL
+           echo "Testing ParadeDB search functionality (should fail in community edition)..."
+          SEARCH_RESULT=$(psql "${DB_URI}paradedb" -t 2>&1 <<-EOSQL || echo "SEARCH_FAILED"
              SELECT description
              FROM mock_items_paradedb_enterprise
              WHERE description @@@ '"bluetooth speaker"~1'
              LIMIT 1;
            EOSQL
-           echo -$RESULT-
-           if [ "$RESULT" = " Bluetooth-enabled speaker" ]; then
-             echo "Test for description search on replicas passed."
+           )
+           echo "Search result: $SEARCH_RESULT"
+
+           if [ "$SEARCH_RESULT" = "SEARCH_FAILED" ] || echo "$SEARCH_RESULT" | grep -q "ERROR"; then
+             echo "✓ ParadeDB search functionality correctly failed in community edition (as expected)"
+             echo "✓ This confirms enterprise features are properly gated"
            else
-             echo "Test for description search on replicas failed."
-             exit 1
+             if [ "$SEARCH_RESULT" = " Bluetooth-enabled speaker" ]; then
+               echo "✗ Unexpected: ParadeDB search functionality worked in community edition"
+               echo "✗ This suggests enterprise features may not be properly gated"
+               exit 1
+             else
+               echo "✗ Unexpected search result: $SEARCH_RESULT"
+               exit 1
+             fi
            fi
            
-           SIZE_RESULT=$(psql "${DB_URI}paradedb" -t) <<-EOSQL
+           echo ""
+          echo "Testing search index (should be missing in community edition)..."
+          SIZE_RESULT=$(psql "${DB_URI}paradedb" -t 2>&1 <<-EOSQL || echo "INDEX_FAILED"
              SELECT pg_size_pretty(pg_relation_size('search_idx_paradedb_enterprise'));
            EOSQL
-           echo -$SIZE_RESULT-
-           if [ "$SIZE_RESULT" != " 0 bytes" ]; then
-             echo "Test for index size on replicas passed."
+           )
+           echo "Index size result: $SIZE_RESULT"
+
+           if [ "$SIZE_RESULT" = "INDEX_FAILED" ] || echo "$SIZE_RESULT" | grep -q "ERROR\|does not exist"; then
+             echo "✓ Search index correctly missing in community edition (as expected)"
            else
-             echo "Test for index size on replicas failed."
+             echo "✗ Unexpected: Search index found in community edition"
+             echo "✗ This suggests enterprise features may not be properly gated"
              exit 1
            fi
