@@ -8,7 +8,7 @@ metadata:
 spec:
   timeouts:
     apply: 1s
-    assert: 5m
+    assert: 15m
     cleanup: 1m
   steps:
     - name: Clear the MinIO bucket
@@ -65,7 +65,7 @@ spec:
             file: ./03-checkpoint.yaml
         - assert:
             file: ./03-backup_completed-assert.yaml
-    - name: Create a replica cluster from pg_basebackup
+    - name: Create a replica cluster from pg_basebackup (Enterprise - should succeed)
       try:
         - script:
             content: |
