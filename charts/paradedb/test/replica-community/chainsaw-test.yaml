@@ -1,0 +1,56 @@
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  name: replica-community
+spec:
+  timeouts:
+    apply: 1s
+    assert: 4m
+    cleanup: 1m
+  steps:
+    - name: Install a ParadeDB Community source cluster
+      try:
+        - script:
+            content: |
+              helm upgrade \
+                --install \
+                --namespace $NAMESPACE \
+                --values ./01-source_cluster.yaml \
+                --wait \
+                source-community ../../
+        - assert:
+            file: ./01-source_cluster-assert.yaml
+      catch:
+        - describe:
+            apiVersion: postgresql.cnpg.io/v1
+            kind: Cluster
+    - name: Attempt to create a ParadeDB Community replica (expect failure)
+      try:
+        - script:
+            content: |
+              set +e
+              output=$(helm upgrade \
+                --install \
+                --namespace $NAMESPACE \
+                --values ./04-replica_cluster.yaml \
+                --wait \
+                replica-community ../../ 2>&1)
+              status=$?
+              echo "$output"
+              if [ $status -eq 0 ]; then
+                echo "Expected replica install to fail for ParadeDB Community but it succeeded" >&2
+                exit 1
+              fi
+              echo "$output" | grep -F "Replica mode requires ParadeDB Enterprise" >/dev/null
+      catch:
+        - describe:
+            apiVersion: postgresql.cnpg.io/v1
+            kind: Cluster
+        - podLogs:
+            selector: cnpg.io/cluster=replica-community-paradedb
+    - name: Cleanup
+      try:
+        - script:
+            content: |
+              helm uninstall --namespace $NAMESPACE source-community || true
+              helm uninstall --namespace $NAMESPACE replica-community || true
