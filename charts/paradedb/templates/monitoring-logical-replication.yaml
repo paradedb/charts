@@ -25,7 +25,7 @@ data:
              , apply_error_count
              , sync_error_count
              , stats_reset
-            , ss.pid
+             , ss.pid
              , CASE
                  WHEN received_lsn IS NOT NULL AND latest_end_lsn IS NOT NULL
                  THEN GREATEST(0, pg_wal_lsn_diff(received_lsn, latest_end_lsn))
@@ -44,6 +44,7 @@ data:
         FROM pg_subscription s
         LEFT JOIN pg_stat_subscription ss ON s.oid = ss.subid
         LEFT JOIN pg_stat_subscription_stats sss ON s.oid = sss.subid;
+      target_databases: ["*"]
       metrics:
         - datname:
             description: Name of the database
