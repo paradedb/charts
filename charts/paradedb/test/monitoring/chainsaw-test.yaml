@@ -19,6 +19,7 @@ spec:
                 --namespace $NAMESPACE \
                 --values ./01-monitoring_cluster.yaml \
                 --wait \
+                --debug \
                 monitoring ../../
         - assert:
             file: ./01-monitoring_cluster-assert.yaml

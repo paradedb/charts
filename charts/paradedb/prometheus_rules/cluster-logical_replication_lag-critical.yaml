@@ -9,7 +9,7 @@ annotations:
     High logical replication lag indicates network issues, busy instances, slow queries or suboptimal configuration.
   runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/{{ $alert }}.md
 expr: |
-  label_replace(max by (namespace, job, subname) (time() - cnpg_pg_stat_subscription_last_msg_receipt_time), "cluster", "$1", "job", ".+/(.+)") > 300
+  label_replace(max by (namespace, job, subname) (cnpg_pg_stat_subscription_receipt_lag_seconds), "cluster", "$1", "job", ".+/(.+)") > 300
 for: 5m
 labels:
   severity: critical
