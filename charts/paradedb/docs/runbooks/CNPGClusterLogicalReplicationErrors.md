@@ -1,6 +1,6 @@
 # CNPGClusterLogicalReplicationErrors
 
-## Meaning
+## Description
 
 The `CNPGClusterLogicalReplicationErrors` alert indicates that a logical replication subscription is experiencing errors during data replication. This includes:
 

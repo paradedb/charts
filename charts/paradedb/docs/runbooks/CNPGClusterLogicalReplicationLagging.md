@@ -1,6 +1,6 @@
 # CNPGClusterLogicalReplicationLagging
 
-## Meaning
+## Description
 
 The `CNPGClusterLogicalReplicationLagging` alert indicates that a CloudNativePG cluster with a logical replication subscription is falling behind its publisher. This alert aggregates three types of lag:
 

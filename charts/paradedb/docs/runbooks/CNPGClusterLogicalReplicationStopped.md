@@ -1,6 +1,6 @@
 # CNPGClusterLogicalReplicationStopped
 
-## Meaning
+## Description
 
 The `CNPGClusterLogicalReplicationStopped` alert indicates that a logical replication subscription is not actively replicating data. This can occur in two scenarios:
 
