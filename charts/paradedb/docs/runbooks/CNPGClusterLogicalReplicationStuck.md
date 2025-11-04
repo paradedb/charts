@@ -37,3 +37,14 @@ If the subscription is disabled, re-enable it by running:
   ```bash
   kubectl exec -it services/paradedb-rw --namespace NAMESPACE -- psql -c 'ALTER SUBSCRIPTION your_subscription_name ENABLE;'
   ```
+
+## Comparison with Other Similar Alerts
+
+| Alert Type | Measures | Indicates | Primary Target for Resolution |
+|------------|----------|------------|------------------------------|
+| **Stuck Subscription** | `enabled = 1 AND pid IS NULL AND lag > 1GB` | Subscription enabled but **no worker process** running | Worker process issues, deadlocks, process crashes |
+| **Disabled Subscription** | `enabled = 0` | Subscription **administratively disabled** | Manual re-enable, configuration issues |
+| **Apply Lag (Critical)** | `NOW() - latest_end_time` (Subscriber performance) | Time since data was last **applied** (300s+) | Subscriber resources, I/O performance, blocking queries |
+| **Distance Lag (Critical)** | `received_lsn - latest_end_lsn` (System backlog) | Amount of WAL data pending (10GB+) | Overall system capacity, storage, subscriber processing |
+
+**Key Difference**: Stuck subscription alerts specifically detect **worker process failures** - the subscription is enabled but has no running worker process. This is different from high lag alerts where workers are running but falling behind, or disabled alerts where subscription is intentionally stopped.

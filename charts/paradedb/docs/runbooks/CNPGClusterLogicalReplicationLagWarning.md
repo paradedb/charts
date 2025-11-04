@@ -37,4 +37,15 @@ The cluster is still operational, but queries to the subscriber will return stal
 
 * Make sure your instance types have sufficient network performance for your workload.
 
+## Comparison with Other Similar Alerts
+
+| Alert Type | Measures | Indicates | Primary Target for Resolution |
+|------------|----------|------------|------------------------------|
+| **Receipt Lag (Warning)** | `NOW() - last_msg_receipt_time` (Network connectivity) | Time since last data **received** (60s+) | Network performance, publisher load |
+| **Apply Lag (Warning)** | `NOW() - latest_end_time` (Subscriber performance) | Time since data was last **applied** (60s+) | Subscriber resources, workload management, configuration tuning |
+| **Distance Lag (Warning)** | `received_lsn - latest_end_lsn` (System backlog) | Amount of WAL data pending (1GB+) | Overall system capacity, storage planning |
+| **Receipt Lag (Critical)** | `NOW() - last_msg_receipt_time` (Network connectivity) | Time since last data **received** (300s+) | Network connectivity, publisher health |
+
+**Key Difference**: Receipt lag warning provides early detection of **network or publisher performance issues** before they become critical, enabling proactive network optimization or publisher scaling before complete connectivity loss occurs.
+
 [cloudnativepg-dashboard]: https://grafana.com/grafana/dashboards/20417-cloudnativepg/

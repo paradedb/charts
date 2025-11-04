@@ -174,4 +174,15 @@ Depending on the cause, try the following:
    ALTER SUBSCRIPTION mysubscription ENABLE;
    ```
 
+## Comparison with Other Similar Alerts
+
+| Alert Type | Measures | Indicates | Primary Target for Resolution |
+|------------|----------|------------|------------------------------|
+| **Distance Lag (Critical)** | `received_lsn - latest_end_lsn` (System backlog) | Amount of WAL data pending (10GB+) | Overall system capacity, storage, subscriber processing |
+| **Apply Lag (Critical)** | `NOW() - latest_end_time` (Subscriber performance) | Time since data was last **applied** (300s+) | Subscriber resources, I/O performance, blocking queries |
+| **Receipt Lag (Critical)** | `NOW() - last_msg_receipt_time` (Network connectivity) | Time since last data **received** (300s+) | Network connectivity, publisher health |
+| **Distance Lag (Warning)** | `received_lsn - latest_end_lsn` (System backlog) | Amount of WAL data pending (1GB+) | Overall system capacity, storage planning |
+
+**Key Difference**: Distance lag measures the **overall system backlog** in bytes, making it ideal for storage and capacity planning, while apply lag and receipt lag measure time-based performance to isolate whether the bottleneck is subscriber processing or network connectivity.
+
 [cloudnativepg-dashboard]: https://grafana.com/grafana/dashboards/20417-cloudnativepg/

@@ -37,4 +37,15 @@ The cluster remains operational, but queries to the subscriber will return stale
 
 * Ensure your instance types provide sufficient network performance for your workload.
 
+## Comparison with Other Similar Alerts
+
+| Alert Type | Measures | Indicates | Primary Target for Resolution |
+|------------|----------|------------|------------------------------|
+| **Receipt Lag (Critical)** | `NOW() - last_msg_receipt_time` (Network connectivity) | Time since last data **received** (300s+) | Network connectivity, publisher health |
+| **Apply Lag (Critical)** | `NOW() - latest_end_time` (Subscriber performance) | Time since data was last **applied** (300s+) | Subscriber resources, I/O performance, blocking queries |
+| **Distance Lag (Critical)** | `received_lsn - latest_end_lsn` (System backlog) | Amount of WAL data pending (10GB+) | Overall system capacity, storage, subscriber processing |
+| **Receipt Lag (Warning)** | `NOW() - last_msg_receipt_time` (Network connectivity) | Time since last data **received** (60s+) | Network performance, publisher load |
+
+**Key Difference**: Receipt lag specifically measures **network connectivity and publisher health** - it tells you whether the subscriber is receiving data at all. Apply lag measures subscriber processing performance, while distance lag measures the overall system backlog.
+
 [cloudnativepg-dashboard]: https://grafana.com/grafana/dashboards/20417-cloudnativepg/
