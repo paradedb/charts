@@ -25,18 +25,18 @@ The `CNPGClusterLogicalReplicationStopped` alert indicates that a logical replic
 # Check all subscriptions and their status
 kubectl exec -it svc/SUBSCRIBER-CLUSTER-rw -n NAMESPACE -- psql -c "
 SELECT
-    subname,
-    enabled,
+    pg_subscription.subname,
+    pg_subscription.enabled,
     CASE
-        WHEN enabled = false THEN 'Explicitly disabled'
+        WHEN pg_subscription.enabled = false THEN 'Explicitly disabled'
         WHEN pid IS NULL AND buffered_lag_bytes > 0 THEN 'Stuck (no worker)'
         WHEN pid IS NOT NULL THEN 'Active'
         ELSE 'Unknown'
     END as status,
     pg_wal_lsn_diff(received_lsn, latest_end_lsn) as pending_bytes,
     pid IS NOT NULL as has_worker
-FROM pg_subscription s
-LEFT JOIN pg_stat_subscription ss ON s.oid = ss.subid;
+FROM pg_subscription
+LEFT JOIN pg_stat_subscription ON pg_subscription.oid = pg_stat_subscription.subid;
 "
 ```
 
@@ -62,12 +62,12 @@ WHERE application_name LIKE '%subscription%' OR backend_type = 'logical replicat
 # Get subscription configuration
 kubectl exec -it svc/SUBSCRIBER-CLUSTER-rw -n NAMESPACE -- psql -c "
 SELECT
-    sr.subname,
-    sr.srconninfo,
-    sr.srsynccommit,
-    sr.srslotname,
-    sr.srsyncstate as sync_state
-FROM pg_subscription sr;
+    subname,
+    srconninfo,
+    srsynccommit,
+    srslotname,
+    srsyncstate as sync_state
+FROM pg_subscription;
 "
 ```
 

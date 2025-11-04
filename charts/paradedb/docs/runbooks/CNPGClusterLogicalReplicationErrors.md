@@ -95,22 +95,22 @@ FROM pg_publication;
 # On subscriber - check subscription details
 kubectl exec -it svc/SUBSCRIBER-CLUSTER-rw -n NAMESPACE -- psql -c "
 SELECT
-    sr.subname,
-    sr.srconninfo,
-    sr.srschema,
-    sr.srslotname,
-    sr.srsynccommit
-FROM pg_subscription sr;
+    subname,
+    srconninfo,
+    srschema,
+    srslotname,
+    srsynccommit
+FROM pg_subscription;
 "
 
 # Check which tables are being replicated
 kubectl exec -it svc/SUBSCRIBER-CLUSTER-rw -n NAMESPACE -- psql -c "
 SELECT
-    sr.relid::regclass as table_name,
-    sr.srsubstate as state
-FROM pg_subscription_rel sr
-JOIN pg_class c ON sr.relid = c.oid
-WHERE sr.srsubstate NOT IN ('r', 's');  -- Not ready or synchronizing
+    relid::regclass as table_name,
+    srsubstate as state
+FROM pg_subscription_rel
+JOIN pg_class ON relid = oid
+WHERE srsubstate NOT IN ('r', 's');  -- Not ready or synchronizing
 "
 ```
 
