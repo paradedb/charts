@@ -32,18 +32,33 @@ spec:
               helm upgrade \
                 --install \
                 --namespace $NAMESPACE \
-                --values ./02.1-extension-upgrade-init.yaml \
+                --values ./02-extension-upgrade-init.yaml \
                 --wait \
                 extension-upgrade ../../
         - assert:
-            file: ./02.1-extension-upgrade-init-assert.yaml
+            file: ./02-extension-upgrade-init-assert.yaml
+      catch:
+        - describe:
+            apiVersion: postgresql.cnpg.io/v1
+            kind: Cluster
+            name: extension-upgrade-paradedb
+        - podLogs:
+            selector: cnpg.io/cluster=extension-upgrade-paradedb
+        - script:
+            content: |
+              echo "=== Cluster Status ==="
+              kubectl get cluster extension-upgrade-paradedb -n $NAMESPACE -o yaml | grep -A 50 "status:"
+              echo "=== Pod Status ==="
+              kubectl get pods -n $NAMESPACE -l cnpg.io/cluster=extension-upgrade-paradedb -o wide
+              echo "=== Pod Events ==="
+              kubectl get events -n $NAMESPACE --sort-by='.lastTimestamp' | tail -30
 
     - name: Verify the ParadeDB extension version before upgrade
       try:
         - apply:
-            file: ./02.2-paradedb_extension_check.yaml
+            file: ./03-paradedb_extension_check.yaml
         - assert:
-            file: ./02.2-paradedb_extension_check-assert.yaml
+            file: ./03-paradedb_extension_check-assert.yaml
 
     - name: Upgrade the ParadeDB cluster and the extension
       try:
@@ -52,18 +67,18 @@ spec:
               helm upgrade \
                 --install \
                 --namespace $NAMESPACE \
-                --values ./02.3-extension-upgrade-post.yaml \
+                --values ./04-extension-upgrade-post.yaml \
                 --wait \
                 extension-upgrade ../../
         - assert:
-            file: ./02.3-extension-upgrade-post-assert.yaml
+            file: ./04-extension-upgrade-post-assert.yaml
 
     - name: Verify the ParadeDB extension version after upgrade
       try:
         - apply:
-            file: ./02.4-paradedb_extension_check.yaml
+            file: ./05-paradedb_extension_check.yaml
         - assert:
-            file: ./02.4-paradedb_extension_check-assert.yaml
+            file: ./05-paradedb_extension_check-assert.yaml
 
     - name: cleanup
       try:

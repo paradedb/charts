@@ -386,6 +386,36 @@
         "mode": {
             "type": "string"
         },
+        "monitoring": {
+            "type": "object",
+            "properties": {
+                "grafanaDashboard": {
+                    "type": "object",
+                    "properties": {
+                        "annotations": {
+                            "type": "object"
+                        },
+                        "configMapName": {
+                            "type": "string"
+                        },
+                        "create": {
+                            "type": "boolean"
+                        },
+                        "labels": {
+                            "type": "object",
+                            "properties": {
+                                "grafana_dashboard": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "namespace": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "nameOverride": {
             "type": "string"
         },
@@ -929,10 +959,10 @@
         "version": {
             "type": "object",
             "properties": {
-                "paradedb": {
+                "postgresql": {
                     "type": "string"
                 },
-                "postgresql": {
+                "paradedb": {
                     "type": "string"
                 }
             }
