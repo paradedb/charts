@@ -155,19 +155,29 @@ There is a separate document outlining the recovery procedure here: **[Recovery]
 
 ## Monitoring
 
-The ParadeDB Helm chart supports monitoring with Prometheus and Grafana. The chart includes a ParadeDB-specific Grafana dashboard that provides comprehensive monitoring for ParadeDB, including search and analytics metrics. The dashboard is provisioned as a ConfigMap that works with the Grafana sidecar to automatically import dashboards. You can enable this by setting `monitoring.grafanaDashboard.create`.
+The ParadeDB Helm chart supports monitoring with Prometheus and Grafana. The chart includes a comprehensive Grafana dashboard that provides complete monitoring for both PostgreSQL/cluster operations and ParadeDB-specific search and analytics features. The dashboard is provisioned as a ConfigMap that works with the Grafana sidecar to automatically import dashboards. You can enable this by setting `monitoring.grafanaDashboard.create`.
 
-**Note:** This is a ParadeDB-specific dashboard that supplements the standard CloudNativePG dashboard. The ParadeDB dashboard includes additional metrics for `pg_search`, BM25 search, and other ParadeDB-specific features.
+**Note:** This is a complete, all-in-one dashboard that includes both standard CloudNativePG monitoring (replication, backups, storage, WAL, connections) and ParadeDB-specific metrics (pg_search, BM25 search, index segments). You do not need to install any additional dashboards.
 
-### Grafana Dashboards
+### Dashboard Features
 
-For complete monitoring, we recommend using both dashboards:
+The comprehensive dashboard includes monitoring for:
 
-1. **Standard CloudNativePG Dashboard**: Install the official CNPG dashboards from [cloudnative-pg/grafana-dashboards](https://github.com/cloudnative-pg/grafana-dashboards) for core PostgreSQL and cluster monitoring.
+**PostgreSQL & Cluster Management:**
+- Physical Replication (lag, write/flush/replay lag)
+- Backups & WAL archiving status
+- Storage usage and disk I/O
+- Server health (CPU, memory, TPS)
+- Connection states and transactions
+- Logical replication metrics
 
-2. **ParadeDB Dashboard**: Enable the ParadeDB-specific dashboard via `monitoring.grafanaDashboard.create` for search and analytics metrics.
+**ParadeDB Search & Analytics:**
+- BM25 index segments and sizes
+- `pg_search` performance metrics
+- Search-specific analytics
+- Index layer monitoring
 
-Alternatively, you can manually import the ParadeDB dashboard from the `monitoring` directory.
+Alternatively, you can manually import the dashboard from the `monitoring` directory.
 
 ### Metrics Configuration
 
