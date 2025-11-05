@@ -157,7 +157,7 @@ There is a separate document outlining the recovery procedure here: **[Recovery]
 
 The ParadeDB Helm chart supports monitoring with Prometheus and Grafana. The chart includes a comprehensive Grafana dashboard that provides complete monitoring for both PostgreSQL/cluster operations and ParadeDB-specific search and analytics features. The dashboard is provisioned as a ConfigMap that works with the Grafana sidecar to automatically import dashboards. You can enable this by setting `monitoring.grafanaDashboard.create`.
 
-**Note:** This is a complete, all-in-one dashboard that includes both standard CloudNativePG monitoring (replication, backups, storage, WAL, connections) and ParadeDB-specific metrics (pg_search, BM25 search, index segments). You do not need to install any additional dashboards.
+**Note:** This is a complete, all-in-one dashboard that includes both standard CloudNativePG monitoring (replication, backups, storage, WAL, connections) and ParadeDB-specific metrics (BM25 indexes, index segments). You do not need to install any additional dashboards.
 
 ### Dashboard Features
 
