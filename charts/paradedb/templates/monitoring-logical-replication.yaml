@@ -13,7 +13,7 @@ data:
       query: |
         SELECT current_database() AS datname
              , s.oid AS subid
-             , s.subname
+             , s.subname AS subname
              , subenabled AS enabled
              , worker_type
              , relid
