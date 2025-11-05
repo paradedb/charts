@@ -1,6 +1,5 @@
 type: paradedb-enterprise
 mode: replica
-
 cluster:
   instances: 1
   storage:

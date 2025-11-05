@@ -21,19 +21,14 @@ name: paradedb
 description: Deploys and manages a ParadeDB CloudNativePG cluster and its associated resources.
 icon: https://raw.githubusercontent.com/paradedb/paradedb/main/docs/logo/light.svg
 type: application
-<<<<<<< HEAD:charts/plugin-barman-cloud/Chart.yaml
-version: "0.4.0"
-appVersion: "v0.10.0"
-=======
 
 # The Chart version, set in the publish CI workflow from GitHub Actions Variables
 version: 0.0.0-generated-in-ci
 
 # The ParadeDB version, set in the publish CI workflow from the latest paradedb/paradedb GitHub tag
-# We default to v0.19.4 for testing and local development
-appVersion: 0.19.4
+# We default to v0.20.0 for testing and local development
+appVersion: 0.20.0
 
->>>>>>> 2eb5471 (ParadeDB Support (#1)):charts/paradedb/Chart.yaml
 sources:
   - https://github.com/paradedb/charts
 keywords:
