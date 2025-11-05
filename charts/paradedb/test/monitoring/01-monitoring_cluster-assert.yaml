@@ -145,3 +145,10 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: monitoring-paradedb-monitoring-logical-replication
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: paradedb-grafana-dashboard
+  labels:
+    grafana_dashboard: "1"

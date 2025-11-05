@@ -153,6 +153,36 @@ below. Refer to the table for the full list of parameters and place the configur
 
 There is a separate document outlining the recovery procedure here: **[Recovery](docs/recovery.md)**
 
+## Monitoring
+
+The ParadeDB Helm chart supports monitoring with Prometheus and Grafana. The chart includes a comprehensive Grafana dashboard that provides complete monitoring for both PostgreSQL/cluster operations and ParadeDB-specific search and analytics features. The dashboard is provisioned as a ConfigMap that works with the Grafana sidecar to automatically import dashboards. You can enable this by setting `monitoring.grafanaDashboard.create`.
+
+**Note:** This is a complete, all-in-one dashboard that includes both standard CloudNativePG monitoring (replication, backups, storage, WAL, connections) and ParadeDB-specific metrics (pg_search, BM25 search, index segments). You do not need to install any additional dashboards.
+
+### Dashboard Features
+
+The comprehensive dashboard includes monitoring for:
+
+**PostgreSQL & Cluster Management:**
+- Physical Replication (lag, write/flush/replay lag)
+- Backups & WAL archiving status
+- Storage usage and disk I/O
+- Server health (CPU, memory, TPS)
+- Connection states and transactions
+- Logical replication metrics
+
+**ParadeDB Search & Analytics:**
+- BM25 index segments and sizes
+- `pg_search` performance metrics
+- Search-specific analytics
+- Index layer monitoring
+
+Alternatively, you can manually import the dashboard from the `monitoring` directory.
+
+### Metrics Configuration
+
+Additionally, we recommend enabling the `kube-state-metrics` CRD monitoring and adding the CNPG metrics. The configuration can be found in `monitoring/metrics-clusters_postgresql_cnpg_io.yaml`.
+
 ## Examples
 
 There are several configuration examples in the [examples](examples) directory. Refer to them for a basic setup and
