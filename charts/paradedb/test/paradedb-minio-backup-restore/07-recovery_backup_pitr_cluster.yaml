@@ -1,6 +1,5 @@
 type: paradedb
 mode: recovery
-
 cluster:
   instances: 2
   storage:

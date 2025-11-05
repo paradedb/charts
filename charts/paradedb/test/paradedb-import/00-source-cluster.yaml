@@ -1,5 +1,5 @@
-type: postgresql
-mode: "standalone"
+type: paradedb
+mode: standalone
 cluster:
   instances: 1
   superuserSecret: source-paradedb-superuser
