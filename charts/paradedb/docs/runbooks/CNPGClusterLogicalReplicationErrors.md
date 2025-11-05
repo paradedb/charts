@@ -240,17 +240,62 @@ ORDER BY schemaname, tablename;
 
 ## Recovery Procedures
 
-### 1. Skip Transaction (Last Resort)
+Choose one of the following approaches based on your situation:
 
-```sql
--- WARNING: This skips the failing transaction
-SELECT pg_replication_origin_advance(
-    (SELECT subname FROM pg_subscription WHERE subname = 'your_subscription'),
-    '0/0'  -- Reset to current LSN
-);
+### Option 1: Resolve Data Conflict (Recommended - Lets Replication Retry Automatically)
+
+**When to use**: When you have a specific constraint violation (e.g., duplicate key) and want to let the publisher's data replicate correctly.
+
+The most common cause of replication errors is conflicting data between publisher and subscriber. PostgreSQL's logical replication **stops** when it encounters a conflict and requires manual intervention.
+
+#### Step 1: Identify the conflicting data
+
+Check the PostgreSQL logs for the conflict details:
+
+```bash
+kubectl logs -n NAMESPACE $POD | grep "conflict detected\|duplicate key"
 ```
 
-### 2. Full Resynchronization
+You'll see something like:
+```
+ERROR: duplicate key value violates unique constraint "test_pkey"
+DETAIL: Key (c)=(1) already exists.
+CONTEXT: processing remote data for replication origin "pg_16395" during "INSERT" 
+for replication target relation "public.test" in transaction 725 finished at 0/14C0378
+```
+
+This tells you which table and key is causing the conflict.
+
+#### Step 2: Remove or fix the conflicting row on the subscriber
+
+```sql
+-- For INSERT conflicts: Delete the conflicting row to let publisher's data replicate
+DELETE FROM table_name WHERE id = conflicting_id;
+```
+
+**That's it!** Once you remove the conflicting row, logical replication will **automatically retry** the transaction and apply the publisher's data. You do NOT need to manually skip the transaction.
+
+**Important**: Only delete the subscriber's data if you're certain the publisher's version should win.
+
+### Option 2: Skip Transaction Without Applying Publisher's Data (Use With Caution)
+
+**When to use**: When you want to keep the subscriber's version of the data and permanently ignore what the publisher tried to send. This causes data divergence.
+
+If you've decided that the subscriber's conflicting data is correct and you want to ignore the publisher's transaction:
+
+```sql
+-- Using ALTER SUBSCRIPTION SKIP
+-- The subscription must be enabled for this to work
+ALTER SUBSCRIPTION your_subscription SKIP (lsn = '0/14C0378');
+```
+
+**WARNING**: This permanently skips the transaction and causes the subscriber to differ from the publisher. Document what was skipped.
+
+### Option 3: Full Resynchronization (For Multiple Conflicts or Unknown State)
+
+**When to use**: When you have many conflicts, corrupted data, or prefer to start fresh rather than manually fixing individual rows.
+
+**WARNING**: This will re-copy all table data and may take a long time for large tables.
 
 ```bash
 # Mark subscription for full refresh
@@ -262,24 +307,11 @@ ALTER SUBSCRIPTION your_subscription REFRESH PUBLICATION WITH (copy_data = true)
 kubectl cnpg subscription restart your_subscription -n NAMESPACE
 ```
 
-### 3. Recreate Publication/Subscription
+## Important Notes
 
-```bash
-# On publisher
-kubectl exec -it svc/PUBLISHER-CLUSTER-rw -n NAMESPACE -- psql -c "
-DROP PUBLICATION IF EXISTS publication_name;
-CREATE PUBLICATION publication_name FOR ALL TABLES;
-"
-
-# On subscriber
-kubectl exec -it svc/SUBSCRIBER-CLUSTER-rw -n NAMESPACE -- psql -c "
-DROP SUBSCRIPTION IF EXISTS subscription_name;
-CREATE SUBSCRIPTION subscription_name
-CONNECTION 'host=publisher-host port=5432 dbname=database_name user=postgres'
-PUBLICATION publication_name
-WITH (copy_data = true, synchronized_commit = 'off');
-"
-```
+- **PostgreSQL logical replication automatically retries after you fix the conflict** - Just delete or fix the conflicting row, and replication will resume on its own
+- **Only use SKIP if you want to ignore the publisher's data** - Skipping means you're choosing to keep the subscriber's version and create data divergence
+- **For typical constraint violations** - Delete the subscriber's conflicting row (Option 1), don't skip the transaction
 
 ## Prevention
 
