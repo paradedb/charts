@@ -6,17 +6,12 @@ annotations:
   description: |-
     ParadeDB CloudNativePG Cluster's "{{ .namespace }}/{{ .cluster }}" "{{ "{{ .subname }}" }}" subscription is experiencing critical replication lag!
 
-    Current state:
     {{- if .labels.lag_type }}
     Lag type: {{ .labels.lag_type }}
     {{- end }}
     Current lag: {{ .value }}s
 
-    CRITICAL: The subscriber is significantly behind the publisher. Immediate action required.
-    This could lead to:
-    - Significant data inconsistency
-    - Disk space exhaustion on publisher
-    - Extended recovery time
+    CRITICAL: The subscriber is significantly behind the publisher. Immediate action required. This could lead to significant data inconsistency, disk space exhaustion on publisher, or extended recovery time.
   runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterLogicalReplicationLagging.md
 expr: |
   (
