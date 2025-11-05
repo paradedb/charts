@@ -159,7 +159,17 @@ The ParadeDB Helm chart supports monitoring with Prometheus and Grafana. The cha
 
 **Note:** This is a ParadeDB-specific dashboard that supplements the standard CloudNativePG dashboard. The ParadeDB dashboard includes additional metrics for `pg_search`, BM25 search, and other ParadeDB-specific features.
 
+### Grafana Dashboards
+
+For complete monitoring, we recommend using both dashboards:
+
+1. **Standard CloudNativePG Dashboard**: Install the official CNPG dashboards from [cloudnative-pg/grafana-dashboards](https://github.com/cloudnative-pg/grafana-dashboards) for core PostgreSQL and cluster monitoring.
+
+2. **ParadeDB Dashboard**: Enable the ParadeDB-specific dashboard via `monitoring.grafanaDashboard.create` for search and analytics metrics.
+
 Alternatively, you can manually import the ParadeDB dashboard from the `monitoring` directory.
+
+### Metrics Configuration
 
 Additionally, we recommend enabling the `kube-state-metrics` CRD monitoring and adding the CNPG metrics. The configuration can be found in `monitoring/metrics-clusters_postgresql_cnpg_io.yaml`.
 
