@@ -122,7 +122,19 @@ bootstrap:
     {{ with .Values.recovery.owner }}
     owner: {{ . }}
     {{- end }}
-    {{- if eq .Values.recovery.method "backup" }}
+    {{- if eq .Values.recovery.method "snapshot" }}
+    source: objectStoreRecoveryCluster
+    volumeSnapshots:
+      storage:
+        name: {{ .Values.recovery.snapshotName }}
+        kind: VolumeSnapshot
+        apiGroup: snapshot.storage.k8s.io
+
+      walStorage:
+        name: {{ .Values.recovery.snapshotName }}-wal
+        kind: VolumeSnapshot
+        apiGroup: snapshot.storage.k8s.io
+    {{- else if eq .Values.recovery.method "backup" }}
     backup:
       name: {{ .Values.recovery.backupName }}
     {{- else if eq .Values.recovery.method "object_store" }}
