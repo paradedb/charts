@@ -13,6 +13,10 @@ spec:
   schedule: {{ .schedule | quote }}
   method: {{ .method }}
   backupOwnerReference: {{ .backupOwnerReference }}
+  {{- if .pluginConfiguration }}
+  pluginConfiguration:
+{{ toYaml .pluginConfiguration | nindent 4 }}
+  {{- end }}
   cluster:
     name: {{ include "cluster.fullname" $context }}
 {{ end -}}
