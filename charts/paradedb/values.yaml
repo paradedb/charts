@@ -207,6 +207,14 @@ cluster:
     size: 1Gi
     storageClass: ""
 
+  coredumpStorage:
+    # -- CloudNativePG mounts tablespaces at `/var/lib/postgresql/tablespaces/<tablespace_name>`.
+    # -- The name `coredumps` is chosen for the tablespace, resulting in the mount path `/var/lib/postgresql/tablespaces/coredumps`.
+    # -- This is a limitation of using the tablespace feature to provision a dedicated volume.
+    enabled: false
+    size: 10Gi
+    storageClass: ""
+
   # -- The UID of the postgres user inside the image, defaults to 26
   postgresUID: -1
 
@@ -388,9 +396,23 @@ cluster:
     # postInitSQL: []
     # postInitApplicationSQL: []
     # postInitTemplateSQL: []
+    # -- Commands to be executed after the database is initialized.
+    postInitCommands:
+      - "ulimit -c unlimited"
 
   # -- Configure the metadata of the generated service account
   serviceAccountTemplate: {}
+
+  # -- Sysctl settings to apply to the cluster pods.
+  # For example:
+  # sysctls:
+  # - "kernel.sem=250 32000 100 128"
+  sysctls:
+    - "kernel.core_pattern=|/usr/local/bin/handle-coredump.sh %p"
+    # Exclude shared memory from core dumps to reduce their size.
+    # The bitmask 0x31 (49) excludes anonymous shared mappings (bit 1).
+    # See: https://man7.org/linux/man-pages/man5/core.5.html
+    - "fs.coredump_filter=49"
 
   additionalLabels: {}
   annotations: {}
