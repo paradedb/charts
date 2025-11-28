@@ -8,7 +8,7 @@ externalClusters:
   {{- else if eq .Values.recovery.method "import" }}
   - name: importSource
      {{- include "cluster.externalSourceCluster" .Values.recovery.import.source | nindent 4 }}
-  {{- else if eq .Values.recovery.method "object_store" }}
+  {{- else if has .Values.recovery.method (list "object_store" "snapshot") }}
   - name: objectStoreRecoveryCluster
     barmanObjectStore:
       serverName: {{ .Values.recovery.clusterName }}

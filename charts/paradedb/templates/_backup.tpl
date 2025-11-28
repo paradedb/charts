@@ -3,6 +3,13 @@
 backup:
   target: "prefer-standby"
   retentionPolicy: {{ .Values.backups.retentionPolicy }}
+  volumeSnapshot:
+    className: ebs-csi-gp3
+    online: true
+    onlineConfiguration:
+      immediateCheckpoint: false
+      waitForArchive: true
+    snapshotOwnerReference: none
   barmanObjectStore:
     wal:
       compression: {{ .Values.backups.wal.compression }}
