@@ -18,11 +18,11 @@ spec:
               helm upgrade \
                 --install \
                 --namespace $NAMESPACE \
-                --values ./01-paradedb-NCC-1701-D_cluster.yaml \
+                --values ./01-source_cluster_enterprise.yaml \
                 --wait \
-                paradedb-ncc-1701-d ../../
+                paradedb-enterprise ../../
         - assert:
-            file: ./01-paradedb-NCC-1701-D_cluster-assert.yaml
+            file: ./01-source_cluster-assert.yaml
       catch:
         - describe:
             apiVersion: v1
@@ -31,7 +31,7 @@ spec:
             apiVersion: batch/v1
             kind: Job
         - podLogs:
-            selector: cnpg.io/cluster=paradedb-ncc-1701-d
+            selector: cnpg.io/cluster=paradedb-enterprise
     - name: Verify ParadeDB Enterprise extensions are installed
       timeouts:
         apply: 1s
@@ -49,7 +49,7 @@ spec:
             apiVersion: batch/v1
             kind: Job
         - podLogs:
-            selector: cnpg.io/cluster=paradedb-ncc-1701-d
+            selector: cnpg.io/cluster=paradedb-enterprise
         - podLogs:
             selector: batch.kubernetes.io/job-name=paradedb-enterprise-test
     - name: Verify index replication
@@ -66,17 +66,17 @@ spec:
             apiVersion: batch/v1
             kind: Job
         - podLogs:
-            selector: cnpg.io/cluster=paradedb-ncc-1701-d
+            selector: cnpg.io/cluster=paradedb-enterprise
         - podLogs:
             selector: batch.kubernetes.io/job-name=paradedb-enterprise-index-test
     - name: Cleanup
       try:
         - script:
             content: |
-              helm uninstall --namespace $NAMESPACE paradedb-ncc-1701-d
+              helm uninstall --namespace $NAMESPACE paradedb-enterprise
       catch:
         - describe:
             apiVersion: v1
             kind: Pod
         - podLogs:
-            selector: cnpg.io/cluster=paradedb-ncc-1701-d
+            selector: cnpg.io/cluster=paradedb-enterprise

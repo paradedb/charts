@@ -1,7 +1,7 @@
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
-  name: paradedb-ncc-1701-d
+  name: paradedb-enterprise
 spec:
   postgresql:
     parameters:
