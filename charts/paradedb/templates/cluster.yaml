@@ -34,6 +34,17 @@ spec:
     storageClass: {{ .Values.cluster.walStorage.storageClass }}
     {{- end }}
   {{- end }}
+  {{- if .Values.cluster.coredumpStorage.enabled }}
+  # CloudNativePG mounts tablespaces at a fixed path: `/var/lib/postgresql/tablespaces/<tablespace_name>`.
+  # This choice was made for robustness and ease of integration with the operator.
+  tablespaces:
+    - name: coredumps
+      storage:
+        size: {{ .Values.cluster.coredumpStorage.size }}
+        {{- if not (empty .Values.cluster.coredumpStorage.storageClass) }}
+        storageClass: {{ .Values.cluster.coredumpStorage.storageClass }}
+        {{- end }}
+  {{- end }}
   {{- with .Values.cluster.resources }}
   resources:
     {{- toYaml . | nindent 4 }}
@@ -52,6 +63,11 @@ spec:
   {{- end }}
   {{- if .Values.cluster.priorityClassName }}
   priorityClassName: {{ .Values.cluster.priorityClassName }}
+  {{- end }}
+
+  {{- with .Values.cluster.sysctls }}
+  sysctls:
+    {{- toYaml . | nindent 4 }}
   {{- end }}
 
   primaryUpdateMethod: {{ .Values.cluster.primaryUpdateMethod }}

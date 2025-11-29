@@ -55,6 +55,10 @@ bootstrap:
         {{- end -}}
       {{- end -}}
     {{- end }}
+    {{- with .Values.cluster.initdb.postInitCommands }}
+    postInitCommands:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
 {{- else if eq .Values.mode "recovery" -}}
   {{- if eq .Values.recovery.method "pg_basebackup" }}
   pg_basebackup:
