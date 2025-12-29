@@ -12,7 +12,7 @@ spec:
       try:
         - script:
             content: |
-              helm upgrade \
+              helm upgrade --server-side \
                 --install \
                 --namespace $NAMESPACE \
                 --values ./01-scheduledbackups_cluster.yaml \

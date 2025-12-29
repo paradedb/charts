@@ -17,7 +17,7 @@ spec:
             file: ./00-source-superuser-password.yaml
         - script:
             content: |
-              helm upgrade \
+              helm upgrade --server-side \
                 --install \
                 --namespace $NAMESPACE \
                 --values ./00-source-cluster.yaml \
@@ -35,7 +35,7 @@ spec:
       try:
         - script:
             content: |
-              helm upgrade \
+              helm upgrade --server-side \
                 --install \
                 --namespace $NAMESPACE \
                 --values ./02-import-cluster.yaml \
@@ -65,7 +65,7 @@ spec:
       try:
         - script:
             content: |
-              helm upgrade \
+              helm upgrade --server-side \
                 --install \
                 --namespace $NAMESPACE \
                 --values ./04-import-cluster-schema_only.yaml \

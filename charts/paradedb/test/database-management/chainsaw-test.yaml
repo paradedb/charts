@@ -16,7 +16,7 @@ spec:
       try:
         - script:
             content: |
-              helm upgrade \
+              helm upgrade --server-side \
                 --install \
                 --namespace $NAMESPACE \
                 --values ./01-database-parameters.yaml \
@@ -29,7 +29,7 @@ spec:
       try:
         - script:
             content: |
-              helm upgrade \
+              helm upgrade --server-side \
                 --install \
                 --namespace $NAMESPACE \
                 --values ./02.1-extension-upgrade-init.yaml \
@@ -49,7 +49,7 @@ spec:
       try:
         - script:
             content: |
-              helm upgrade \
+              helm upgrade --server-side \
                 --install \
                 --namespace $NAMESPACE \
                 --values ./02.3-extension-upgrade-post.yaml \

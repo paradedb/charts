@@ -20,8 +20,8 @@ runs:
       run:
         helm repo add cnpg https://cloudnative-pg.github.io/charts
 
-        helm upgrade
-        --install 
+        helm upgrade --server-side
+        --install
         --namespace $NAMESPACE
         --create-namespace
         --set config.clusterWide=$CLUSTER_WIDE
