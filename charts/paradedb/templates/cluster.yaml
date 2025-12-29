@@ -157,5 +157,7 @@ spec:
     {{ end }}
     {{- end }}
   {{ include "cluster.bootstrap" . | nindent 2 }}
+  {{- if or (ne .Values.mode "standalone") .Values.cluster.externalClusters }}
   {{ include "cluster.externalClusters" . | nindent 2 }}
+  {{- end }}
   {{ include "cluster.backup" . | nindent 2 }}
