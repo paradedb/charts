@@ -22,7 +22,7 @@ spec:
         - script:
             content: |
               kubectl -n $NAMESPACE create secret generic kube-root-ca.crt --from-literal=ca.crt="$(kubectl -n kube-system get configmaps kube-root-ca.crt -o jsonpath='{.data.ca\.crt}')" --dry-run=client -o yaml | kubectl apply -f -
-              helm upgrade --server-side \
+              helm upgrade \
                 --install \
                 --namespace $NAMESPACE \
                 --values ./01-paradedb_cluster.yaml \
@@ -133,7 +133,7 @@ spec:
         - script:
             content: |
               DATE_NO_BAD_TABLE=$(kubectl -n $NAMESPACE get configmap date-no-bad-table -o 'jsonpath={.data.date}')
-              helm upgrade --server-side \
+              helm upgrade \
                 --install \
                 --namespace $NAMESPACE \
                 --values ./07-recovery_backup_pitr_cluster.yaml \

@@ -15,7 +15,7 @@ spec:
       try:
         - script:
             content: |
-              helm upgrade --server-side \
+              helm upgrade \
                 --install \
                 --namespace $NAMESPACE \
                 --values ./01-non_default_configuration_cluster.yaml \
@@ -27,7 +27,7 @@ spec:
       try:
         - script:
             content: |
-              helm upgrade --server-side \
+              helm upgrade \
                 --install \
                 --namespace $NAMESPACE \
                 --values ./02-recovery_object_store_database_owner.yaml \
@@ -39,7 +39,7 @@ spec:
       try:
         - script:
             content: |
-              helm upgrade --server-side \
+              helm upgrade \
                 --install \
                 --namespace $NAMESPACE \
                 --values ./03-recovery_backup_database_owner.yaml \
