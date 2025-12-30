@@ -37,6 +37,21 @@ spec:
                 extension-upgrade ../../
         - assert:
             file: ./02.1-extension-upgrade-init-assert.yaml
+      catch:
+        - describe:
+            apiVersion: postgresql.cnpg.io/v1
+            kind: Cluster
+            name: extension-upgrade-paradedb
+        - podLogs:
+            selector: cnpg.io/cluster=extension-upgrade-paradedb
+        - script:
+            content: |
+              echo "=== Cluster Status ==="
+              kubectl get cluster extension-upgrade-paradedb -n $NAMESPACE -o yaml | grep -A 50 "status:"
+              echo "=== Pod Status ==="
+              kubectl get pods -n $NAMESPACE -l cnpg.io/cluster=extension-upgrade-paradedb -o wide
+              echo "=== Pod Events ==="
+              kubectl get events -n $NAMESPACE --sort-by='.lastTimestamp' | tail -30
 
     - name: Verify the ParadeDB extension version before upgrade
       try:
