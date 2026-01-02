@@ -1,8 +1,7 @@
 {{- define "cluster.externalClusters" -}}
-{{- if eq .Values.mode "standalone" }}
-{{- else }}
 externalClusters:
-{{- if eq .Values.mode "recovery" }}
+{{- if eq .Values.mode "standalone" }}
+{{- else if eq .Values.mode "recovery" }}
   {{- if eq .Values.recovery.method "pg_basebackup" }}
   - name: pgBaseBackupSource
      {{- include "cluster.externalSourceCluster" .Values.recovery.pgBaseBackup.source | nindent 4 }}
@@ -29,6 +28,5 @@ externalClusters:
   {{- end }}
 {{- else }}
   {{ fail "Invalid cluster mode!" }}
-{{- end }}
 {{- end }}
 {{ end }}
