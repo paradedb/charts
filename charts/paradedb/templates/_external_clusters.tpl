@@ -36,4 +36,10 @@ externalClusters:
 {{- else }}
   {{ fail "Invalid cluster mode!" }}
 {{- end }}
+{{- if .Values.cluster.externalClusters }}
+{{- range .Values.cluster.externalClusters }}
+  - {{- toYaml . | nindent 4 }}
+{{- end }}
+{{- end }}
+{{- end }}
 {{ end }}
