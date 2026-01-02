@@ -1,0 +1,95 @@
+USER-SUPPLIED VALUES:
+backups:
+  data:
+    compression: snappy
+    jobs: 16
+  enabled: true
+  immediateCheckpoint: true
+  provider: s3
+  retentionPolicy: 30d
+  s3:
+    bucket: ankit31-backup-storage
+    inheritFromIAMRole: true
+    path: /v2
+    region: ca-central-1
+  scheduledBackups:
+  - backupOwnerReference: self
+    name: daily-backup
+    schedule: 0 0 0 * * *
+  secret:
+    create: false
+  wal:
+    compression: snappy
+    maxParallel: 16
+cluster:
+  console:
+    enabled: false
+  enablePDB: true
+  imagePullSecrets:
+  - name: paradedb-enterprise-registry-creds
+  initdb:
+    database: paradedb
+    owner: paradedb
+    walSegmentSize: 64
+  instances: 3
+  monitoring:
+    customQueries: []
+    enabled: true
+  postgresql:
+    parameters:
+      maintenance_work_mem: 2.5GB
+      max_logical_replication_workers: "2"
+      max_parallel_maintenance_workers: "2"
+      max_parallel_workers: "8"
+      max_parallel_workers_per_gather: "2"
+      max_slot_wal_keep_size: "16384"
+      max_worker_processes: "16"
+      min_wal_size: 128MB
+      paradedb.limit_fetch_multiplier: "2.5"
+      shared_buffers: 2.5GB
+      tcp_keepalives_idle: "60"
+      tcp_keepalives_interval: "30"
+    pg_hba: []
+    pg_ident: []
+    shared_preload_libraries:
+    - pg_prewarm
+    - pg_cron
+  priorityClassName: high
+  resources:
+    limits:
+      cpu: 2
+      memory: 10Gi
+    requests:
+      cpu: 2
+      memory: 10Gi
+  serviceAccountTemplate:
+    metadata:
+      annotations:
+        eks.amazonaws.com/role-arn: arn:aws:iam::626948260215:role/ankit31-paradedb-s3-access
+  storage:
+    size: 100Gi
+    storageClass: gp3-enhanced-iops
+  walStorage:
+    enabled: true
+    size: 20Gi
+    storageClass: gp3-enhanced-iops
+databases:
+- connectionLimit: -1
+  encoding: UTF8
+  extensions:
+  - name: pg_search
+    schema: ""
+    version: ""
+  name: paradedb
+  owner: paradedb
+  schemas: []
+  template: template1
+mode: standalone
+monitoring:
+  grafanaDashboard:
+    create: true
+    namespace: monitoring
+type: paradedb-enterprise
+version:
+  paradedb: 0.20.0
+  postgresql: "17"
