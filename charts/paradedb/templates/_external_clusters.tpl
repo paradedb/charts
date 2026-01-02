@@ -1,5 +1,11 @@
 {{- define "cluster.externalClusters" -}}
 {{- if eq .Values.mode "standalone" }}
+{{- if .Values.cluster.externalClusters }}
+externalClusters:
+{{- range .Values.cluster.externalClusters }}
+  - {{- toYaml . | nindent 4 }}
+{{- end }}
+{{- end }}
 {{- else }}
 externalClusters:
 {{- if eq .Values.mode "recovery" }}
@@ -29,6 +35,11 @@ externalClusters:
   {{- end }}
 {{- else }}
   {{ fail "Invalid cluster mode!" }}
+{{- end }}
+{{- if .Values.cluster.externalClusters }}
+{{- range .Values.cluster.externalClusters }}
+  - {{- toYaml . | nindent 4 }}
+{{- end }}
 {{- end }}
 {{- end }}
 {{ end }}
