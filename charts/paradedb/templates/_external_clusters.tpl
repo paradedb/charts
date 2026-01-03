@@ -1,14 +1,7 @@
 {{- define "cluster.externalClusters" -}}
+externalClusters:
 {{- if eq .Values.mode "standalone" }}
-{{- if .Values.cluster.externalClusters }}
-externalClusters:
-{{- range .Values.cluster.externalClusters }}
-  - {{- toYaml . | nindent 4 }}
-{{- end }}
-{{- end }}
-{{- else }}
-externalClusters:
-{{- if eq .Values.mode "recovery" }}
+{{- else if eq .Values.mode "recovery" }}
   {{- if eq .Values.recovery.method "pg_basebackup" }}
   - name: pgBaseBackupSource
      {{- include "cluster.externalSourceCluster" .Values.recovery.pgBaseBackup.source | nindent 4 }}
@@ -35,11 +28,5 @@ externalClusters:
   {{- end }}
 {{- else }}
   {{ fail "Invalid cluster mode!" }}
-{{- end }}
-{{- if .Values.cluster.externalClusters }}
-{{- range .Values.cluster.externalClusters }}
-  - {{- toYaml . | nindent 4 }}
-{{- end }}
-{{- end }}
 {{- end }}
 {{ end }}
