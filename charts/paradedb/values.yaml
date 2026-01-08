@@ -13,7 +13,7 @@ type: paradedb
 
 version:
   # -- PostgreSQL major version to use
-  postgresql: "17"
+  postgresql: "18"
   # -- ParadeDB version to use
   paradedb: "0.21.0"
 
@@ -594,7 +594,7 @@ imageCatalog:
   # -- List of images to be provisioned in an image catalog.
   images: []
     # - image: ghcr.io/your_repo/your_image:your_tag
-    #   major: 17
+    #   major: 18
 
 # -- List of PgBouncer poolers
 poolers: []
