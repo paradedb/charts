@@ -1,6 +1,6 @@
 type: paradedb
 version:
-  postgresql: "18"
+  postgresql: "17"
   paradedb: "0.19.11"
 
 cluster:
