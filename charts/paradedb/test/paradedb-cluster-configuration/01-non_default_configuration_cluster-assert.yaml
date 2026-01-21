@@ -50,7 +50,7 @@ spec:
         - CREATE EXTENSION IF NOT EXISTS postgis_topology;
         - CREATE EXTENSION IF NOT EXISTS fuzzystrmatch;
         - CREATE EXTENSION IF NOT EXISTS postgis_tiger_geocoder;
-        - ALTER DATABASE "mydb" SET search_path TO public,paradedb;
+        - ALTER DATABASE "mydb" SET search_path TO public,paradedb,pdb;
         - CREATE TABLE mytable (id serial PRIMARY KEY, name VARCHAR(255));
       postInitTemplateSQL:
         - CREATE EXTENSION IF NOT EXISTS pg_search;
@@ -60,7 +60,7 @@ spec:
         - CREATE EXTENSION IF NOT EXISTS postgis_topology;
         - CREATE EXTENSION IF NOT EXISTS fuzzystrmatch;
         - CREATE EXTENSION IF NOT EXISTS postgis_tiger_geocoder;
-        - ALTER DATABASE template1 SET search_path TO public,paradedb;
+        - ALTER DATABASE template1 SET search_path TO public,paradedb,pdb;
         - CREATE TABLE mytable (id serial PRIMARY KEY, name VARCHAR(255));
       postInitSQL:
         - CREATE EXTENSION IF NOT EXISTS pg_cron;
