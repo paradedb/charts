@@ -65,6 +65,7 @@ spec:
         - CREATE TABLE mytable (id serial PRIMARY KEY, name VARCHAR(255));
       postInitSQL:
         - CREATE EXTENSION IF NOT EXISTS pg_cron;
+        - CREATE EXTENSION IF NOT EXISTS pg_stat_statements;
         - CREATE TABLE mytable (id serial PRIMARY KEY, name VARCHAR(255));
   superuserSecret:
     name: supersecret-secret

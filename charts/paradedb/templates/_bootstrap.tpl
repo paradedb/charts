@@ -13,6 +13,7 @@ bootstrap:
     postInitSQL:
       {{- if or (eq .Values.type "paradedb") (eq .Values.type "paradedb-enterprise") }}
       - CREATE EXTENSION IF NOT EXISTS pg_cron;
+      - CREATE EXTENSION IF NOT EXISTS pg_stat_statements;
       {{- end }}
       {{- with .Values.cluster.initdb }}
         {{- range .postInitSQL }}
