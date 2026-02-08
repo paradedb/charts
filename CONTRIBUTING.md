@@ -21,10 +21,10 @@ flow for making a change:
    issue open for that change.
 2. If there is not, please open an issue first. This gives the community visibility
    into what you're working on and allows others to make suggestions and leave comments.
-3. Fork this repo and branch out from the `dev` branch.
+3. Fork this repo and branch out from the `main` branch.
 4. Install pre-commit hooks within your fork with `pre-commit install`, to ensure code quality and consistency with upstream.
 5. Make your changes. If you've added new functionality, please add tests.
-6. Open a pull request towards the `dev` branch. Ensure that all tests and checks
+6. Open a pull request towards the `main` branch. Ensure that all tests and checks
    pass. Note that this repository has pull request title linting in place
    and follows the [Conventional Commits spec](https://github.com/amannn/action-semantic-pull-request).
 7. Congratulations! Our team will review your pull request.
