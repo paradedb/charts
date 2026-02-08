@@ -4,7 +4,7 @@ The CNPG cluster chart follows a convention over configuration approach. This me
 CNPG setup with sensible defaults. However, you can override these defaults to create a more customized setup. Note that
 you still need to configure backups and monitoring separately. The chart will not install a Prometheus stack for you.
 
-_**Note,**_ that this is an opinionated chart. It does not support all configuration options that CNPG supports. If you
+_**Note**_ that this is an opinionated chart. It does not support all configuration options that CNPG supports. If you
 need a highly customized setup, you should manage your cluster via a Kubernetes CNPG cluster manifest instead of this chart.
 Refer to the [CNPG documentation](https://cloudnative-pg.io/documentation/current/) in that case.
 

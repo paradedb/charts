@@ -22,7 +22,7 @@ spec:
             apiVersion: batch/v1
             kind: Job
         - podLogs:
-            selector: batch.kubernetes.io/job-name=minio_cleanup
+            selector: batch.kubernetes.io/job-name=minio-cleanup
     - name: Install a source cluster with Enterprise
       try:
         - script:

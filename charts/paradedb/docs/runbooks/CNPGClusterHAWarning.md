@@ -4,9 +4,9 @@
 
 The `CNPGClusterHAWarning` alert is triggered when the CloudNativePG cluster has fewer than two ready standby replicas.
 
-This alert may occur during a regular failover or a planned automated version upgrade on two-instance clusters, as there is a brief period when only the primary remains active while a failover completes.
+This alert may occur during a regular failover or a planned automated version upgrade, as there is a brief period when only the primary remains active while a failover completes.
 
-On two-instance clusters, this alert will remain active at all times. If running with a single instance is intentional, consider silencing the alert.
+On single-instance or two-instance clusters, this alert will remain active at all times. If this is intentional, consider silencing the alert.
 
 ## Impact
 
