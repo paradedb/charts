@@ -32,6 +32,7 @@ spec:
     shared_preload_libraries:
       - pg_search
       - pg_cron
+      - pg_stat_statements
       - pgaudit
     synchronous:
       method: any
@@ -50,6 +51,7 @@ spec:
         - CREATE EXTENSION IF NOT EXISTS postgis_topology;
         - CREATE EXTENSION IF NOT EXISTS fuzzystrmatch;
         - CREATE EXTENSION IF NOT EXISTS postgis_tiger_geocoder;
+        - CREATE EXTENSION IF NOT EXISTS pg_stat_statements;
         - ALTER DATABASE "mydb" SET search_path TO public,paradedb;
         - CREATE TABLE mytable (id serial PRIMARY KEY, name VARCHAR(255));
       postInitTemplateSQL:
@@ -60,6 +62,7 @@ spec:
         - CREATE EXTENSION IF NOT EXISTS postgis_topology;
         - CREATE EXTENSION IF NOT EXISTS fuzzystrmatch;
         - CREATE EXTENSION IF NOT EXISTS postgis_tiger_geocoder;
+        - CREATE EXTENSION IF NOT EXISTS pg_stat_statements;
         - ALTER DATABASE template1 SET search_path TO public,paradedb;
         - CREATE TABLE mytable (id serial PRIMARY KEY, name VARCHAR(255));
       postInitSQL:

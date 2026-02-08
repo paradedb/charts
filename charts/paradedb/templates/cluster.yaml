@@ -73,6 +73,7 @@ spec:
       {{- if or (eq .Values.type "paradedb") (eq .Values.type "paradedb-enterprise") }}
       - pg_search
       - pg_cron
+      - pg_stat_statements
       {{- end }}
       {{- with .Values.cluster.postgresql.shared_preload_libraries }}
       {{- toYaml . | nindent 6 }}
@@ -133,7 +134,7 @@ spec:
   monitoring:
     enablePodMonitor: {{ and .Values.cluster.monitoring.enabled .Values.cluster.monitoring.podMonitor.enabled }}
     disableDefaultQueries: {{ .Values.cluster.monitoring.disableDefaultQueries }}
-    {{- if or .Values.cluster.monitoring.instrumentation.paradedbIndex .Values.cluster.monitoring.instrumentation.logicalReplication (not (empty .Values.cluster.monitoring.customQueries)) }}
+    {{- if or .Values.cluster.monitoring.instrumentation.paradedbIndex .Values.cluster.monitoring.instrumentation.logicalReplication .Values.cluster.monitoring.instrumentation.pgStatStatements (not (empty .Values.cluster.monitoring.customQueries)) }}
     customQueriesConfigMap:
     {{- if .Values.cluster.monitoring.instrumentation.paradedbIndex }}
       - name: {{ include "cluster.fullname" . }}-monitoring-paradedb-index
@@ -141,6 +142,10 @@ spec:
     {{- end }}
     {{- if .Values.cluster.monitoring.instrumentation.logicalReplication }}
       - name: {{ include "cluster.fullname" . }}-monitoring-logical-replication
+        key: custom-queries
+    {{- end }}
+    {{- if .Values.cluster.monitoring.instrumentation.pgStatStatements }}
+      - name: {{ include "cluster.fullname" . }}-monitoring-pg-stat-statements
         key: custom-queries
     {{- end }}
     {{- if not (empty .Values.cluster.monitoring.customQueries) }}
