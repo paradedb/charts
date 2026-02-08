@@ -2,7 +2,7 @@
 
 ## Description
 
-The `CNPGClusterLowDiskSpaceWarning` alert is triggered when disk usage on any CloudNativePG cluster volume exceeds 70%. It may occur on the following volumes:
+The `CNPGClusterLowDiskSpaceWarning` alert is triggered when disk usage on any CloudNativePG cluster volume exceeds 80%. It may occur on the following volumes:
 
 - The PVC hosting `PGDATA` (`storage` section)
 - The PVC hosting WAL files (`walStorage` section)
@@ -19,9 +19,6 @@ High disk usage can also cause fragmentation, where files are split due to insuf
 Check disk usage metrics in the [CloudNativePG Grafana Dashboard](https://grafana.com/grafana/dashboards/20417-cloudnativepg/) to identify which volume is nearing capacity.
 
 ## Mitigation
-
-> [!NOTE]
-> If using the ParadeDB BYOC Terraform module, refer to the `docs/handbook/NotEnoughDiskSpace.md` handbook for instructions on increasing disk space. This requires a switchover of the ParadeDB primary, causing a brief service disruption.
 
 If the WAL (Write-Ahead Logging) volume is filling and you have continuous archiving enabled, verify that WAL archiving is functioning correctly. A buildup of WAL files in `pg_wal` indicates an issue. Monitor the `cnpg_collector_pg_wal_archive_status` metric and ensure the number of `ready` files is not steadily increasing.
 

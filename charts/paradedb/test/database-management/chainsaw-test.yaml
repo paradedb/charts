@@ -80,7 +80,7 @@ spec:
         - assert:
             file: ./05-paradedb_extension_check-assert.yaml
 
-    - name: cleanup
+    - name: Cleanup
       try:
         - script:
             content: |

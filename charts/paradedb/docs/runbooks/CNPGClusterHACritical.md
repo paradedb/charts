@@ -6,7 +6,7 @@ The `CNPGClusterHACritical` alert is triggered when the CloudNativePG cluster ha
 
 This alert may occur during a regular failover or a planned automated version upgrade on two-instance clusters, as there is a brief period when only the primary remains active while a failover completes.
 
-On single-instance clusters this alert will remain active at all times. If running with a single instance is intentional, consider silencing the alert.
+On single-instance clusters, this alert will remain active at all times. If running with a single instance is intentional, consider silencing the alert.
 
 ## Impact
 
@@ -61,9 +61,6 @@ kubectl logs --namespace cnpg-system -l "app.kubernetes.io/name=cloudnative-pg"
 First, consult the [CloudNativePG Failure Modes](https://cloudnative-pg.io/documentation/current/failure_modes/) and [CloudNativePG Troubleshooting](https://cloudnative-pg.io/documentation/current/troubleshooting/) documentation for more information on the conditions when CloudNativePG is unable to heal instances and standard troubleshooting steps.
 
 ### Insufficient Storage
-
-> [!NOTE]
-> If using the ParadeDB BYOC module, refer to `docs/handbook/NotEnoughDiskSpace.md` included with the Terraform module.
 
 If the above diagnosis commands indicate that an instance’s storage or WAL disk is full, increase the cluster storage size. Refer to the CloudNativePG documentation for more information on how to [Resize the CloudNativePG Cluster Storage](https://cloudnative-pg.io/documentation/current/troubleshooting/#storage-is-full).
 

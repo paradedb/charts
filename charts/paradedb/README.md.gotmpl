@@ -10,16 +10,6 @@ The chart is also available on [Artifact Hub](https://artifacthub.io/packages/he
 
 ## Usage
 
-### ParadeDB Bring-Your-Own-Cloud (BYOC)
-
-The most reliable way to run ParadeDB in production is with ParadeDB BYOC, an end-to-end managed solution that runs in the customer’s cloud account. It deploys on managed Kubernetes services and uses the ParadeDB Helm Chart.
-
-ParadeDB BYOC includes built-in integration with managed PostgreSQL services, such as AWS RDS and GCP CloudSQL, via logical replication. It also provides monitoring, logging and alerting through Prometheus and Grafana. The ParadeDB team manages the underlying infrastructure and lifecycle of the cluster.
-
-You can read more about the optimal architecture for running ParadeDB in production [here](https://docs.paradedb.com/deploy/overview) and you can contact sales [here](mailto:sales@paradedb.com).
-
-### Self-Hosted
-
 First, install [Helm](https://helm.sh/docs/intro/install/). The following steps assume you have a Kubernetes cluster running v1.29+. If you are testing locally, we recommend using [Minikube](https://minikube.sigs.k8s.io/docs/start/).
 
 #### Monitoring
@@ -151,9 +141,9 @@ backups:
       backupOwnerReference: self
 ```
 
-Each backup adapter takes its own set of parameters, listed in the [Configuration options](#Configuration-options) section
-below. Refer to the table for the full list of parameters and place the configuration under the appropriate key: `backup.s3`,
-`backup.azure`, or `backup.google`.
+Each backup adapter takes its own set of parameters, listed in the [Configuration options](#Configuration-options) section.
+Refer to the table for the full list of parameters and place the configuration under the appropriate key: `backups.s3`,
+`backups.azure`, or `backups.google`.
 
 ## Recovery
 

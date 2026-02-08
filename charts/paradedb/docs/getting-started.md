@@ -66,9 +66,9 @@ Additionally you can specify the following parameters:
         backupOwnerReference: self
   ```
 
-Each backup adapter takes its own set of parameters, listed in the [Configuration options](../README.md#Configuration-options) section
-below. Refer to the table for the full list of parameters and place the configuration under the appropriate key: `backup.s3`,
-`backup.azure`, or `backup.google`.
+Each backup adapter takes its own set of parameters, listed in the [Configuration options](../README.md#Configuration-options)
+section. Refer to the table for the full list of parameters and place the configuration under the appropriate key: `backups.s3`,
+`backups.azure`, or `backups.google`.
 
 ### Cluster configuration
 
