@@ -2,7 +2,7 @@ type: paradedb
 mode: standalone
 version:
   major: "18"
-  paradedb: "0.21.2"
+  paradedb: "0.21.6"
 cluster:
   instances: 1
   imageCatalogRef:
