@@ -80,7 +80,7 @@ spec:
             apiVersion: batch/v1
             kind: Job
         - podLogs:
-            selector: batch.kubernetes.io/job-name=data-test
+            selector: batch.kubernetes.io/job-name=data-write
     - name: Start a backup
       try:
         - apply:
@@ -158,7 +158,7 @@ spec:
         - describe:
             apiVersion: batch/v1
             kind: Job
-            selector: batch.kubernetes.io/job-name=data-test-backup-pitr
+            name: data-test-backup-pitr
         - podLogs:
             selector: batch.kubernetes.io/job-name=data-test-backup-pitr
     - name: Cleanup

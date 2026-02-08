@@ -131,7 +131,7 @@ recovery:
 
   # See: https://cloudnative-pg.io/documentation/current/cloudnative-pg.v1/#postgresql-cnpg-io-v1-Import
   import:
-    # -- One of `microservice` or `monolith.`
+    # -- One of `microservice` or `monolith`
     # See: https://cloudnative-pg.io/documentation/current/database_import/#how-it-works
     type: "microservice"
     # -- Databases to import
@@ -206,10 +206,10 @@ cluster:
     size: 1Gi
     storageClass: ""
 
-  # -- The UID of the postgres user inside the image, defaults to 26
+  # -- The UID of the postgres user inside the image, defaults to 999 for ParadeDB and 26 for PostgreSQL
   postgresUID: -1
 
-  # -- The GID of the postgres user inside the image, defaults to 26
+  # -- The GID of the postgres user inside the image, defaults to 999 for ParadeDB and 26 for PostgreSQL
   postgresGID: -1
 
   # -- Customization of service definitions. Please refer to https://cloudnative-pg.io/documentation/current/service_management/
@@ -282,7 +282,7 @@ cluster:
   enableSuperuserAccess: true
   superuserSecret: ""
 
-  # -- Allow to disable PDB, mainly useful for upgrade of single-instance clusters or development purposes
+  # -- Allows disabling PDB, mainly useful for upgrade of single-instance clusters or development purposes
   # See: https://cloudnative-pg.io/documentation/current/kubernetes_upgrade/#pod-disruption-budgets
   enablePDB: true
 

@@ -6,7 +6,7 @@ The `CNPGClusterHACritical` alert is triggered when the CloudNativePG cluster ha
 
 This alert may occur during a regular failover or a planned automated version upgrade on two-instance clusters, as there is a brief period when only the primary remains active while a failover completes.
 
-On single-instance clusters this alert will remain active at all times. If running with a single instance is intentional, consider silencing the alert.
+On single-instance clusters, this alert will remain active at all times. If running with a single instance is intentional, consider silencing the alert.
 
 ## Impact
 

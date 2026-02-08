@@ -23,7 +23,7 @@ kubectl get cluster paradedb -o 'jsonpath={"Current Primary: "}{.status.currentP
 > [!IMPORTANT]
 > Changing the `max_connections` parameter requires a restart of the CloudNativePG cluster instances. This will cause a restart of a standby instance and a switchover of the primary instance, causing a brief service disruption.
 
-- Increase the maximum number of connections by setting the max_connections PostgreSQL parameter:
+- Increase the maximum number of connections by setting the `max_connections` PostgreSQL parameter:
   - Helm: `cluster.postgresql.parameters.max_connections`
   - ParadeDB BYOC Terraform: `paradedb.postgresql.parameters.max_connections`
 
