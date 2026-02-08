@@ -10,8 +10,8 @@ Refer to the [CNPG documentation](https://cloudnative-pg.io/documentation/curren
 
 ## Installing the operator
 
-To begin, make sure you install the CNPG operator in you cluster. It can be installed via a Helm chart as shown below or
-ir can be installed via a Kubernetes manifest. For more information see the [CNPG documentation](https://cloudnative-pg.io/documentation/current/installation_upgrade/).
+To begin, make sure you install the CNPG operator in your cluster. It can be installed via a Helm chart as shown below or
+it can be installed via a Kubernetes manifest. For more information see the [CNPG documentation](https://cloudnative-pg.io/documentation/current/installation_upgrade/).
 
 ```console
 helm repo add cnpg https://cloudnative-pg.github.io/charts
@@ -66,7 +66,7 @@ Additionally you can specify the following parameters:
         backupOwnerReference: self
   ```
 
-Each backup adapter takes it's own set of parameters, listed in the [Configuration options](../README.md#Configuration-options) section
+Each backup adapter takes its own set of parameters, listed in the [Configuration options](../README.md#Configuration-options) section
 below. Refer to the table for the full list of parameters and place the configuration under the appropriate key: `backup.s3`,
 `backup.azure`, or `backup.google`.
 
@@ -81,7 +81,7 @@ There are several important cluster options. Here are the most important ones:
   repository for a starting point.
   You will likely need to set your own repository access credentials via: `cluster.imagePullPolicy` and `cluster.imagePullSecrets`.
 `cluster.storage.size` - The size of the persistent volume claim for the cluster. Defaults to `8Gi`. Every instance will
-  have it's own persistent volume claim.
+  have its own persistent volume claim.
 `cluster.storage.storageClass` - The storage class to use for the persistent volume claim.
 `cluster.resources` - The resource limits and requests for the cluster. You are strongly advised to use the same values
   for both limits and requests to ensure a [Guaranteed QoS](https://kubernetes.io/docs/concepts/workloads/pods/pod-qos/#guaranteed).
@@ -103,4 +103,4 @@ For a full list - refer to the Helm chart [configuration options](../README.md#C
 ## Examples
 
 There are several configuration examples in the [examples](../examples) directory. Refer to them for a basic setup and
-refer to  the [CloudNativePG Documentation](https://cloudnative-pg.io/documentation/current/) for more advanced configurations.
+refer to the [CloudNativePG Documentation](https://cloudnative-pg.io/documentation/current/) for more advanced configurations.

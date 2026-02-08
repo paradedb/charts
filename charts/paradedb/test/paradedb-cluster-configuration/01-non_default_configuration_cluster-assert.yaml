@@ -96,7 +96,7 @@ spec:
   env:
     - name: MY_CUSTOM_FLAG
       value: enabled
-    - name: MY_CUSTROM_ENV
+    - name: MY_CUSTOM_ENV
       valueFrom:
         configMapKeyRef:
           name: my-custom-env
