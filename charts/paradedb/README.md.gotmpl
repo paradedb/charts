@@ -24,7 +24,7 @@ First, install [Helm](https://helm.sh/docs/intro/install/). The following steps 
 
 #### Monitoring
 
-The ParadeDB Helm chart supports monitoring via Prometheus and Grafana. To enable monitoring, you need to have the Prometheus CRDs installed before installing the CloudNativePG operator. The Promotheus CRDs can be found [here](https://prometheus-community.github.io/helm-charts).
+The ParadeDB Helm chart supports monitoring via Prometheus and Grafana. To enable monitoring, you need to have the Prometheus CRDs installed before installing the CloudNativePG operator. The Prometheus CRDs can be found [here](https://prometheus-community.github.io/helm-charts).
 
 #### Installing the CloudNativePG Operator
 
@@ -124,7 +124,7 @@ To create a ParadeDB cluster, you must specify either `paradedb` or `paradedb-en
 The chart has three modes of operation. These are configured via the `mode` parameter:
 
 * `standalone` - Creates new or updates an existing CNPG cluster. This is the default mode.
-* `replica` - Creates a replica cluster from an existing CNPG cluster. **_Note_ that this mode is not yet supported.**
+* `replica` - Creates a replica cluster from an existing CNPG cluster.
 * `recovery` - Recovers a CNPG cluster from a backup, object store or via pg_basebackup.
 
 ### Backup Configuration
@@ -151,7 +151,7 @@ backups:
       backupOwnerReference: self
 ```
 
-Each backup adapter takes it's own set of parameters, listed in the [Configuration options](#Configuration-options) section
+Each backup adapter takes its own set of parameters, listed in the [Configuration options](#Configuration-options) section
 below. Refer to the table for the full list of parameters and place the configuration under the appropriate key: `backup.s3`,
 `backup.azure`, or `backup.google`.
 
@@ -192,7 +192,7 @@ Additionally, we recommend enabling the `kube-state-metrics` CRD monitoring and 
 ## Examples
 
 There are several configuration examples in the [examples](examples) directory. Refer to them for a basic setup and
-refer to  the [CloudNativePG Documentation](https://cloudnative-pg.io/documentation/current/) for more advanced configurations.
+refer to the [CloudNativePG Documentation](https://cloudnative-pg.io/documentation/current/) for more advanced configurations.
 
 {{ template "chart.valuesSection" . }}
 | poolers[].name | string | `` | Name of the pooler resource |
@@ -216,4 +216,4 @@ refer to  the [CloudNativePG Documentation](https://cloudnative-pg.io/documentat
 
 ## License
 
-ParadeDB is licensed under the [GNU Affero General Public License v3.0](LICENSE) and as commercial software. For commercial licensing, please contact us at [sales@paradedb.com](mailto:sales@paradedb.com).
+Apache-2.0 License - see [LICENSE](LICENSE) for details.

@@ -10,7 +10,7 @@ or via [email](support@paradedb.com).
 
 ## Development Workflow
 
-The majority of the development for ParadeDB happens in the [paradedb/paradedb](https://github.com/paradedb/paradedb) monorepo. Pleaser refer to this repository for general development. To develop for this repository, please follow the instructions below.
+The majority of the development for ParadeDB happens in the [paradedb/paradedb](https://github.com/paradedb/paradedb) monorepo. Please refer to this repository for general development. To develop for this repository, please follow the instructions below.
 
 ## Pull Request Workflow
 
@@ -31,9 +31,9 @@ flow for making a change:
 
 ## Documentation
 
-ParadeDB's public-facing documentation can be found at [docs.paradedb.com(https://docs.paradedb.com).
+ParadeDB's public-facing documentation can be found at [docs.paradedb.com](https://docs.paradedb.com).
 
 ## Licensing
 
 By contributing to ParadeDB, you agree that your contributions will be licensed
-under the [GNU Affero General Public License v3.0](LICENSE).
+under the [Apache License 2.0](LICENSE).
