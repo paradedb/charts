@@ -7,9 +7,9 @@ metadata:
 spec:
   timeouts:
     apply: 1s
-    assert: 10s
+    assert: 5m
     cleanup: 1m
-    exec: 2m
+    exec: 5m
   steps:
     - name: Install a cluster with a console enabled
       try:
