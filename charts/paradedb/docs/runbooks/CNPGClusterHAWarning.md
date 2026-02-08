@@ -62,9 +62,6 @@ First, consult the [CloudNativePG Failure Modes](https://cloudnative-pg.io/docum
 
 ### Insufficient Storage
 
-> [!NOTE]
-> If using the ParadeDB BYOC module, refer to `docs/handbook/NotEnoughDiskSpace.md` included with the Terraform module.
-
 If the above diagnosis commands indicate that an instance’s storage or WAL disk is full, increase the cluster storage size. Refer to the CloudNativePG documentation for more information on how to [Resize the CloudNativePG Cluster Storage](https://cloudnative-pg.io/documentation/current/troubleshooting/#storage-is-full).
 
 ### Unknown

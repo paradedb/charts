@@ -20,9 +20,6 @@ Check disk usage metrics in the [CloudNativePG Grafana Dashboard](https://grafan
 
 ## Mitigation
 
-> [!NOTE]
-> If using the ParadeDB BYOC Terraform module, refer to the `docs/handbook/NotEnoughDiskSpace.md` handbook for instructions on increasing disk space. This requires a switchover of the ParadeDB primary, causing a brief service disruption.
-
 If the WAL (Write-Ahead Logging) volume is filling and you have continuous archiving enabled, verify that WAL archiving is functioning correctly. A buildup of WAL files in `pg_wal` indicates an issue. Monitor the `cnpg_collector_pg_wal_archive_status` metric and ensure the number of `ready` files is not steadily increasing.
 
 For more details, see the [CloudNativePG documentation on resizing storage](https://cloudnative-pg.io/documentation/current/troubleshooting/#storage-is-full).

@@ -25,7 +25,6 @@ kubectl get cluster paradedb -o 'jsonpath={"Current Primary: "}{.status.currentP
 
 - Increase the maximum number of connections by setting the `max_connections` PostgreSQL parameter:
   - Helm: `cluster.postgresql.parameters.max_connections`
-  - ParadeDB BYOC Terraform: `paradedb.postgresql.parameters.max_connections`
 
 - Use connection pooling by enabling PgBouncer to reduce the number of connections to the database. PgBouncer itself requires connections, so temporarily increase `max_connections` while enabling it to avoid service disruption.
 
