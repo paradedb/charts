@@ -32,6 +32,7 @@ spec:
     shared_preload_libraries:
       - pg_search
       - pg_cron
+      - pg_stat_statements
       - pgaudit
     synchronous:
       method: any
