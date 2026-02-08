@@ -33,7 +33,7 @@ spec:
               echo "Test for description search on replicas failed."
               exit 1
             fi
-            
+
             SIZE_RESULT=$(psql "$DB_URI" -t) <<-EOSQL
               SELECT pg_size_pretty(pg_relation_size('search_idx_paradedb_enterprise'));
             EOSQL
