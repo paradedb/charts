@@ -39,12 +39,12 @@ Depending on the type the chart will use a different Docker image and fill in so
 The chart has three modes of operation. These are configured via the `mode` parameter. If this is your first cluster, you
 are likely looking for the `standalone` option.
 * `standalone` - Creates new or updates an existing CNPG cluster. This is the default mode.
-* `replica` - Creates a replica cluster from an existing CNPG cluster. **_Note_ that this mode is not yet supported.**
+* `replica` - Creates a replica cluster from an existing CNPG cluster.
 * `recovery` - Recovers a CNPG cluster from a backup, object store or via pg_basebackup.
 
 ### Backup configuration
 
-Most importantly you should configure your backup storage. 
+Most importantly you should configure your backup storage.
 
 CNPG implements disaster recovery via [Barman](https://pgbarman.org/). The following section configures the barman object
 store where backups will be stored. Barman performs backups of the cluster filesystem base backup and WALs. Both are
@@ -76,7 +76,7 @@ There are several important cluster options. Here are the most important ones:
 
 `cluster.instances` - The number of instances in the cluster. Defaults to `1`, but you should set this to `3` for production.
 `cluster.imageName` - This allows you to override the Docker image used for the cluster. The chart will choose a default
-  for you based on the setting you chose for `type`. If you need to run a configuration that is not supported, you can 
+  for you based on the setting you chose for `type`. If you need to run a configuration that is not supported, you can
   create your own Docker image. You can use the [postgres-containers](https://github.com/cloudnative-pg/postgres-containers)
   repository for a starting point.
   You will likely need to set your own repository access credentials via: `cluster.imagePullPolicy` and `cluster.imagePullSecrets`.
@@ -93,7 +93,7 @@ There are several important cluster options. Here are the most important ones:
   cluster:
     postgresql:
       max_connections: "200"
-      shared_buffers: "2GB"  
+      shared_buffers: "2GB"
   ```
 `cluster.initSQL` - Allows you to run custom SQL queries during the cluster initialization. This is useful for creating
 extensions, schemas and databases. Note that these are as a superuser.

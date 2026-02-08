@@ -1,5 +1,5 @@
 ##
-# This test create a source CNPG cluster with ParadeDB Enterprise (required for WALs) and with MinIO backups
+# This test creates a source CNPG cluster with ParadeDB Enterprise (required for WALs) and with MinIO backups
 # and then creates a replica cluster bootstrapped with pg_basebackup, object store, and a hybrid one, using both.
 apiVersion: chainsaw.kyverno.io/v1alpha1
 kind: Test

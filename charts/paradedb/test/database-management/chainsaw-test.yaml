@@ -85,4 +85,4 @@ spec:
         - script:
             content: |
               helm uninstall --namespace $NAMESPACE database-parameters
-              helm uninstall --namespace $NAMESPACE extension-upgrade 
+              helm uninstall --namespace $NAMESPACE extension-upgrade
