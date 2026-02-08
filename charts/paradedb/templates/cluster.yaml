@@ -99,8 +99,6 @@ spec:
       {{ if eq .Values.type "paradedb-enterprise" }}
       hot_standby_feedback: "1"
       {{ end }}
-      track_io_timing: "on"
-      pg_stat_statements.track: "top"
       {{- with .Values.cluster.postgresql.parameters }}
       {{ toYaml . | nindent 6 }}
       {{ end }}
