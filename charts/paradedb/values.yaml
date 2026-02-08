@@ -307,6 +307,8 @@ cluster:
       paradedbIndex: true
       # -- Enable logical replication metrics
       logicalReplication: true
+      # -- Enable pg_stat_statements metrics
+      pgStatStatements: true
     podMonitor:
       # -- Whether to enable the PodMonitor
       enabled: true
