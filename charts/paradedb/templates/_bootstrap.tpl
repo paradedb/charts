@@ -13,7 +13,6 @@ bootstrap:
     postInitSQL:
       {{- if or (eq .Values.type "paradedb") (eq .Values.type "paradedb-enterprise") }}
       - CREATE EXTENSION IF NOT EXISTS pg_cron;
-      - CREATE EXTENSION IF NOT EXISTS pg_stat_statements;
       {{- end }}
       {{- with .Values.cluster.initdb }}
         {{- range .postInitSQL }}
@@ -30,6 +29,7 @@ bootstrap:
       - CREATE EXTENSION IF NOT EXISTS postgis_topology;
       - CREATE EXTENSION IF NOT EXISTS fuzzystrmatch;
       - CREATE EXTENSION IF NOT EXISTS postgis_tiger_geocoder;
+      - CREATE EXTENSION IF NOT EXISTS pg_stat_statements;
       - ALTER DATABASE "{{ default "paradedb" .Values.cluster.initdb.database }}" SET search_path TO public,paradedb;
       {{- end }}
       {{- with .Values.cluster.initdb }}
@@ -48,6 +48,7 @@ bootstrap:
       - CREATE EXTENSION IF NOT EXISTS postgis_topology;
       - CREATE EXTENSION IF NOT EXISTS fuzzystrmatch;
       - CREATE EXTENSION IF NOT EXISTS postgis_tiger_geocoder;
+      - CREATE EXTENSION IF NOT EXISTS pg_stat_statements;
       - ALTER DATABASE template1 SET search_path TO public,paradedb;
       {{- end }}
       {{- with .Values.cluster.initdb }}
@@ -97,6 +98,7 @@ bootstrap:
         - CREATE EXTENSION IF NOT EXISTS postgis_topology;
         - CREATE EXTENSION IF NOT EXISTS fuzzystrmatch;
         - CREATE EXTENSION IF NOT EXISTS postgis_tiger_geocoder;
+        - CREATE EXTENSION IF NOT EXISTS pg_stat_statements;
         - ALTER DATABASE "{{ default "paradedb" .Values.cluster.initdb.database }}" SET search_path TO public,paradedb;
         {{- end }}
         {{- with .Values.recovery.import.postImportApplicationSQL }}
