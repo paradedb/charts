@@ -65,7 +65,7 @@ spec:
             apiVersion: batch/v1
             kind: Job
         - podLogs:
-            selector: batch.kubernetes.io/job-name=data-test
+            selector: batch.kubernetes.io/job-name=paradedb-test
     - name: Write some data to the cluster
       timeouts:
         apply: 1s
