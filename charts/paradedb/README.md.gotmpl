@@ -25,6 +25,8 @@ helm repo add cnpg https://cloudnative-pg.github.io/charts
 helm upgrade --atomic --install cnpg \
 --create-namespace \
 --namespace cnpg-system \
+--set image.repository=docker.io/docker/dhi-cloudnative-pg \
+--set image.tag=1.27 \
 cnpg/cloudnative-pg
 ```
 

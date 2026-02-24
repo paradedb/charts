@@ -24,5 +24,7 @@ runs:
           --namespace $NAMESPACE \
           --create-namespace \
           --set config.clusterWide=$CLUSTER_WIDE \
+          --set image.repository=docker.io/docker/dhi-cloudnative-pg \
+          --set image.tag=1.27 \
           --wait \
           cnpg cnpg/cloudnative-pg
