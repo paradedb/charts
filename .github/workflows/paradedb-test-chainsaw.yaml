@@ -1,3 +1,4 @@
+# Trigger test
 name: Test ParadeDB Helm Chart
 
 on:
