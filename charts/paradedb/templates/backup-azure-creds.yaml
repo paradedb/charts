@@ -1,12 +1,18 @@
-{{- if and .Values.backups.enabled (eq .Values.backups.provider "azure") .Values.backups.secret.create }}
+{{- if and .Values.backups.enabled (eq .Values.backups.provider "azure") (not .Values.backups.azure.inheritFromAzureAD) .Values.backups.secret.create }}
 apiVersion: v1
 kind: Secret
 metadata:
   name: {{ default (printf "%s-backup-azure-creds" (include "cluster.fullname" .)) .Values.backups.secret.name }}
   namespace: {{ include "cluster.namespace" . }}
 data:
-  AZURE_CONNECTION_STRING: {{ .Values.backups.azure.connectionString | b64enc | quote }}
-  AZURE_STORAGE_ACCOUNT: {{ .Values.backups.azure.storageAccount | b64enc | quote }}
+  {{- if .Values.backups.azure.connectionString }}
+  AZURE_CONNECTION_STRING: {{ required ".Values.backups.azure.connectionString is required when using Azure connection string auth." .Values.backups.azure.connectionString | b64enc | quote }}
+  {{- else }}
+  AZURE_STORAGE_ACCOUNT: {{ required ".Values.backups.azure.storageAccount is required when using Azure storage account auth." .Values.backups.azure.storageAccount | b64enc | quote }}
+  {{- if .Values.backups.azure.storageKey }}
   AZURE_STORAGE_KEY: {{ .Values.backups.azure.storageKey | b64enc | quote }}
-  AZURE_STORAGE_SAS_TOKEN: {{ .Values.backups.azure.storageSasToken | b64enc | quote }}
+  {{- else }}
+  AZURE_STORAGE_SAS_TOKEN: {{ required ".Values.backups.azure.storageSasToken is required when Azure storage key is not provided." .Values.backups.azure.storageSasToken | b64enc | quote }}
+  {{- end }}
+  {{- end }}
 {{- end }}

@@ -1,12 +1,18 @@
-{{- if and (eq .Values.mode "replica" ) (eq .Values.replica.origin.objectStore.provider "azure") .Values.replica.origin.objectStore.secret.create }}
+{{- if and (eq .Values.mode "replica" ) (eq .Values.replica.origin.objectStore.provider "azure") (not .Values.replica.origin.objectStore.azure.inheritFromAzureAD) .Values.replica.origin.objectStore.secret.create }}
 apiVersion: v1
 kind: Secret
 metadata:
   name: {{ default (printf "%s-origin-azure-creds" (include "cluster.fullname" .)) .Values.replica.origin.objectStore.secret.name }}
   namespace: {{ include "cluster.namespace" . }}
 data:
-  AZURE_CONNECTION_STRING: {{ .Values.replica.origin.objectStore.azure.connectionString | b64enc | quote }}
-  AZURE_STORAGE_ACCOUNT: {{ .Values.replica.origin.objectStore.azure.storageAccount | b64enc | quote }}
+  {{- if .Values.replica.origin.objectStore.azure.connectionString }}
+  AZURE_CONNECTION_STRING: {{ required ".Values.replica.origin.objectStore.azure.connectionString is required when using Azure connection string auth." .Values.replica.origin.objectStore.azure.connectionString | b64enc | quote }}
+  {{- else }}
+  AZURE_STORAGE_ACCOUNT: {{ required ".Values.replica.origin.objectStore.azure.storageAccount is required when using Azure storage account auth." .Values.replica.origin.objectStore.azure.storageAccount | b64enc | quote }}
+  {{- if .Values.replica.origin.objectStore.azure.storageKey }}
   AZURE_STORAGE_KEY: {{ .Values.replica.origin.objectStore.azure.storageKey | b64enc | quote }}
-  AZURE_STORAGE_SAS_TOKEN: {{ .Values.replica.origin.objectStore.azure.storageSasToken | b64enc | quote }}
+  {{- else }}
+  AZURE_STORAGE_SAS_TOKEN: {{ required ".Values.replica.origin.objectStore.azure.storageSasToken is required when Azure storage key is not provided." .Values.replica.origin.objectStore.azure.storageSasToken | b64enc | quote }}
+  {{- end }}
+  {{- end }}
 {{- end }}

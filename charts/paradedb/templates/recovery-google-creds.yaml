@@ -1,9 +1,9 @@
-{{- if and (eq .Values.mode "recovery" ) (eq .Values.recovery.method "object_store") (eq .Values.recovery.provider "google") .Values.recovery.secret.create }}
+{{- if and (eq .Values.mode "recovery" ) (eq .Values.recovery.method "object_store") (eq .Values.recovery.provider "google") (not .Values.recovery.google.gkeEnvironment) .Values.recovery.secret.create }}
 apiVersion: v1
 kind: Secret
 metadata:
   name: {{ default (printf "%s-recovery-google-creds" (include "cluster.fullname" .)) .Values.recovery.secret.name }}
   namespace: {{ include "cluster.namespace" . }}
 data:
-  APPLICATION_CREDENTIALS: {{ .Values.recovery.google.applicationCredentials | b64enc | quote }}
+  APPLICATION_CREDENTIALS: {{ required ".Values.recovery.google.applicationCredentials is required when gkeEnvironment is false." .Values.recovery.google.applicationCredentials | b64enc | quote }}
 {{- end }}
