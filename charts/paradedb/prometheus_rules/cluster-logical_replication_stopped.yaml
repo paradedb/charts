@@ -9,7 +9,7 @@ annotations:
     Status: {{ .labels.stop_reason }}
 
     The subscription is not actively replicating data. This could be intentional (disabled) or due to an issue preventing the subscription from working.
-  runbook_url: https://github.com/paradedb/charts/blob/main/charts/cluster/docs/runbooks/{{ $alert }}.md
+  runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/{{ $alert }}.md
 expr: |
   (
     # Subscription is explicitly disabled
@@ -17,7 +17,7 @@ expr: |
   ) or (
     # Subscription is enabled but stuck (no worker process with significant lag)
     label_replace(max by (namespace, job, subname) (cnpg_pg_stat_subscription_enabled), "cluster", "$1", "job", ".+/(.+)") == 1
-    and label_replace(max by (namespace, job, subname) (cnpg_pg_stat_subscription_pid), "cluster", "$1", "job", ".+/(.+)") == ""
+    and label_replace(max by (namespace, job, subname) (cnpg_pg_stat_subscription_pid), "cluster", "$1", "job", ".+/(.+)") <= 0
     and label_replace(max by (namespace, job, subname) (cnpg_pg_stat_subscription_buffered_lag_bytes), "cluster", "$1", "job", ".+/(.+)") / 1024^3 > 0.1
   )
 for: 5m
