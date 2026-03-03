@@ -5,5 +5,5 @@ metadata:
   name: {{ .Values.backups.endpointCA.name | default (printf "%s-ca-bundle" (include "cluster.fullname" .)) | quote }}
   namespace: {{ include "cluster.namespace" . }}
 data:
-  {{ .Values.backups.endpointCA.key | default "ca-bundle.crt" | quote }}: {{ .Values.backups.endpointCA.value }}
+  {{ .Values.backups.endpointCA.key | default "ca-bundle.crt" | quote }}: {{ required ".Values.backups.endpointCA.value is required when endpointCA.create is true." .Values.backups.endpointCA.value }}
 {{- end }}

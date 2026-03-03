@@ -44,12 +44,21 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.PARADEDB_BOT_GITHUB_TOKEN }}
         run: |
+          set -euo pipefail
           # If no appVersion is provided, we use the latest ParadeDB version
           if [ -z "${{ github.event.inputs.appVersion }}" ]; then
-            LATEST_TAG=$(curl -s https://api.github.com/repos/paradedb/paradedb/tags | jq -r '.[0].name')
+            LATEST_TAG=$(gh api repos/paradedb/paradedb/releases/latest --jq '.tag_name')
+            if [ -z "$LATEST_TAG" ] || [ "$LATEST_TAG" = "null" ]; then
+              echo "Failed to resolve latest ParadeDB release tag."
+              exit 1
+            fi
             APP_VERSION=${LATEST_TAG#v}
           else
-            APP_VERSION=${{ github.event.inputs.appVersion }}
+            APP_VERSION="${{ github.event.inputs.appVersion }}"
+          fi
+          if [ -z "$APP_VERSION" ]; then
+            echo "APP_VERSION is empty."
+            exit 1
           fi
           # Update appVersion to the GitHub Release version and version to the Helm Chart version
           sed -i "s/^[[:space:]]*paradedb: .*/  paradedb: \"$APP_VERSION\"/" values.yaml
