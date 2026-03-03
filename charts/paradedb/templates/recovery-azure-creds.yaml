@@ -1,12 +1,18 @@
-{{- if and (eq .Values.mode "recovery" ) (eq .Values.recovery.method "object_store") (eq .Values.recovery.provider "azure") .Values.recovery.secret.create }}
+{{- if and (eq .Values.mode "recovery" ) (eq .Values.recovery.method "object_store") (eq .Values.recovery.provider "azure") (not .Values.recovery.azure.inheritFromAzureAD) .Values.recovery.secret.create }}
 apiVersion: v1
 kind: Secret
 metadata:
   name: {{ default (printf "%s-recovery-azure-creds" (include "cluster.fullname" .)) .Values.recovery.secret.name }}
   namespace: {{ include "cluster.namespace" . }}
 data:
-  AZURE_CONNECTION_STRING: {{ .Values.recovery.azure.connectionString | b64enc | quote }}
-  AZURE_STORAGE_ACCOUNT: {{ .Values.recovery.azure.storageAccount | b64enc | quote }}
+  {{- if .Values.recovery.azure.connectionString }}
+  AZURE_CONNECTION_STRING: {{ required ".Values.recovery.azure.connectionString is required when using Azure connection string auth." .Values.recovery.azure.connectionString | b64enc | quote }}
+  {{- else }}
+  AZURE_STORAGE_ACCOUNT: {{ required ".Values.recovery.azure.storageAccount is required when using Azure storage account auth." .Values.recovery.azure.storageAccount | b64enc | quote }}
+  {{- if .Values.recovery.azure.storageKey }}
   AZURE_STORAGE_KEY: {{ .Values.recovery.azure.storageKey | b64enc | quote }}
-  AZURE_STORAGE_SAS_TOKEN: {{ .Values.recovery.azure.storageSasToken | b64enc | quote }}
+  {{- else }}
+  AZURE_STORAGE_SAS_TOKEN: {{ required ".Values.recovery.azure.storageSasToken is required when Azure storage key is not provided." .Values.recovery.azure.storageSasToken | b64enc | quote }}
+  {{- end }}
+  {{- end }}
 {{- end }}
