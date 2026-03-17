@@ -12,8 +12,6 @@ spec:
     size: 256Mi
     storageClass: standard
   monitoring:
-status:
-  readyInstances: 1
       disableDefaultQueries: true
       customQueriesConfigMap:
         - name: monitoring-paradedb-monitoring-paradedb-index
@@ -25,6 +23,8 @@ status:
         - name: monitoring-paradedb-monitoring-user-metrics
           key: custom-queries
       enablePodMonitor: false
+status:
+  readyInstances: 1
 ---
 apiVersion: monitoring.coreos.com/v1
 kind: PodMonitor
