@@ -5,7 +5,7 @@ metadata:
 spec:
   template:
     spec:
-      restartPolicy: Never
+      restartPolicy: OnFailure
       containers:
       - name: logical-replication
         image: alpine:3.19

@@ -12,6 +12,8 @@ spec:
     size: 256Mi
     storageClass: standard
   monitoring:
+status:
+  readyInstances: 1
       disableDefaultQueries: true
       customQueriesConfigMap:
         - name: monitoring-paradedb-monitoring-paradedb-index
