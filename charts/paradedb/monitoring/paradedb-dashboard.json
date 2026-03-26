@@ -2354,7 +2354,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "P4169E866C3094E38"
+        "uid": "${DS_PROMETHEUS}"
       },
       "fieldConfig": {
         "defaults": {
@@ -2421,7 +2421,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "P4169E866C3094E38"
+        "uid": "${DS_PROMETHEUS}"
       },
       "fieldConfig": {
         "defaults": {
@@ -2561,7 +2561,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "P4169E866C3094E38"
+        "uid": "${DS_PROMETHEUS}"
       },
       "fieldConfig": {
         "defaults": {
@@ -2641,7 +2641,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "P4169E866C3094E38"
+        "uid": "${DS_PROMETHEUS}"
       },
       "fieldConfig": {
         "defaults": {
@@ -3030,7 +3030,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "P4169E866C3094E38"
+        "uid": "${DS_PROMETHEUS}"
       },
       "fieldConfig": {
         "defaults": {
@@ -3269,7 +3269,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "P4169E866C3094E38"
+        "uid": "${DS_PROMETHEUS}"
       },
       "description": "Evaluation of an SLO objective for logical replication LSN distance to stay below 500MB 99.9% of the time every 7 day rolling period.",
       "fieldConfig": {
@@ -4369,7 +4369,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "P4169E866C3094E38"
+        "uid": "${DS_PROMETHEUS}"
       },
       "description": "",
       "fieldConfig": {
@@ -4581,7 +4581,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "P4169E866C3094E38"
+            "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
           "exemplar": false,
@@ -4596,7 +4596,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "P4169E866C3094E38"
+            "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
           "exemplar": false,
@@ -4688,7 +4688,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "P4169E866C3094E38"
+        "uid": "${DS_PROMETHEUS}"
       },
       "description": "This shows the LSN distance for each Logical Replication Subscription based on data from `pg_stat_subscription`. Note that in case of replication lag, this value can show LSN distance as 0 when the subscription has not received any new data in a while. Check Last Message Receipt Age to account for that.",
       "fieldConfig": {
@@ -4779,7 +4779,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "P4169E866C3094E38"
+        "uid": "${DS_PROMETHEUS}"
       },
       "description": "This shows the LSN rate of change for each Logical Replication Subscription based on data from `pg_stat_subscription`. Note that in case of replication lag, this value can show LSN distance as 0 when the subscription has not received any new data in a while. Check Last Message Receipt Age to account for that.",
       "fieldConfig": {
@@ -4870,7 +4870,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "P4169E866C3094E38"
+        "uid": "${DS_PROMETHEUS}"
       },
       "description": "",
       "fieldConfig": {
@@ -4969,7 +4969,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "P4169E866C3094E38"
+        "uid": "${DS_PROMETHEUS}"
       },
       "description": "Evaluation of an SLO objective for logical replication LSN distance to stay below 500MB 99.9% of the time every 7 day rolling period.",
       "fieldConfig": {
@@ -5093,7 +5093,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "P4169E866C3094E38"
+        "uid": "${DS_PROMETHEUS}"
       },
       "fieldConfig": {
         "defaults": {
@@ -5190,7 +5190,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "P4169E866C3094E38"
+        "uid": "${DS_PROMETHEUS}"
       },
       "fieldConfig": {
         "defaults": {
@@ -5280,7 +5280,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "P4169E866C3094E38"
+            "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
           "expr": "cnpg_paradedb_index_segments_avg_size * on (pod) group_left() (label_replace(kube_customresource_primary_info{customresource_group=\"postgresql.cnpg.io\", customresource_kind=\"Cluster\", namespace=\"$namespace\"}, \"pod\", \"$1\", \"current_primary\", \"(.*)\"))",
@@ -5296,7 +5296,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "P4169E866C3094E38"
+        "uid": "${DS_PROMETHEUS}"
       },
       "fieldConfig": {
         "defaults": {
@@ -7044,7 +7044,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "P4169E866C3094E38"
+        "uid": "${DS_PROMETHEUS}"
       },
       "description": "Number of queries running for longer than 30s",
       "fieldConfig": {
@@ -7121,7 +7121,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "P4169E866C3094E38"
+        "uid": "${DS_PROMETHEUS}"
       },
       "description": "Number of queries running for longer than 30s",
       "fieldConfig": {
@@ -7214,7 +7214,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "P4169E866C3094E38"
+        "uid": "${DS_PROMETHEUS}"
       },
       "description": "Age of queries running for longer than 30s",
       "fieldConfig": {
@@ -7304,7 +7304,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "P4169E866C3094E38"
+            "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
           "expr": "max(cnpg_pg_stat_activity_long_running_avg_duration * on (pod) group_left() (label_replace(kube_customresource_primary_info{customresource_group=\"postgresql.cnpg.io\", customresource_kind=\"Cluster\", namespace=\"$namespace\"}, \"pod\", \"$1\", \"current_primary\", \"(.*)\")))",
@@ -7678,7 +7678,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "P4169E866C3094E38"
+        "uid": "${DS_PROMETHEUS}"
       },
       "fieldConfig": {
         "defaults": {
@@ -8643,7 +8643,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "P4169E866C3094E38"
+        "uid": "${DS_PROMETHEUS}"
       },
       "fieldConfig": {
         "defaults": {
@@ -8730,7 +8730,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "P4169E866C3094E38"
+            "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
           "expr": "- sum by (node) (rate(container_network_transmit_bytes_total{}[$__rate_interval])) * on(node) group_left(pod) kube_pod_info{namespace=~\"$namespace\", pod=~\"$instances\", node=\"$nodes\"}",
@@ -11454,7 +11454,7 @@
       {
         "current": {
           "text": "VictoriaMetrics",
-          "value": "P4169E866C3094E38"
+          "value": "${DS_PROMETHEUS}"
         },
         "includeAll": false,
         "label": "Datasource",
