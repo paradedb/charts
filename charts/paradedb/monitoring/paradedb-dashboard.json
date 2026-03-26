@@ -11452,10 +11452,7 @@
   "templating": {
     "list": [
       {
-        "current": {
-          "text": "VictoriaMetrics",
-          "value": "${DS_PROMETHEUS}"
-        },
+        "current": {},
         "includeAll": false,
         "label": "Datasource",
         "name": "DS_PROMETHEUS",
