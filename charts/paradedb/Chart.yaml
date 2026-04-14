@@ -22,10 +22,6 @@ description: Deploys and manages a ParadeDB CloudNativePG cluster and its associ
 kubeVersion: ">=1.29.0-0"
 icon: https://raw.githubusercontent.com/paradedb/paradedb/main/docs/logo/light.svg
 type: application
-<<<<<<< HEAD:charts/plugin-barman-cloud/Chart.yaml
-version: "0.6.0"
-appVersion: "v0.12.0"
-=======
 
 # The Chart version, set in the publish CI workflow from GitHub Actions Variables
 version: 0.0.0-generated-in-ci
@@ -34,7 +30,6 @@ version: 0.0.0-generated-in-ci
 # We default to v0.22.6 for testing and local development
 appVersion: 0.22.6
 
->>>>>>> 2e17b3d (ParadeDB Support (#1)):charts/paradedb/Chart.yaml
 sources:
   - https://github.com/paradedb/charts
 keywords:
