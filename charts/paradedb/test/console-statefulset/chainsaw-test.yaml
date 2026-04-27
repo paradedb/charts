@@ -25,14 +25,18 @@ spec:
             file: ./01-console_test_cluster-assert.yaml
         - script:
             content: |
-              kubectl --namespace $NAMESPACE wait --for=condition=ready clusters.postgresql.cnpg.io/console-test-paradedb --timeout=60s
-              kubectl --namespace $NAMESPACE wait --for=condition=ready pod/console-test-paradedb-console-0 --timeout=60s
-              kubectl --namespace $NAMESPACE exec pod/console-test-paradedb-console-0 -- bash -c 'while true; do command -v psql && break || sleep 2; done'
-              echo 'nohup psql $DB_SUPERUSER_URI -c "SELECT PG_SLEEP(120);" 2>&1 > command.log &' | kubectl --namespace $NAMESPACE exec --stdin pod/console-test-paradedb-console-0 -- bash &
-              sleep 60
-              PSQL_RUNNING=$(kubectl --namespace $NAMESPACE exec statefulsets/console-test-paradedb-console -- bash -c 'ps -ef | grep psql | wc -l')
+              kubectl --namespace $NAMESPACE wait --for=condition=ready clusters.postgresql.cnpg.io/console-test-paradedb --timeout=120s
+              kubectl --namespace $NAMESPACE wait --for=condition=ready pod/console-test-paradedb-console-0 --timeout=120s
+              kubectl --namespace $NAMESPACE exec pod/console-test-paradedb-console-0 -- bash -c 'until command -v psql >/dev/null; do sleep 2; done'
+              kubectl --namespace $NAMESPACE exec pod/console-test-paradedb-console-0 -- bash -c 'until psql "$DB_SUPERUSER_URI" -c "SELECT 1" >/dev/null 2>&1; do sleep 2; done'
+              kubectl --namespace $NAMESPACE exec pod/console-test-paradedb-console-0 -- bash -c 'nohup psql "$DB_SUPERUSER_URI" -c "SELECT PG_SLEEP(120);" >/tmp/command.log 2>&1 & disown'
+              for _ in $(seq 1 30); do
+                PSQL_RUNNING=$(kubectl --namespace $NAMESPACE exec statefulsets/console-test-paradedb-console -- pgrep -fc 'psql.*PG_SLEEP' 2>/dev/null || echo 0)
+                [ "$PSQL_RUNNING" -ge 1 ] && break
+                sleep 2
+              done
               echo "PSQL_RUNNING: $PSQL_RUNNING"
-              [ $PSQL_RUNNING -gt 3 ] || exit 1
+              [ "$PSQL_RUNNING" -ge 1 ] || exit 1
     - name: Cleanup
       try:
         - script:
