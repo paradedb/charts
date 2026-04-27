@@ -8,7 +8,7 @@ spec:
   timeouts:
     apply: 1s
     assert: 10s
-    cleanup: 1m
+    cleanup: 3m
     exec: 5m
   steps:
     - name: Install a cluster with a console enabled
@@ -37,6 +37,7 @@ spec:
               done
               echo "PSQL_RUNNING: $PSQL_RUNNING"
               [ "$PSQL_RUNNING" -ge 1 ] || exit 1
+              kubectl --namespace $NAMESPACE exec statefulsets/console-test-paradedb-console -- pkill -f 'psql.*PG_SLEEP' || true
     - name: Cleanup
       try:
         - script:
