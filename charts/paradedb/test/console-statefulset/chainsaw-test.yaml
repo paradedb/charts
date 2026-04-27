@@ -8,7 +8,7 @@ spec:
   timeouts:
     apply: 1s
     assert: 10s
-    cleanup: 3m
+    cleanup: 5m
     exec: 5m
   steps:
     - name: Install a cluster with a console enabled
@@ -42,4 +42,5 @@ spec:
       try:
         - script:
             content: |
-              helm uninstall --namespace $NAMESPACE console-test
+              kubectl --namespace $NAMESPACE delete cluster console-test-paradedb --ignore-not-found --wait=true --timeout=3m
+              helm uninstall --namespace $NAMESPACE --wait --timeout 3m console-test
