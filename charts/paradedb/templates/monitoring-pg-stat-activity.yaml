@@ -17,7 +17,9 @@ data:
                                        , EXTRACT(epoch FROM COALESCE(AVG(now() - query_start), interval '0 seconds')) AS avg_duration
                                        , EXTRACT(epoch FROM COALESCE(MAX(now() - query_start), interval '0 seconds')) AS max_duration
                                   FROM pg_stat_activity
-                                  WHERE (now() - query_start) >= interval '30 seconds' AND state = 'active'
+                                  WHERE (now() - query_start) >= interval '30 seconds'
+                                    AND state = 'active'
+                                    AND backend_type = 'client backend'
                                   GROUP BY datname)
         SELECT databases.datname
              , COALESCE(avg_duration, 0) AS running_avg_duration
@@ -67,6 +69,7 @@ data:
             LEFT JOIN pg_stat_activity a
                 ON a.datname = db_buckets.datname
                AND a.state = 'active'
+               AND a.backend_type = 'client backend'
                AND EXTRACT(epoch FROM now() - a.query_start) <@ db_buckets.bucket
             GROUP BY db_buckets.datname, db_buckets.bucket
         ),
@@ -76,7 +79,9 @@ data:
                 COUNT(*) AS total_count,
                 SUM(EXTRACT(epoch FROM now() - query_start)) AS total_duration
             FROM pg_stat_activity
-            WHERE state = 'active' AND datname IS NOT NULL
+            WHERE state = 'active'
+              AND datname IS NOT NULL
+              AND backend_type = 'client backend'
             GROUP BY datname
         )
         SELECT bc.datname
