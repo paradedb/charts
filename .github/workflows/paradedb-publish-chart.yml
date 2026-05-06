@@ -41,8 +41,6 @@ jobs:
       - name: Set Helm Chart Release Versions
         id: set_versions
         working-directory: charts/paradedb/
-        env:
-          GH_TOKEN: ${{ secrets.PARADEDB_BOT_GITHUB_TOKEN }}
         run: |
           # If no appVersion is provided, we use the latest ParadeDB version
           if [ -z "${{ github.event.inputs.appVersion }}" ]; then
@@ -83,19 +81,26 @@ jobs:
       - name: Add Grafana Chart Dependencies
         run: helm repo add cnpg-grafana-dashboard https://cloudnative-pg.github.io/grafana-dashboards
 
+      - name: Generate GitHub App Token
+        id: app-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ vars.PARADEDB_GITHUB_APP_ID }}
+          private-key: ${{ secrets.PARADEDB_GITHUB_APP_PRIVATE_KEY }}
+
       - name: Run chart-releaser
         uses: helm/chart-releaser-action@v1.6.0
         with:
           config: "./.github/config/cr.yaml"
         env:
-          CR_TOKEN: "${{ secrets.PARADEDB_BOT_GITHUB_TOKEN }}"
+          CR_TOKEN: "${{ steps.app-token.outputs.token }}"
 
       # We have a separate version for our Helm Chart, since it needs to always increment by
       # one for every production release, independently of the ParadeDB version. Any non-patch
       # version increment should be done manually in GitHub Actions Variables.
       - name: Increment Helm Chart Version Number in GitHub Actions Variables
         env:
-          GH_TOKEN: ${{ secrets.PARADEDB_BOT_GITHUB_TOKEN }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
           gh api \
             --method PATCH \
