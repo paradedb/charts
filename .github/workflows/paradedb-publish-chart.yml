@@ -41,6 +41,8 @@ jobs:
       - name: Set Helm Chart Release Versions
         id: set_versions
         working-directory: charts/paradedb/
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           # If no appVersion is provided, we use the latest ParadeDB version
           if [ -z "${{ github.event.inputs.appVersion }}" ]; then
