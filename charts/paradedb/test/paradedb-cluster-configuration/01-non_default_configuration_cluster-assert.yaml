@@ -12,6 +12,15 @@ spec:
   postgresUID: 1001
   postgresGID: 1002
   instances: 2
+  replicationSlots:
+    highAvailability:
+      enabled: true
+      slotPrefix: "_cnpg_"
+    updateInterval: 30
+    synchronizeReplicas:
+      enabled: true
+      excludePatterns:
+        - "^foo"
   postgresql:
     ldap:
       server: 'openldap.default.svc.cluster.local'

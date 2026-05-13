@@ -88,6 +88,15 @@ cluster:
        inRoles:
          - pg_monitor
          - pg_signal_backend
+  replicationSlots:
+    highAvailability:
+      enabled: true
+      slotPrefix: "_cnpg_"
+    updateInterval: 30
+    synchronizeReplicas:
+      enabled: true
+      excludePatterns:
+        - "^foo"
   postgresql:
     ldap:
       server: 'openldap.default.svc.cluster.local'
