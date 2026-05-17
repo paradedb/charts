@@ -352,7 +352,7 @@ cluster:
     #    key: custom-queries
 
   # -- Replication slot management. To make logical decoding slots survive
-  # failover for CDC consumers (e.g. Artie, Debezium), enable
+  # failover for CDC consumers (e.g. Debezium), enable
   # `highAvailability.synchronizeLogicalDecoding`, set
   # `cluster.postgresql.parameters.hot_standby_feedback: "on"` and
   # `cluster.postgresql.parameters.sync_replication_slots: "on"`, and ensure
