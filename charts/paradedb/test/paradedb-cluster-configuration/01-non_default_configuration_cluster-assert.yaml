@@ -16,11 +16,8 @@ spec:
     highAvailability:
       enabled: true
       slotPrefix: "_cnpg_"
+      synchronizeLogicalDecoding: true
     updateInterval: 30
-    synchronizeReplicas:
-      enabled: true
-      excludePatterns:
-        - "^foo"
   postgresql:
     ldap:
       server: 'openldap.default.svc.cluster.local'
@@ -32,7 +29,9 @@ spec:
           key: 'data'
         searchAttribute: 'uid'
     parameters:
+      hot_standby_feedback: "on"
       max_connections: "42"
+      sync_replication_slots: "on"
       cron.database_name: "postgres"
     pg_hba:
       - host all 1.2.3.4/32 trust

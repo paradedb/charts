@@ -351,19 +351,20 @@ cluster:
     #  - name: custom-queries-secret
     #    key: custom-queries
 
-  # -- Replication slot management. Controls both physical-slot HA between
-  # CNPG instances and synchronization of user-created logical replication
-  # slots so that CDC consumers (e.g. Artie, Debezium) survive failover.
-  # Requires PostgreSQL 17+ for logical-slot synchronization (failover slots).
+  # -- Replication slot management. To make logical decoding slots survive
+  # failover for CDC consumers (e.g. Artie, Debezium), enable
+  # `highAvailability.synchronizeLogicalDecoding`, set
+  # `cluster.postgresql.parameters.hot_standby_feedback: "on"` and
+  # `cluster.postgresql.parameters.sync_replication_slots: "on"`, and ensure
+  # the CDC client creates its logical slot with `failover = true`.
+  # Requires CloudNativePG 1.27+ and PostgreSQL 17+ for native failover slots.
   # See: https://cloudnative-pg.io/documentation/current/replication/#replication-slots
   replicationSlots: {}
     # highAvailability:
     #   enabled: true
     #   slotPrefix: "_cnpg_"
+    #   synchronizeLogicalDecoding: true
     # updateInterval: 30
-    # synchronizeReplicas:
-    #   enabled: true
-    #   excludePatterns: []
 
   postgresql:
     # -- PostgreSQL configuration options (postgresql.conf)
