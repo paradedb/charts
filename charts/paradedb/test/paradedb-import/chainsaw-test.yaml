@@ -1,6 +1,7 @@
 ##
-# This is a test that provisions a regular (non CNPG) PostgreSQL cluster and attempts to perform a
-# pg_basebackup recovery into a ParadeDB cluster.
+# This is a test that provisions a source PostgreSQL cluster and imports its databases into a ParadeDB
+# cluster using CNPG's `import` bootstrap (pg_dump/pg_restore), covering both the full and schema-only
+# import variants.
 apiVersion: chainsaw.kyverno.io/v1alpha1
 kind: Test
 metadata:

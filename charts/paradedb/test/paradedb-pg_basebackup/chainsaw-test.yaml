@@ -3,7 +3,7 @@
 apiVersion: chainsaw.kyverno.io/v1alpha1
 kind: Test
 metadata:
-  name: postgresql-pg-basebackup
+  name: paradedb-pg-basebackup
 spec:
   timeouts:
     apply: 1s
