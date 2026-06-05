@@ -161,8 +161,72 @@ spec:
             name: data-test-backup-pitr
         - podLogs:
             selector: batch.kubernetes.io/job-name=data-test-backup-pitr
+    - name: Create a recovery cluster from a backup
+      try:
+        - script:
+            content: |
+              helm upgrade \
+                --install \
+                --namespace $NAMESPACE \
+                --values ./09-recovery_backup_cluster.yaml \
+                --wait \
+                recovery-backup ../../
+        - assert:
+            file: ./09-recovery_backup_cluster-assert.yaml
+      catch:
+        - describe:
+            apiVersion: postgresql.cnpg.io/v1
+            kind: Cluster
+        - podLogs:
+            selector: cnpg.io/cluster=recovery-backup-paradedb
+    - name: Verify the data on the backup recovery cluster exists
+      try:
+        - apply:
+            file: 10-data_test.yaml
+        - assert:
+            file: 10-data_test-assert.yaml
+      catch:
+        - describe:
+            apiVersion: batch/v1
+            kind: Job
+            name: data-test-backup
+        - podLogs:
+            selector: batch.kubernetes.io/job-name=data-test-backup
+    - name: Create a recovery cluster from the object store
+      try:
+        - script:
+            content: |
+              helm upgrade \
+                --install \
+                --namespace $NAMESPACE \
+                --values ./11-recovery_object_store_cluster.yaml \
+                --wait \
+                recovery-object-store ../../
+        - assert:
+            file: ./11-recovery_object_store_cluster-assert.yaml
+      catch:
+        - describe:
+            apiVersion: postgresql.cnpg.io/v1
+            kind: Cluster
+        - podLogs:
+            selector: cnpg.io/cluster=recovery-object-store-paradedb
+    - name: Verify the data on the object store recovery cluster exists
+      try:
+        - apply:
+            file: 12-data_test.yaml
+        - assert:
+            file: 12-data_test-assert.yaml
+      catch:
+        - describe:
+            apiVersion: batch/v1
+            kind: Job
+            name: data-test-object-store
+        - podLogs:
+            selector: batch.kubernetes.io/job-name=data-test-object-store
     - name: Cleanup
       try:
         - script:
             content: |
               helm uninstall --namespace $NAMESPACE paradedb
+              helm uninstall --namespace $NAMESPACE recovery-backup
+              helm uninstall --namespace $NAMESPACE recovery-object-store
