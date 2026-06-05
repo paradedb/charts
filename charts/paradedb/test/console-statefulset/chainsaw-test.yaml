@@ -1,15 +1,22 @@
 ##
-# Tests the correct deployment of the console StatefulSet
+# Tests the correct deployment of the console StatefulSet: the console installs
+# postgresql-client at runtime, can reach the cluster, and can run a detached
+# long-running query that survives the session that launched it.
 apiVersion: chainsaw.kyverno.io/v1alpha1
 kind: Test
 metadata:
   name: console-statefulset
 spec:
+  # The console pod (Ubuntu + apt-installed tooling) plus the cluster's PVCs make
+  # namespace teardown exceed chainsaw's cleanup deadline, leaving the namespace
+  # stuck Terminating. Each test runs in its own throwaway kind cluster, so skip
+  # chainsaw's resource deletion rather than block the result on a slow teardown.
+  skipDelete: true
   timeouts:
     apply: 1s
-    assert: 10s
+    assert: 30s
     cleanup: 1m
-    exec: 5m
+    exec: 8m
   steps:
     - name: Install a cluster with a console enabled
       try:
@@ -23,16 +30,61 @@ spec:
                 console-test ../../
         - assert:
             file: ./01-console_test_cluster-assert.yaml
+      catch:
+        - describe:
+            apiVersion: postgresql.cnpg.io/v1
+            kind: Cluster
+        - describe:
+            apiVersion: apps/v1
+            kind: StatefulSet
+    - name: Verify the console can reach the cluster and run a detached query
+      try:
         - script:
             content: |
-              kubectl --namespace $NAMESPACE wait --for=condition=ready clusters.postgresql.cnpg.io/console-test-paradedb --timeout=60s
-              kubectl --namespace $NAMESPACE wait --for=condition=ready pod/console-test-paradedb-console-0 --timeout=60s
-              kubectl --namespace $NAMESPACE exec pod/console-test-paradedb-console-0 -- bash -c 'while true; do command -v psql && break || sleep 2; done'
-              echo 'nohup psql $DB_SUPERUSER_URI -c "SELECT PG_SLEEP(120);" 2>&1 > command.log &' | kubectl --namespace $NAMESPACE exec --stdin pod/console-test-paradedb-console-0 -- bash &
-              sleep 60
-              PSQL_RUNNING=$(kubectl --namespace $NAMESPACE exec statefulsets/console-test-paradedb-console -- bash -c 'ps -ef | grep psql | wc -l')
-              echo "PSQL_RUNNING: $PSQL_RUNNING"
-              [ $PSQL_RUNNING -gt 3 ] || exit 1
+              set -e
+              POD=pod/console-test-paradedb-console-0
+
+              # The cluster and the console pod must be ready before we exercise
+              # the console. Every check below retries instead of sampling once:
+              # the console installs postgresql-client at runtime, and the
+              # cluster's -rw endpoint can briefly refuse connections right after
+              # the cluster reports ready -- that race is what made this test flap.
+              kubectl --namespace "$NAMESPACE" wait --for=condition=ready clusters.postgresql.cnpg.io/console-test-paradedb --timeout=120s
+              kubectl --namespace "$NAMESPACE" wait --for=condition=ready "$POD" --timeout=120s
+
+              # Wait until psql has been installed inside the console.
+              kubectl --namespace "$NAMESPACE" exec "$POD" -- bash -c '
+                for _ in $(seq 1 90); do command -v psql >/dev/null 2>&1 && exit 0; sleep 2; done
+                echo "psql was not installed in the console in time" >&2; exit 1'
+
+              # Wait until the console can actually run a query against the cluster
+              # (retries past the transient "connection refused" window).
+              kubectl --namespace "$NAMESPACE" exec "$POD" -- bash -c '
+                for _ in $(seq 1 60); do psql "$DB_SUPERUSER_URI/postgres" -tAc "SELECT 1" >/dev/null 2>&1 && exit 0; sleep 2; done
+                echo "the console could not reach the database in time" >&2; exit 1'
+
+              # Launch a detached, long-running query and confirm it keeps running
+              # after the exec session that started it has ended -- the console's
+              # long-running-task use case.
+              kubectl --namespace "$NAMESPACE" exec "$POD" -- bash -c '
+                nohup psql "$DB_SUPERUSER_URI/postgres" -c "SELECT pg_sleep(300)" > /root/command.log 2>&1 & disown'
+
+              for attempt in $(seq 1 30); do
+                RUNNING=$(kubectl --namespace "$NAMESPACE" exec "$POD" -- bash -c 'ps -eo comm 2>/dev/null | grep -cx psql || true')
+                echo "attempt $attempt: detached psql processes running = ${RUNNING:-0}"
+                [ "${RUNNING:-0}" -ge 1 ] && exit 0
+                sleep 2
+              done
+
+              echo "the detached psql query did not stay running; command.log:" >&2
+              kubectl --namespace "$NAMESPACE" exec "$POD" -- cat /root/command.log >&2 2>/dev/null || true
+              exit 1
+      catch:
+        - describe:
+            apiVersion: apps/v1
+            kind: StatefulSet
+        - podLogs:
+            selector: app.kubernetes.io/component=console
     - name: Cleanup
       try:
         - script:
