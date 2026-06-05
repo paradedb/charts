@@ -229,9 +229,9 @@ spec:
         assert: 1m
       try:
         - apply:
-            file: 09-recovery_shared_preload_test.yaml
+            file: 13-recovery_shared_preload_test.yaml
         - assert:
-            file: 09-recovery_shared_preload_test-assert.yaml
+            file: 13-recovery_shared_preload_test-assert.yaml
       catch:
         - describe:
             apiVersion: batch/v1
