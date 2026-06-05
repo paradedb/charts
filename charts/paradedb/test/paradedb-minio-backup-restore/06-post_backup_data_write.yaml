@@ -5,6 +5,7 @@ metadata:
 spec:
   template:
     spec:
+      serviceAccountName: configmap-creator-sa
       restartPolicy: OnFailure
       containers:
       - name: data-write
@@ -22,6 +23,9 @@ spec:
         command: ['sh', '-c']
         args:
          - |
-           apk --no-cache add postgresql-client
+           apk --no-cache add postgresql-client kubectl coreutils
            DB_URI=$(echo $DB_URI | sed "s|/\*|/|" )
+           DATE_NO_BAD_TABLE=$(date --rfc-3339=ns)
+           kubectl create configmap date-no-bad-table --from-literal=date="$DATE_NO_BAD_TABLE"
+           sleep 5
            psql "$DB_URI" -c "CREATE TABLE mybadtable (id serial PRIMARY KEY);"
