@@ -1,0 +1,36 @@
+##
+# Regression guard for cloudnative-pg/cloudnative-pg#10840.
+#
+# pg_search registers a custom WAL resource manager, so it MUST be present in
+# shared_preload_libraries when the recovery postmaster starts, otherwise WAL
+# replay cannot decode its records and the recovery instance dies during
+# replay. This job asserts that the recovered cluster actually loaded
+# pg_search (the effective runtime value, which reflects any stale
+# postgresql.auto.conf inherited from the source backup).
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: shared-preload-test-backup-pitr
+spec:
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+      - name: shared-preload-test
+        env:
+          - name: DB_URI
+            valueFrom:
+              secretKeyRef:
+                name: recovery-backup-pitr-paradedb-superuser
+                key: uri
+        image: alpine:3.19
+        command: ['sh', '-c']
+        args:
+         - |
+           apk --no-cache add postgresql-client
+           DB_URI=$(echo $DB_URI | sed "s|/\*|/|" )
+           set -e
+           SPL=$(psql "$DB_URI" -t -A -c 'SHOW shared_preload_libraries' 2>/dev/null)
+           echo "effective shared_preload_libraries=$SPL"
+           echo "$SPL" | tr ',' '\n' | sed 's/ //g' | grep -qx pg_search
+           echo "pg_search is preloaded on the recovered cluster"

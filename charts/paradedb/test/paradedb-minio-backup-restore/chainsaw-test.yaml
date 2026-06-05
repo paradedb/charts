@@ -223,6 +223,22 @@ spec:
             name: data-test-object-store
         - podLogs:
             selector: batch.kubernetes.io/job-name=data-test-object-store
+    - name: Verify pg_search is preloaded on the recovery cluster (cnpg#10840)
+      timeouts:
+        apply: 1s
+        assert: 1m
+      try:
+        - apply:
+            file: 09-recovery_shared_preload_test.yaml
+        - assert:
+            file: 09-recovery_shared_preload_test-assert.yaml
+      catch:
+        - describe:
+            apiVersion: batch/v1
+            kind: Job
+            name: shared-preload-test-backup-pitr
+        - podLogs:
+            selector: batch.kubernetes.io/job-name=shared-preload-test-backup-pitr
     - name: Cleanup
       try:
         - script:

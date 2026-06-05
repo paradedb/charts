@@ -1,0 +1,6 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: shared-preload-test-backup-pitr
+status:
+  succeeded: 1
