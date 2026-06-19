@@ -1,0 +1,1 @@
+CI smoke test for upstream-main rebase + pg_stat_statements rework. Safe to delete.
