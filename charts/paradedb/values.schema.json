@@ -478,6 +478,37 @@
         "namespaceOverride": {
             "type": "string"
         },
+        "networkPolicy": {
+            "type": "object",
+            "properties": {
+                "allowedIngressCIDRs": {
+                    "type": "array"
+                },
+                "dnsNamespace": {
+                    "type": "string"
+                },
+                "enabled": {
+                    "type": "boolean"
+                },
+                "externalEgress": {
+                    "type": "object",
+                    "properties": {
+                        "enabled": {
+                            "type": "boolean"
+                        },
+                        "exceptCIDRs": {
+                            "type": "array"
+                        }
+                    }
+                },
+                "monitoringNamespace": {
+                    "type": "string"
+                },
+                "operatorNamespace": {
+                    "type": "string"
+                }
+            }
+        },
         "poolers": {
             "type": "array"
         },

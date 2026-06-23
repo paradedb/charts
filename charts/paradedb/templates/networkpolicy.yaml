@@ -1,0 +1,127 @@
+{{- if .Values.networkPolicy.enabled }}
+{{- $fullname := include "cluster.fullname" . }}
+{{- $ns := include "cluster.namespace" . }}
+{{- $np := .Values.networkPolicy }}
+# Multi-tenant isolation for this cluster's namespace: a default-deny baseline plus the
+# minimal allow-rules a ParadeDB CNPG cluster needs (intra-namespace, DNS, external
+# egress for backups, operator, monitoring, and configured client CIDRs). Intended for
+# cells that co-tenant customers one-namespace-each. Requires a NetworkPolicy-capable CNI
+# (Calico, Cilium, or the EKS VPC CNI with its network policy agent). Off by default.
+# See https://github.com/paradedb/cloud/issues/109.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ $fullname }}-default-deny
+  namespace: {{ $ns }}
+  labels:
+    {{- include "cluster.labels" . | nindent 4 }}
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+    - Egress
+---
+# Allow all traffic within the namespace (Postgres <-> replicas <-> PgBouncer).
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ $fullname }}-allow-intra-namespace
+  namespace: {{ $ns }}
+  labels:
+    {{- include "cluster.labels" . | nindent 4 }}
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - podSelector: {}
+  egress:
+    - to:
+        - podSelector: {}
+---
+# Egress: DNS resolution, plus (optionally) external endpoints for backups and IRSA.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ $fullname }}-allow-egress
+  namespace: {{ $ns }}
+  labels:
+    {{- include "cluster.labels" . | nindent 4 }}
+spec:
+  podSelector: {}
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ $np.dnsNamespace }}
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    {{- if $np.externalEgress.enabled }}
+    # External endpoints (object storage, cloud APIs, the internet) for Barman backups
+    # and IRSA. On CNIs that give pods routable cluster IPs (e.g. the EKS VPC CNI),
+    # exclude the cluster's private ranges so cross-namespace pod egress stays denied
+    # while public endpoints remain reachable.
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+            {{- with $np.externalEgress.exceptCIDRs }}
+            except:
+              {{- toYaml . | nindent 14 }}
+            {{- end }}
+    {{- end }}
+{{- if or $np.operatorNamespace $np.monitoringNamespace $np.allowedIngressCIDRs }}
+---
+# Ingress: the operator, the metrics scraper, and configured external clients. Each rule
+# renders only when its source is configured; with none set, only intra-namespace ingress
+# (above) is allowed.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ $fullname }}-allow-ingress
+  namespace: {{ $ns }}
+  labels:
+    {{- include "cluster.labels" . | nindent 4 }}
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+  ingress:
+    {{- if $np.operatorNamespace }}
+    # CloudNativePG operator -> instances (status / lifecycle).
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ $np.operatorNamespace }}
+    {{- end }}
+    {{- if $np.monitoringNamespace }}
+    # Metrics scraper -> instance (9187) and pooler (9127) metrics endpoints.
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ $np.monitoringNamespace }}
+      ports:
+        - protocol: TCP
+          port: 9187
+        - protocol: TCP
+          port: 9127
+    {{- end }}
+    {{- if $np.allowedIngressCIDRs }}
+    # External clients (load balancer / PrivateLink sources) -> Postgres / PgBouncer.
+    - from:
+        {{- range $np.allowedIngressCIDRs }}
+        - ipBlock:
+            cidr: {{ . }}
+        {{- end }}
+      ports:
+        - protocol: TCP
+          port: 5432
+    {{- end }}
+{{- end }}
+{{- end }}

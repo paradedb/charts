@@ -723,3 +723,28 @@ monitoring:
       grafana_dashboard: "1"
     # -- Annotations that ConfigMaps can have to get configured in Grafana.
     annotations: {}
+
+# -- Default-deny NetworkPolicies for multi-tenant isolation. When enabled, the chart
+# renders a default-deny policy plus the minimal allow-rules a ParadeDB CNPG cluster
+# needs (intra-namespace, DNS, external egress, operator, monitoring, client CIDRs).
+# Requires a NetworkPolicy-capable CNI. Off by default; meant for cells that co-tenant
+# customers one-namespace-each (https://github.com/paradedb/cloud/issues/109).
+networkPolicy:
+  # -- Render the default-deny + allow-rule NetworkPolicy set.
+  enabled: false
+  # -- Namespace running the cluster DNS service (CoreDNS/kube-dns); egress to it on port 53 is allowed.
+  dnsNamespace: kube-system
+  # -- Namespace running the CloudNativePG operator; it is allowed to reach the instances. Empty disables the rule.
+  operatorNamespace: cnpg-system
+  # -- Namespace running the metrics scraper; it is allowed to reach the metrics ports (9187, 9127). Empty disables the rule.
+  monitoringNamespace: ""
+  externalEgress:
+    # -- Allow egress to external endpoints (object storage, cloud APIs, the internet) for backups and IRSA.
+    enabled: true
+    # -- On CNIs that give pods routable cluster IPs (e.g. the EKS VPC CNI), exclude the cluster's private ranges so cross-namespace pod egress stays denied while public endpoints stay reachable.
+    exceptCIDRs:
+      - 10.0.0.0/8
+      - 172.16.0.0/12
+      - 192.168.0.0/16
+  # -- CIDRs allowed to connect to Postgres/PgBouncer on 5432 (e.g. load balancer / PrivateLink sources). Empty means intra-namespace clients only.
+  allowedIngressCIDRs: []
