@@ -4,8 +4,6 @@
 
 This alert fires when a running CloudNativePG instance has stopped exporting its `cnpg_*` collector metrics — the exporter is hung rather than restarting. It is built to ride out routine restarts, upgrades, drains and scale-downs, so when it fires the instance is up but its metrics are no longer being collected.
 
-The chart ships this as an `up == 0` rule with a 10-minute `for`, long enough that a normal restart resolves before it pages. (The managed-platform copy instead gates on `kube_pod_status_ready` from kube-state-metrics; either way the meaning is the same.)
-
 ## Impact
 
 The risk is what this hides. The lag, HA and replication alerts all read metrics from this exporter:
@@ -16,7 +14,7 @@ The risk is what this hides. The lag, HA and replication alerts all read metrics
 
 They are `expr > threshold` rules, so once the exporter goes silent there are no samples to evaluate and they never fire. While this alert is active, treat the other replication and HA alerts for this instance as blind.
 
-A hung exporter has previously coincided with a frozen standby: an `index_info` instrumentation query deadlocked on a replica, freezing WAL replay and the collector at the same time. Replication was stuck with no notification because the metric that measures it had stopped reporting.
+A hung exporter can coincide with a frozen standby, which is when replication is stuck with no notification because the metric that measures it had stopped reporting.
 
 ## Diagnosis
 
@@ -98,7 +96,6 @@ Look for collector errors, statement timeouts, or recovery-conflict / deadlock m
 
 ## Prevention
 
-- Avoid expensive or lock-taking functions in `.spec.monitoring` queries; prefer cheap, read-only `pg_stat_*` reads.
 - When this fires, audit whether other replication or HA alerts should have fired and were silenced.
 
 ## Quick Reference Commands
