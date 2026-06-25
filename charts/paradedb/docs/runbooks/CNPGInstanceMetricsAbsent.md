@@ -75,13 +75,13 @@ Look for collector errors, statement timeouts, or recovery-conflict / deadlock m
 
 ## Mitigation
 
-1. Terminate the stuck backend found in Step 3:
+1. Terminate the stuck backend found in Step 3, if applicable:
 
    ```bash
    kubectl exec --namespace <namespace> <pod-name> -- psql -c "SELECT pg_terminate_backend(<pid>);"
    ```
 
-2. If the hang comes from a monitoring query (for example the `index_info` instrumentation deadlocking on a replica), disable that instrumentation in the cluster's `.spec.monitoring` config until a fixed version is rolled out, then re-enable it after upgrading.
+2. If the hang comes from a monitoring query, disable that instrumentation in the cluster's `.spec.monitoring` config until a fixed version is rolled out, then re-enable it after upgrading.
 
 3. As a last resort, recycle the pod. Start with a standby, never the primary, to avoid an unnecessary failover:
 
@@ -98,7 +98,6 @@ Look for collector errors, statement timeouts, or recovery-conflict / deadlock m
 
 ## Prevention
 
-- Keep custom monitoring queries safe to run on standbys, not just primaries — exporter queries run on every instance.
 - Avoid expensive or lock-taking functions in `.spec.monitoring` queries; prefer cheap, read-only `pg_stat_*` reads.
 - When this fires, audit whether other replication or HA alerts should have fired and were silenced.
 
