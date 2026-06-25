@@ -73,7 +73,7 @@ kubectl logs --namespace cnpg-system -l "app.kubernetes.io/name=cloudnative-pg" 
 
 Look for collector errors, statement timeouts, or recovery-conflict / deadlock messages.
 
-## Mitigation
+## Resolution
 
 1. Terminate the stuck backend found in Step 3, if applicable:
 
@@ -100,6 +100,28 @@ Look for collector errors, statement timeouts, or recovery-conflict / deadlock m
 
 - Avoid expensive or lock-taking functions in `.spec.monitoring` queries; prefer cheap, read-only `pg_stat_*` reads.
 - When this fires, audit whether other replication or HA alerts should have fired and were silenced.
+
+## Quick Reference Commands
+
+```bash
+# Is the pod up and Ready?
+kubectl get pods --namespace <namespace> -l "cnpg.io/podRole=instance" -o wide
+
+# Is the metrics endpoint responding?
+kubectl exec --namespace <namespace> <pod-name> -- curl -sS --max-time 5 http://localhost:9187/metrics | grep cnpg_collector_up
+
+# What is the collector backend stuck on?
+kubectl exec --namespace <namespace> <pod-name> -- psql -c "
+SELECT pid, state, wait_event_type, wait_event, now() - query_start AS duration, left(query,120)
+FROM pg_stat_activity WHERE state <> 'idle' ORDER BY duration DESC NULLS LAST;"
+
+# Is replication actually frozen (run against the primary)?
+kubectl exec --namespace <namespace> services/<cluster_name>-rw -- psql -c "
+SELECT application_name, state, replay_lsn, replay_lag FROM pg_stat_replication;"
+
+# Last-resort restart (standby first)
+kubectl delete pod --namespace <namespace> <replica-pod-name>
+```
 
 ## When to Escalate
 
