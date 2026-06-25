@@ -4,20 +4,13 @@ alert: {{ $alert }}
 annotations:
   summary: ParadeDB CNPG metrics exporter hung
   description: |-
-    ParadeDB CNPG instance "{{ .namespace }}/{{ .labels.pod }}" is Ready but stopped exporting the metrics it was reporting an hour ago, so its metrics exporter is hung.
+    ParadeDB CNPG instance "{{ .namespace }}/{{ .labels.pod }}" has had an unreachable metrics endpoint for 10 minutes, so its metrics exporter is hung.
 
     The lag, HA and replication alerts all read from this exporter and will not fire while it is down. A hung exporter has previously coincided with a frozen standby, so physical replication may be stuck and unmonitored. Check the instance directly.
   runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/{{ $alert }}.md
 expr: |
-  (
-    count by (namespace, pod) (count_over_time(cnpg_collector_up{namespace="{{ .namespace }}",pod=~"{{ .podSelector }}"}[1h]))
-    unless
-    count by (namespace, pod) (cnpg_collector_up{namespace="{{ .namespace }}",pod=~"{{ .podSelector }}"})
-  )
-  and on (namespace, pod) (
-    kube_pod_status_ready{namespace="{{ .namespace }}",pod=~"{{ .podSelector }}",condition="true"} == 1
-  )
-for: 5m
+  up{namespace="{{ .namespace }}",pod=~"{{ .podSelector }}"} == 0
+for: 10m
 labels:
   severity: critical
   namespace: {{ .namespace }}

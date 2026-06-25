@@ -2,9 +2,9 @@
 
 ## Description
 
-This alert fires when a CloudNativePG instance is `Ready` but has stopped exporting its `cnpg_*` collector metrics, after reporting them within the last hour. The pod is healthy, so this is not a restart, upgrade, drain or scale-down — the instance's metrics exporter is hung.
+This alert fires when a running CloudNativePG instance has stopped exporting its `cnpg_*` collector metrics — the exporter is hung rather than restarting. It is built to ride out routine restarts, upgrades, drains and scale-downs, so when it fires the instance is up but its metrics are no longer being collected.
 
-Readiness comes from kube-state-metrics (`kube_pod_status_ready`), a separate exporter from the in-pod CNPG collector, so it keeps reporting even when the collector is stuck. This alert therefore requires kube-state-metrics to be present.
+The chart ships this as an `up == 0` rule with a 10-minute `for`, long enough that a normal restart resolves before it pages. (The managed-platform copy instead gates on `kube_pod_status_ready` from kube-state-metrics; either way the meaning is the same.)
 
 ## Impact
 
