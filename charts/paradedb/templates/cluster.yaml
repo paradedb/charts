@@ -98,12 +98,12 @@ spec:
       {{- toYaml . | nindent 6 }}
     {{ end }}
     parameters:
-      {{ if eq .Values.type "paradedb-enterprise" }}
+      {{- if eq .Values.type "paradedb-enterprise" }}
       hot_standby_feedback: "1"
-      {{ end }}
+      {{- end }}
       {{- with .Values.cluster.postgresql.parameters }}
-      {{ toYaml . | nindent 6 }}
-      {{ end }}
+      {{- toYaml . | nindent 6 }}
+      {{- end }}
       cron.database_name: postgres
 
   {{- with .Values.cluster.replicationSlots }}
