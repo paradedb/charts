@@ -10,11 +10,11 @@ metadata:
   labels:
   {{- include "cluster.labels" . | nindent 4 }}
   {{- with .Values.cluster.additionalLabels }}
-    {{ toYaml . | nindent 4 }}
+    {{- toYaml . | nindent 4 }}
   {{- end }}
 spec:
   instances: {{ .Values.cluster.instances }}
-  {{- include "cluster.image" . | nindent 2 }}
+  {{- include "cluster.image" . | trim | nindent 2 }}
   imagePullPolicy: {{ .Values.cluster.imagePullPolicy }}
   {{- with .Values.cluster.imagePullSecrets }}
   imagePullSecrets:
@@ -37,7 +37,7 @@ spec:
   {{- with .Values.cluster.resources }}
   resources:
     {{- toYaml . | nindent 4 }}
-  {{ end }}
+  {{- end }}
   {{- with .Values.cluster.affinity }}
   affinity:
     {{- toYaml . | nindent 4 }}
@@ -60,12 +60,12 @@ spec:
   {{- with .Values.cluster.certificates }}
   certificates:
     {{- toYaml . | nindent 4 }}
-  {{ end }}
+  {{- end }}
   enableSuperuserAccess: {{ .Values.cluster.enableSuperuserAccess }}
   {{- with .Values.cluster.superuserSecret }}
   superuserSecret:
     name: {{ . }}
-  {{ end }}
+  {{- end }}
   enablePDB: {{ .Values.cluster.enablePDB }}
   postgresql:
     {{- if or (eq .Values.type "paradedb") (eq .Values.type "paradedb-enterprise") (not (empty .Values.cluster.postgresql.shared_preload_libraries)) .Values.cluster.monitoring.instrumentation.pgStatStatements }}
@@ -96,7 +96,7 @@ spec:
     {{- with .Values.cluster.postgresql.synchronous }}
     synchronous:
       {{- toYaml . | nindent 6 }}
-    {{ end }}
+    {{- end }}
     parameters:
       {{- if eq .Values.type "paradedb-enterprise" }}
       hot_standby_feedback: "1"
@@ -116,11 +116,11 @@ spec:
     {{- with .Values.cluster.services }}
     services:
       {{- toYaml . | nindent 6 }}
-    {{ end }}
+    {{- end }}
     {{- with .Values.cluster.roles }}
     roles:
       {{- toYaml . | nindent 6 }}
-    {{ end }}
+    {{- end }}
   {{- end }}
 
   {{- with .Values.cluster.serviceAccountTemplate }}
@@ -131,12 +131,12 @@ spec:
   {{- with .Values.cluster.podSecurityContext }}
   podSecurityContext:
     {{- toYaml . | nindent 4 }}
-  {{ end }}
+  {{- end }}
 
   {{- with .Values.cluster.securityContext }}
   securityContext:
     {{- toYaml . | nindent 4 }}
-  {{ end }}
+  {{- end }}
 
   monitoring:
     disableDefaultQueries: {{ .Values.cluster.monitoring.disableDefaultQueries }}
@@ -167,10 +167,14 @@ spec:
     {{- with .Values.cluster.monitoring.customQueriesSecret }}
     customQueriesSecret:
       {{- toYaml . | nindent 6 }}
-    {{ end }}
+    {{- end }}
     {{- end }}
     tls:
       enabled: {{ .Values.cluster.monitoring.tls.enabled }}
-  {{ include "cluster.bootstrap" . | nindent 2 }}
-  {{ include "cluster.externalClusters" . | nindent 2 }}
-  {{ include "cluster.backup" . | nindent 2 }}
+  {{- include "cluster.bootstrap" . | nindent 2 }}
+  {{- with (include "cluster.externalClusters" . | trim) }}
+  {{- . | nindent 2 }}
+  {{- end }}
+  {{- with (include "cluster.backup" . | trim) }}
+  {{- . | nindent 2 }}
+  {{- end }}
