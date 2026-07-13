@@ -1,32 +1,43 @@
 <h1 align="center">
-  <a href="https://paradedb.com"><img src="https://raw.githubusercontent.com/paradedb/paradedb/dev/docs/logo/readme.svg" alt="ParadeDB"></a>
-<br>
+  <a href="https://paradedb.com">
+    <picture align=center>
+      <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/paradedb/paradedb/main/docs/logo/paradedb-logo-dark-large.svg">
+      <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/paradedb/paradedb/main/docs/logo/paradedb-logo-light-large.svg">
+      <img alt="The ParadeDB logo." src="https://raw.githubusercontent.com/paradedb/paradedb/main/docs/logo/paradedb-logo-light-large.svg">
+    </picture>
+  </a>
+  <br>
 </h1>
 
 <p align="center">
-    <b>Postgres for Search and Analytics</b> <br />
+  <b>Search without a second system.</b><br/>
+  One Postgres for your application data, full-text search, vector retrieval, and aggregations.
 </p>
 
 <h3 align="center">
   <a href="https://paradedb.com">Website</a> &bull;
   <a href="https://docs.paradedb.com">Docs</a> &bull;
-  <a href="https://join.slack.com/t/paradedbcommunity/shared_invite/zt-32abtyjg4-yoYoi~RPh9MSW8tDbl0BQw">Community</a> &bull;
+  <a href="https://paradedb.com/slack">Community</a> &bull;
   <a href="https://paradedb.com/blog/">Blog</a> &bull;
   <a href="https://docs.paradedb.com/changelog/">Changelog</a>
 </h3>
 
----
+<p align="center">
+  <a href="https://github.com/paradedb/charts/actions/workflows/paradedb-publish-chart.yml"><img src="https://github.com/paradedb/charts/actions/workflows/paradedb-publish-chart.yml/badge.svg" alt="Publish Helm Chart"></a>&nbsp;
+  <a href="https://artifacthub.io/packages/search?repo=paradedb"><img src="https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/paradedb" alt="Artifact Hub"></a>&nbsp;
+  <a href="https://hub.docker.com/r/paradedb/paradedb"><img src="https://img.shields.io/docker/pulls/paradedb/paradedb" alt="Docker Pulls"></a>&nbsp;
+  <a href="https://github.com/paradedb/charts/blob/main/LICENSE"><img src="https://img.shields.io/github/license/paradedb/charts?color=blue" alt="License"></a>&nbsp;
+  <a href="https://paradedb.com/slack"><img src="https://img.shields.io/badge/Community-Join%20Slack-purple?logo=slack" alt="Community"></a>&nbsp;
+  <a href="https://x.com/paradedb"><img src="https://img.shields.io/twitter/follow/paradedb" alt="Follow @paradedb"></a>
+</p>
 
-[![Publish Helm Chart](https://github.com/paradedb/charts/actions/workflows/paradedb-publish-chart.yml/badge.svg)](https://github.com/paradedb/charts/actions/workflows/paradedb-publish-chart.yml)
-[![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/paradedb)](https://artifacthub.io/packages/search?repo=paradedb)
-[![Docker Pulls](https://img.shields.io/docker/pulls/paradedb/paradedb)](https://hub.docker.com/r/paradedb/paradedb)
-[![License](https://img.shields.io/github/license/paradedb/charts?color=blue)](https://github.com/paradedb/charts/blob/main/LICENSE)
-[![Slack URL](https://img.shields.io/badge/Join%20Slack-purple?logo=slack&link=https%3A%2F%2Fjoin.slack.com%2Ft%2Fparadedbcommunity%2Fshared_invite%2Fzt-32abtyjg4-yoYoi~RPh9MSW8tDbl0BQw)](https://join.slack.com/t/paradedbcommunity/shared_invite/zt-32abtyjg4-yoYoi~RPh9MSW8tDbl0BQw)
-[![X URL](https://img.shields.io/twitter/url?url=https%3A%2F%2Ftwitter.com%2Fparadedb&label=Follow%20%40paradedb)](https://x.com/paradedb)
+---
 
 # ParadeDB Helm Chart
 
-The [ParadeDB](https://github.com/paradedb/paradedb) Helm Chart is based on the official [CloudNativePG Helm Chart](https://cloudnative-pg.io/). CloudNativePG is a Kubernetes operator that manages the full lifecycle of a highly available PostgreSQL database cluster with a primary/standby architecture using Postgres streaming (physical) replication.
+[ParadeDB](https://github.com/paradedb/paradedb) adds Elastic-quality full-text search, vector retrieval, and aggregations to Postgres with the `pg_search` extension. Your application data and your search engine live in one database, with no second system to deploy and nothing to sync.
+
+The ParadeDB Helm Chart is based on the official [CloudNativePG Helm Chart](https://cloudnative-pg.io/). CloudNativePG is a Kubernetes operator that manages the full lifecycle of a highly available PostgreSQL database cluster with a primary/standby architecture using Postgres streaming (physical) replication.
 
 Kubernetes, and specifically the CloudNativePG operator, is the recommended approach for deploying ParadeDB in production, with high availability. ParadeDB also provides a [Docker image](https://hub.docker.com/r/paradedb/paradedb) and [prebuilt binaries](https://github.com/paradedb/paradedb/releases) for Debian, Ubuntu, Red Hat Enterprise Linux, and macOS.
 
