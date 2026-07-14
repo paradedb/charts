@@ -184,10 +184,6 @@ Additionally, we recommend enabling the `kube-state-metrics` CRD monitoring and 
 There are several configuration examples in the [examples](examples) directory. Refer to them for a basic setup and
 refer to the [CloudNativePG Documentation](https://cloudnative-pg.io/documentation/current/) for more advanced configurations.
 
-## Requirements
-
-Kubernetes: `>=1.29.0-0`
-
 ## Values
 
 | Key | Type | Default | Description |
@@ -243,7 +239,7 @@ Kubernetes: `>=1.29.0-0`
 | cluster.imagePullPolicy | string | `"IfNotPresent"` | Image pull policy. One of Always, Never or IfNotPresent. If not defined, it defaults to IfNotPresent. Cannot be updated. More info: https://kubernetes.io/docs/concepts/containers/images#updating-images |
 | cluster.imagePullSecrets | list | `[]` | The list of pull secrets to be used to pull the images. See: https://cloudnative-pg.io/documentation/current/cloudnative-pg.v1/#postgresql-cnpg-io-v1-LocalObjectReference |
 | cluster.initdb | object | `{"database":"paradedb"}` | BootstrapInitDB is the configuration of the bootstrap process when initdb is used. See: https://cloudnative-pg.io/documentation/current/bootstrap/ See: https://cloudnative-pg.io/documentation/current/cloudnative-pg.v1/#postgresql-cnpg-io-v1-bootstrapinitdb |
-| cluster.instances | int | `3` | Number of instances |
+| cluster.instances | int | `1` | Number of instances |
 | cluster.logLevel | string | `"info"` | The instances' log level, one of the following values: error, warning, info (default), debug, trace |
 | cluster.monitoring.customQueries | list | `[]` | Custom Prometheus metrics Will be stored in the ConfigMap |
 | cluster.monitoring.customQueriesSecret | list | `[]` | The list of secrets containing the custom queries |
@@ -292,9 +288,9 @@ Kubernetes: `>=1.29.0-0`
 | mode | string | `"standalone"` | Cluster mode of operation. Available modes: * `standalone` - default mode. Creates new or updates an existing CNPG cluster. * `replica` - Creates a replica cluster from an existing CNPG cluster. * `recovery` - Same as standalone but creates a cluster from a backup, object store or via pg_basebackup. |
 | monitoring.grafanaDashboard.annotations | object | `{}` | Annotations that ConfigMaps can have to get configured in Grafana. |
 | monitoring.grafanaDashboard.configMapName | string | `"paradedb-grafana-dashboard"` | The name of the ConfigMap containing the dashboard. |
-| monitoring.grafanaDashboard.create | bool | `true` |  |
+| monitoring.grafanaDashboard.create | bool | `false` |  |
 | monitoring.grafanaDashboard.labels | object | `{"grafana_dashboard":"1"}` | Labels that ConfigMaps should have to get configured in Grafana. |
-| monitoring.grafanaDashboard.namespace | string | `"monitoring"` | Allows overriding the namespace where the ConfigMap will be created, defaulting to the same one as the Release. |
+| monitoring.grafanaDashboard.namespace | string | `""` | Allows overriding the namespace where the ConfigMap will be created, defaulting to the same one as the Release. |
 | nameOverride | string | `""` | Override the name of the chart |
 | namespaceOverride | string | `""` | Override the namespace of the chart |
 | poolers | list | `[]` | List of PgBouncer poolers |
@@ -338,8 +334,8 @@ Kubernetes: `>=1.29.0-0`
 | recovery.import.source.sslRootCertSecret.key | string | `""` |  |
 | recovery.import.source.sslRootCertSecret.name | string | `""` |  |
 | recovery.import.source.username | string | `""` |  |
-| recovery.import.type | string | `"microservice"` | One of `microservice` or `monolith`. See: https://cloudnative-pg.io/documentation/current/database_import/#how-it-works |
-| recovery.method | string | `"backup"` | Available recovery methods: * `backup` - Recovers a CNPG cluster from a CNPG backup (PITR supported) Needs to be on the same cluster in the same namespace. * `object_store` - Recovers a CNPG cluster from a barman object store (PITR supported). * `pg_basebackup` - Recovers a CNPG cluster via a streaming replication protocol. Useful if you want to migrate databases to CloudNativePG, even from outside Kubernetes. * `import` - Import one or more databases from an existing Postgres cluster. |
+| recovery.import.type | string | `"microservice"` | One of `microservice` or `monolith` See: https://cloudnative-pg.io/documentation/current/database_import/#how-it-works |
+| recovery.method | string | `"backup"` | Available recovery methods: * `backup` - Recovers a CNPG cluster from a CNPG backup (PITR supported) Needs to be on the same cluster in the same namespace. * `object_store` - Recovers a CNPG cluster from a barman object store (PITR supported). * `pg_basebackup` - Recovers a CNPG cluster via a streaming replication protocol. Useful if you want to        migrate databases to CloudNativePG, even from outside Kubernetes. * `import` - Import one or more databases from an existing Postgres cluster. |
 | recovery.owner | string | `""` | Name of the owner of the database in the instance to be used by applications. Defaults to the value of the `database` key. |
 | recovery.pgBaseBackup.database | string | `"paradedb"` | Name of the database used by the application. Default: `paradedb`. |
 | recovery.pgBaseBackup.owner | string | `""` | Name of the owner of the database in the instance to be used by applications. Defaults to the value of the `database` key. |
@@ -402,8 +398,10 @@ Kubernetes: `>=1.29.0-0`
 | replica.origin.objectStore.secret.name | string | `""` | Name of the backup credentials secret |
 | replica.origin.pg_basebackup.database | string | `""` |  |
 | replica.origin.pg_basebackup.host | string | `""` |  |
+| replica.origin.pg_basebackup.passwordSecret.create | bool | `false` | Whether to create a secret for the password |
 | replica.origin.pg_basebackup.passwordSecret.key | string | `""` |  |
 | replica.origin.pg_basebackup.passwordSecret.name | string | `""` |  |
+| replica.origin.pg_basebackup.passwordSecret.value | string | `""` | The password value to use when creating the secret |
 | replica.origin.pg_basebackup.port | int | `5432` |  |
 | replica.origin.pg_basebackup.sslCertSecret.key | string | `""` |  |
 | replica.origin.pg_basebackup.sslCertSecret.name | string | `""` |  |
@@ -417,7 +415,7 @@ Kubernetes: `>=1.29.0-0`
 | replica.promotionToken | string | `""` | A demotion token generated by an external cluster used to check if the promotion requirements are met. |
 | replica.self | string | `""` | Defines the name of this cluster. It is used to determine if this is a primary or a replica cluster, comparing it with primary. Leave empty by default. |
 | type | string | `"paradedb"` | Type of the CNPG database. Available types: * `paradedb` * `paradedb-enterprise` |
-| version.paradedb | string | `"0.24.0"` | We default to v0.24.0 for testing and local development |
+| version.paradedb | string | `"0.24.0"` | ParadeDB version to use |
 | version.postgresql | string | `"18"` | PostgreSQL major version to use |
 | poolers[].name | string | `` | Name of the pooler resource |
 | poolers[].instances | number | `1` | The number of replicas we want |
