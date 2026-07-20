@@ -357,7 +357,9 @@ refer to the [CloudNativePG Documentation](https://cloudnative-pg.io/documentati
 | recovery.pgBaseBackup.source.sslRootCertSecret.key | string | `""` |  |
 | recovery.pgBaseBackup.source.sslRootCertSecret.name | string | `""` |  |
 | recovery.pgBaseBackup.source.username | string | `""` |  |
-| recovery.pitrTarget | object | `{"time":""}` | Point in time recovery target. Specify one of the following: |
+| recovery.pitrTarget | object | `{"backupID":"","name":"","time":""}` | Point in time recovery target. Specify at most one of the following: |
+| recovery.pitrTarget.backupID | string | `""` | Backup to start the replay from, as the barman backup ID (the Backup's `.status.backupId`). CloudNativePG requires this whenever the target is a `name` (or LSN/xid): unlike `time`, those cannot be resolved to a base backup automatically. Leave empty when using `time`. |
+| recovery.pitrTarget.name | string | `""` | Named restore point created with `pg_create_restore_point`; targets an exact WAL location instead of a timestamp. An alternative to `time`. |
 | recovery.pitrTarget.time | string | `""` | Time in RFC3339 format |
 | recovery.provider | string | `"s3"` | One of `s3`, `azure` or `google` |
 | recovery.s3.accessKey | string | `""` |  |
