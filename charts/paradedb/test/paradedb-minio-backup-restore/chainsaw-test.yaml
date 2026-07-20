@@ -223,6 +223,38 @@ spec:
             name: data-test-object-store
         - podLogs:
             selector: batch.kubernetes.io/job-name=data-test-object-store
+    - name: Create a recovery cluster from backup with a named PITR target
+      try:
+        - script:
+            content: |
+              helm upgrade \
+                --install \
+                --namespace $NAMESPACE \
+                --values ./13-recovery_backup_pitr_name_cluster.yaml \
+                --set recovery.pitrTarget.name="no-bad-table" \
+                --wait \
+                recovery-backup-pitr-name ../../
+        - assert:
+            file: ./13-recovery_backup_pitr_name_cluster-assert.yaml
+      catch:
+        - describe:
+            apiVersion: postgresql.cnpg.io/v1
+            kind: Cluster
+        - podLogs:
+            selector: cnpg.io/cluster=recovery-backup-pitr-name-paradedb
+    - name: Verify the pre-backup data on the named-PITR recovery cluster exists but not the post-backup data
+      try:
+        - apply:
+            file: 14-data_test.yaml
+        - assert:
+            file: 14-data_test-assert.yaml
+      catch:
+        - describe:
+            apiVersion: batch/v1
+            kind: Job
+            name: data-test-backup-pitr-name
+        - podLogs:
+            selector: batch.kubernetes.io/job-name=data-test-backup-pitr-name
     - name: Cleanup
       try:
         - script:
@@ -230,3 +262,4 @@ spec:
               helm uninstall --namespace $NAMESPACE paradedb
               helm uninstall --namespace $NAMESPACE recovery-backup
               helm uninstall --namespace $NAMESPACE recovery-object-store
+              helm uninstall --namespace $NAMESPACE recovery-backup-pitr-name
