@@ -753,6 +753,9 @@
                     "properties": {
                         "time": {
                             "type": "string"
+                        },
+                        "name": {
+                            "type": "string"
                         }
                     }
                 },

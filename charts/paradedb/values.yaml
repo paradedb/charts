@@ -31,10 +31,13 @@ recovery:
   # * `import` - Import one or more databases from an existing Postgres cluster.
   method: backup
 
-  # -- Point in time recovery target. Specify one of the following:
+  # -- Point in time recovery target. Specify at most one of the following:
   pitrTarget:
     # -- Time in RFC3339 format
     time: ""
+    # -- Named restore point created with `pg_create_restore_point`; targets an exact WAL location
+    # instead of a timestamp. An alternative to `time`.
+    name: ""
 
   # -- Backup Recovery Method
   backupName: ""  # Name of the backup to recover from. Required if method is `backup`.
