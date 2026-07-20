@@ -1,7 +1,9 @@
 type: paradedb
 mode: recovery
 cluster:
-  instances: 2
+  # Single instance: this case only needs to prove a named PITR target reaches CNPG and stops at the
+  # right point, so keep the extra footprint on the kind/MinIO CI runner minimal.
+  instances: 1
   storage:
     size: 256Mi
 
