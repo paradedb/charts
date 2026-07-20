@@ -1,3 +1,9 @@
+##
+# Recovery directly from the barman object store with a named PITR target. Bootstraps from the
+# source cluster's archive (serverName `paradedb`) and replays WAL up to the `no-bad-table` restore
+# point created in 06, so the pre-restore-point table is recovered but the post-restore-point one is
+# not. object_store (not backup) recovery is used because that is how ParadeDB Cloud restores, and
+# because a named target with a CNPG Backup object additionally requires a backupID.
 type: paradedb
 mode: recovery
 cluster:
@@ -8,8 +14,11 @@ cluster:
     size: 256Mi
 
 recovery:
-  method: backup
-  backupName: "post-init-backup"
+  method: object_store
+  # serverName of the source cluster, i.e. its name in the object store.
+  clusterName: "paradedb"
+  pitrTarget:
+    name: "no-bad-table"
   provider: s3
   endpointURL: "https://minio.minio.svc.cluster.local"
   endpointCA:
