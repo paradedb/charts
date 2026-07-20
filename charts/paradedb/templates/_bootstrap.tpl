@@ -121,8 +121,11 @@ bootstrap:
       {{- end }}
   {{- else }}
   recovery:
-    {{- if or .Values.recovery.pitrTarget.time .Values.recovery.pitrTarget.name }}
+    {{- if or .Values.recovery.pitrTarget.time .Values.recovery.pitrTarget.name .Values.recovery.pitrTarget.backupID }}
     recoveryTarget:
+      {{- with .Values.recovery.pitrTarget.backupID }}
+      backupID: {{ . }}
+      {{- end }}
       {{- with .Values.recovery.pitrTarget.time }}
       targetTime: {{ . }}
       {{- end }}

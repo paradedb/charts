@@ -227,10 +227,14 @@ spec:
       try:
         - script:
             content: |
+              # A named target needs the base backup to start from: CNPG can't resolve a name to a
+              # backup the way it can a time. Take it from the source cluster's completed backup.
+              BACKUP_ID=$(kubectl -n $NAMESPACE get backup post-init-backup -o jsonpath='{.status.backupId}')
               helm upgrade \
                 --install \
                 --namespace $NAMESPACE \
                 --values ./13-recovery_pitr_name_cluster.yaml \
+                --set recovery.pitrTarget.backupID="$BACKUP_ID" \
                 --wait \
                 recovery-pitr-name ../../
         - assert:

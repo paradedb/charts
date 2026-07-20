@@ -756,6 +756,9 @@
                         },
                         "name": {
                             "type": "string"
+                        },
+                        "backupID": {
+                            "type": "string"
                         }
                     }
                 },
