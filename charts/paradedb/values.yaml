@@ -645,11 +645,7 @@ databases: []
  #   builtinLocale: ""              # -- Maps to the BUILTIN_LOCALE parameter. Available from PostgreSQL 17.
  #   collationVersion: ""           # -- Maps to the COLLATION_VERSION parameter.
 
-# -- Externally managed clusters, referenced by declarative `subscriptions` (and by CNPG's replica/import
-# bootstraps). Each entry is passed through verbatim as a CloudNativePG `externalClusters` item, so it
-# accepts the full CNPG schema (connectionParameters, password, sslKey/sslCert/sslRootCert secrets, or a
-# barmanObjectStore). This lets a `standalone` cluster reach an external "publisher" for logical replication.
-# See: https://cloudnative-pg.io/documentation/current/cloudnative-pg.v1/#postgresql-cnpg-io-v1-ExternalCluster
+# -- Externally managed clusters, referenced by declarative `subscriptions` (and by CNPG's replica/import bootstraps)
 externalClusters: []
  # - name: publisher                          # -- Name referenced by `subscriptions[].externalClusterName`.
  #   connectionParameters:
@@ -662,10 +658,7 @@ externalClusters: []
  #     name: publisher-credentials
  #     key: password
 
-# -- Declarative logical replication publications (CNPG `Publication` resources). Each entry publishes a
-# set of changes on a database in this cluster so that a subscriber can consume them, enabling
-# near-zero-downtime migrations (initial sync + ongoing replication) without a second system.
-# See: https://cloudnative-pg.io/documentation/current/logical_replication/#publications
+# -- Declarative logical replication publications (CNPG `Publication` resources)
 publications: []
  # - name: migration                # -- Name of the publication inside PostgreSQL.
  #   dbname: paradedb               # -- Database in this cluster the publication is created in.
@@ -681,10 +674,7 @@ publications: []
  #     #       schema: public
  #     #       columns: []
 
-# -- Declarative logical replication subscriptions (CNPG `Subscription` resources). Each entry subscribes a
-# database in this cluster to a publication on an external cluster listed in `externalClusters`. Combined
-# with `publications`, this offers a managed, near-zero-downtime migration path: sync, then cut over.
-# See: https://cloudnative-pg.io/documentation/current/logical_replication/#subscriptions
+# -- Declarative logical replication subscriptions (CNPG `Subscription` resources)
 subscriptions: []
  # - name: migration                # -- Name of the subscription inside PostgreSQL.
  #   dbname: paradedb               # -- Database in this cluster the subscription is created in.
