@@ -649,7 +649,7 @@ databases: []
 externalClusters: []
  # - name: publisher                          # -- Name referenced by `subscriptions[].externalClusterName`.
  #   connectionParameters:
- #     host: source-postgres.example.com       # -- Host of the external "publisher" Postgres.
+ #     host: source-postgres.example.com      # -- Host of the external "publisher" Postgres.
  #     port: "5432"
  #     user: postgres
  #     dbname: paradedb
