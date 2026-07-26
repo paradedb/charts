@@ -2,8 +2,7 @@
 # This test provisions a "publisher" ParadeDB cluster that declaratively publishes a table via a CNPG
 # `Publication`, and a "subscriber" ParadeDB cluster that consumes it via a CNPG `Subscription` pointing at
 # the publisher through a user-defined `externalClusters` entry. It verifies that a row written on the
-# publisher is replicated to the subscriber — the near-zero-downtime migration path (initial sync + ongoing
-# logical replication) that the chart's `publications`, `subscriptions` and `externalClusters` values enable.
+# publisher is replicated to the subscriber.
 apiVersion: chainsaw.kyverno.io/v1alpha1
 kind: Test
 metadata:
