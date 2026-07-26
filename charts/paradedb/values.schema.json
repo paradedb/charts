@@ -425,6 +425,9 @@
         "databases": {
             "type": "array"
         },
+        "externalClusters": {
+            "type": "array"
+        },
         "fullnameOverride": {
             "type": "string"
         },
@@ -479,6 +482,9 @@
             "type": "string"
         },
         "poolers": {
+            "type": "array"
+        },
+        "publications": {
             "type": "array"
         },
         "recovery": {
@@ -1020,6 +1026,9 @@
                     "type": "string"
                 }
             }
+        },
+        "subscriptions": {
+            "type": "array"
         },
         "type": {
             "type": "string"

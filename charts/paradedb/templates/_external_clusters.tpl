@@ -1,14 +1,14 @@
 {{- define "cluster.externalClusters" -}}
-{{- if eq .Values.mode "standalone" }}
-{{- else }}
+{{- $userClusters := .Values.externalClusters | default list -}}
+{{- if or (ne .Values.mode "standalone") (gt (len $userClusters) 0) }}
 externalClusters:
 {{- if eq .Values.mode "recovery" }}
   {{- if eq .Values.recovery.method "pg_basebackup" }}
   - name: pgBaseBackupSource
-     {{- include "cluster.externalSourceCluster" .Values.recovery.pgBaseBackup.source | nindent 4 }}
+    {{- include "cluster.externalSourceCluster" .Values.recovery.pgBaseBackup.source | nindent 4 }}
   {{- else if eq .Values.recovery.method "import" }}
   - name: importSource
-     {{- include "cluster.externalSourceCluster" .Values.recovery.import.source | nindent 4 }}
+    {{- include "cluster.externalSourceCluster" .Values.recovery.import.source | nindent 4 }}
   {{- else if eq .Values.recovery.method "object_store" }}
   - name: objectStoreRecoveryCluster
     barmanObjectStore:
@@ -27,8 +27,11 @@ externalClusters:
   {{- if not (empty .Values.replica.origin.pg_basebackup.host) }}
     {{- include "cluster.externalSourceCluster" .Values.replica.origin.pg_basebackup | nindent 4 }}
   {{- end }}
-{{- else }}
+{{- else if ne .Values.mode "standalone" }}
   {{ fail "Invalid cluster mode!" }}
+{{- end }}
+{{- range $userClusters }}
+  {{- toYaml (list .) | nindent 2 }}
 {{- end }}
 {{- end }}
 {{- end }}
