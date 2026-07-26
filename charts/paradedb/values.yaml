@@ -676,15 +676,15 @@ publications: []
 
 # -- Declarative logical replication subscriptions (CNPG `Subscription` resources)
 subscriptions: []
- # - name: migration                # -- Name of the subscription inside PostgreSQL.
- #   dbname: paradedb               # -- Database in this cluster the subscription is created in.
- #   externalClusterName: publisher # -- Name of the `externalClusters` entry hosting the publication.
- #   publicationName: migration     # -- Name of the publication on the external "publisher" cluster.
- #   publicationDBName: ""          # -- Database on the external cluster holding the publication. Defaults
- #                                  # to the one in the external cluster definition.
- #   cluster: ""                    # -- Subscriber cluster name. Defaults to this chart's cluster.
+ # - name: migration                    # -- Name of the subscription inside PostgreSQL.
+ #   dbname: paradedb                   # -- Database in this cluster the subscription is created in.
+ #   externalClusterName: publisher     # -- Name of the `externalClusters` entry hosting the publication.
+ #   publicationName: migration         # -- Name of the publication on the external "publisher" cluster.
+ #   publicationDBName: ""              # -- Database on the external cluster holding the publication. Defaults
+ #                                      # to the one in the external cluster definition.
+ #   cluster: ""                        # -- Subscriber cluster name. Defaults to this chart's cluster.
  #   subscriptionReclaimPolicy: retain  # -- One of: retain / delete (retain by default).
- #   parameters: {}                 # -- Parameters for the `WITH` clause of `CREATE SUBSCRIPTION`.
+ #   parameters: {}                     # -- Parameters for the `WITH` clause of `CREATE SUBSCRIPTION`.
 
 imageCatalog:
   # -- Whether to provision an image catalog. If imageCatalog.images is empty this option will be ignored.
