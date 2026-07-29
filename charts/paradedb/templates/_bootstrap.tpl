@@ -22,9 +22,9 @@ bootstrap:
     {{- if or (eq .Values.type "paradedb") (eq .Values.type "paradedb-enterprise") (not (empty .Values.cluster.initdb.postInitApplicationSQL)) }}
     postInitApplicationSQL:
       {{- if or (eq .Values.type "paradedb") (eq .Values.type "paradedb-enterprise") }}
+      - CREATE EXTENSION IF NOT EXISTS vector;
       - CREATE EXTENSION IF NOT EXISTS pg_search;
       - CREATE EXTENSION IF NOT EXISTS pg_ivm;
-      - CREATE EXTENSION IF NOT EXISTS vector;
       - CREATE EXTENSION IF NOT EXISTS postgis;
       - CREATE EXTENSION IF NOT EXISTS postgis_topology;
       - CREATE EXTENSION IF NOT EXISTS fuzzystrmatch;
@@ -43,9 +43,9 @@ bootstrap:
     {{- if or (eq .Values.type "paradedb") (eq .Values.type "paradedb-enterprise") (not (empty .Values.cluster.initdb.postInitTemplateSQL)) }}
     postInitTemplateSQL:
       {{- if or (eq .Values.type "paradedb") (eq .Values.type "paradedb-enterprise") }}
+      - CREATE EXTENSION IF NOT EXISTS vector;
       - CREATE EXTENSION IF NOT EXISTS pg_search;
       - CREATE EXTENSION IF NOT EXISTS pg_ivm;
-      - CREATE EXTENSION IF NOT EXISTS vector;
       - CREATE EXTENSION IF NOT EXISTS postgis;
       - CREATE EXTENSION IF NOT EXISTS postgis_topology;
       - CREATE EXTENSION IF NOT EXISTS fuzzystrmatch;
@@ -95,9 +95,9 @@ bootstrap:
       {{- end }}
       postImportApplicationSQL:
         {{- if or (eq .Values.type "paradedb") (eq .Values.type "paradedb-enterprise") }}
+        - CREATE EXTENSION IF NOT EXISTS vector;
         - CREATE EXTENSION IF NOT EXISTS pg_search;
         - CREATE EXTENSION IF NOT EXISTS pg_ivm;
-        - CREATE EXTENSION IF NOT EXISTS vector;
         - CREATE EXTENSION IF NOT EXISTS postgis;
         - CREATE EXTENSION IF NOT EXISTS postgis_topology;
         - CREATE EXTENSION IF NOT EXISTS fuzzystrmatch;
