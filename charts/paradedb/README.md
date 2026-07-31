@@ -251,6 +251,7 @@ refer to the [CloudNativePG Documentation](https://cloudnative-pg.io/documentati
 | cluster.monitoring.instrumentation.paradedbIndex | bool | `true` | Enable ParadeDB index metrics |
 | cluster.monitoring.instrumentation.pgStatActivity | bool | `true` | Enable pg_stat_activity long-running query metrics |
 | cluster.monitoring.instrumentation.pgStatStatements | bool | `true` | Enable planning and execution statistics for all SQL statements. Increases shared memory usage. |
+| cluster.monitoring.instrumentation.replication | bool | `true` | Enable WAL replay progress metrics. Runs against `postgres` rather than the application database, so it keeps reporting on a cluster whose application database is named something the metrics exporter cannot reach. |
 | cluster.monitoring.podMonitor.enabled | bool | `true` | Whether to enable the PodMonitor |
 | cluster.monitoring.podMonitor.labels | object | `{}` | Additional labels to set on the generated PodMonitor resource. Add labels your monitoring stack requires (for example `team-name`). |
 | cluster.monitoring.podMonitor.metricRelabelings | list | `[]` | The list of metric relabelings for the PodMonitor. Applied to samples before ingestion. |

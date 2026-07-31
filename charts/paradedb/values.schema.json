@@ -262,6 +262,9 @@
                                 },
                                 "pgStatStatements": {
                                     "type": "boolean"
+                                },
+                                "replication": {
+                                    "type": "boolean"
                                 }
                             }
                         },

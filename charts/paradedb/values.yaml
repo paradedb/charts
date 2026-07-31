@@ -317,6 +317,10 @@ cluster:
       pgStatStatements: true
       # -- Enable pg_stat_activity long-running query metrics
       pgStatActivity: true
+      # -- Enable WAL replay progress metrics. Runs against `postgres` rather than the application
+      # database, so it keeps reporting on a cluster whose application database is named something
+      # the metrics exporter cannot reach.
+      replication: true
     podMonitor:
       # -- Whether to enable the PodMonitor
       enabled: true

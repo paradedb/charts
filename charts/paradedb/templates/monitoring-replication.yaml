@@ -1,0 +1,32 @@
+{{- if .Values.cluster.monitoring.instrumentation.replication }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "cluster.fullname" . }}-monitoring-replication
+  namespace: {{ include "cluster.namespace" . }}
+  labels:
+    cnpg.io/reload: ""
+    {{- include "cluster.labels" . | nindent 4 }}
+data:
+  custom-queries: |
+    paradedb_replication:
+      query: |
+        SELECT CASE WHEN pg_is_in_recovery() THEN 1 ELSE 0 END AS in_recovery
+             , CASE WHEN pg_last_wal_receive_lsn() IS NOT NULL THEN 1 ELSE 0 END AS wal_received
+             , COALESCE(EXTRACT(epoch FROM (now() - pg_last_xact_replay_timestamp())), 0) AS replay_age_seconds
+             , COALESCE(pg_wal_lsn_diff(pg_last_wal_replay_lsn(), '0/0'), 0) AS replay_lsn_bytes;
+      target_databases: ["postgres"]
+      metrics:
+        - in_recovery:
+            description: 1 when this instance is a standby replaying WAL, 0 when it is the primary
+            usage: GAUGE
+        - wal_received:
+            description: 1 when this instance has received WAL over streaming replication since start, 0 when it replays only from the WAL archive
+            usage: GAUGE
+        - replay_age_seconds:
+            description: Seconds since the last transaction this instance replayed committed on the primary; 0 on a primary
+            usage: GAUGE
+        - replay_lsn_bytes:
+            description: WAL position replayed by this instance, in bytes; flat while replay is stalled and 0 on a primary
+            usage: GAUGE
+{{- end }}

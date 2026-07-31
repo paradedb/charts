@@ -22,6 +22,7 @@ cluster:
       logicalReplication: true
       pgStatStatements: true
       pgStatActivity: true
+      replication: true
     tls:
       enabled: true
     customQueries:
