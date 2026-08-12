@@ -1,16 +1,21 @@
-# CNPGClusterHACritical
+# CNPGClusterHA
 
 ## Description
 
-The `CNPGClusterHACritical` alert is triggered when the CloudNativePG cluster has no ready standby replicas.
+The `CNPGClusterHAWarning` and `CNPGClusterHACritical` alerts are triggered when the CloudNativePG cluster is short of ready standby replicas.
 
-This alert may occur during a regular failover or a planned automated version upgrade on two-instance clusters, as there is a brief period when only the primary remains active while a failover completes.
+- **Warning level**: fewer than two ready standby replicas
+- **Critical level**: no ready standby replicas
 
-On single-instance clusters, this alert will remain active at all times. If running with a single instance is intentional, consider silencing the alert.
+Either may occur briefly during a regular failover or a planned automated version upgrade, while only the primary is active and the failover completes.
+
+On a single-instance cluster both alerts remain active at all times, and on a two-instance cluster the warning does. If running with that many instances is intentional, consider silencing the alert.
 
 ## Impact
 
-Without standby replicas, the cluster will incur downtime if the primary fails. While the primary instance remains online and able to serve queries, connections through the `-ro` endpoint will fail.
+With fewer than two standby replicas, the `-ro` endpoint is at risk of downtime if the last replica fails. The cluster continues to function, but both the `-ro` and `-r` endpoints operate with reduced capacity.
+
+With no standby replicas at all, the cluster will incur downtime if the primary fails, and connections through the `-ro` endpoint fail immediately. The primary itself remains online and able to serve queries.
 
 ## Diagnosis
 
@@ -20,7 +25,7 @@ Identify the current primary instance using the [CloudNativePG Grafana Dashboard
 kubectl get -n <namespace> cluster/paradedb -o 'jsonpath={"Current Primary: "}{.status.currentPrimary}{"; Target Primary: "}{.status.targetPrimary}{"\n"}'
 ```
 
-Since the primary is the only instance serving queries, avoid making any changes that could disrupt it.
+Since the primary may be the only instance serving queries, avoid making any changes that could disrupt it.
 
 To inspect cluster health and instance status:
 

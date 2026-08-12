@@ -1,8 +1,11 @@
-# CNPGClusterHighConnectionsWarning
+# CNPGClusterHighConnections
 
 ## Description
 
-The `CNPGClusterHighConnectionsWarning` alert is triggered when the number of connections on the CloudNativePG cluster instance exceeds 85% of its configured capacity.
+The `CNPGClusterHighConnectionsWarning` and `CNPGClusterHighConnectionsCritical` alerts are triggered when the number of connections on a CloudNativePG cluster instance approaches its configured capacity.
+
+- **Warning level**: connections exceed 85% of capacity
+- **Critical level**: connections exceed 95% of capacity
 
 ## Impact
 
@@ -10,7 +13,7 @@ At 100% capacity, the instance will reject new connections, resulting in a servi
 
 ## Diagnosis
 
-Use the [CloudNativePG Grafana Dashboard](https://grafana.com/grafana/dashboards/20417-cloudnativepg/) to check the number of connections to the CloudNativePG cluster instances. Identify which instance is over capacity, and determine whether it is the primary or a standby replica.
+Use the [CloudNativePG Grafana Dashboard](https://grafana.com/grafana/dashboards/20417-cloudnativepg/) to inspect the number of connections to the CloudNativePG cluster instances. Identify which instance is over capacity, and determine whether it is the primary or a standby replica.
 
 You can check the current primary instance using the following command:
 

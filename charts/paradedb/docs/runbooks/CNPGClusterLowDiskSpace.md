@@ -1,8 +1,13 @@
-# CNPGClusterLowDiskSpaceWarning
+# CNPGClusterLowDiskSpace
 
 ## Description
 
-The `CNPGClusterLowDiskSpaceWarning` alert is triggered when disk usage on any CloudNativePG cluster volume exceeds 80%. It may occur on the following volumes:
+The `CNPGClusterLowDiskSpaceWarning` and `CNPGClusterLowDiskSpaceCritical` alerts are triggered when disk usage on any CloudNativePG cluster volume passes a threshold.
+
+- **Warning level**: disk usage exceeds 80%
+- **Critical level**: disk usage exceeds 90%
+
+They may occur on the following volumes:
 
 - The PVC hosting `PGDATA` (`storage` section)
 - The PVC hosting WAL files (`walStorage` section)
@@ -20,6 +25,6 @@ Check disk usage metrics in the [CloudNativePG Grafana Dashboard](https://grafan
 
 ## Mitigation
 
-If the WAL (Write-Ahead Logging) volume is filling and you have continuous archiving enabled, verify that WAL archiving is functioning correctly. A buildup of WAL files in `pg_wal` indicates an issue. Monitor the `cnpg_collector_pg_wal_archive_status` metric and ensure the number of `ready` files is not steadily increasing.
+If the WAL (Write-Ahead Logging) volume is filling and you have continuous archiving enabled, verify that WAL archiving is functioning correctly. A buildup of WAL files in `pg_wal` indicates an issue. Monitor the `cnpg_collector_pg_wal_archive_status` metric and ensure the number of `ready` files is not steadily increasing. If archiving has stopped, follow the [`CNPGContinuousArchivingFailed`](./CNPGContinuousArchivingFailed.md) runbook.
 
 For more details, see the [CloudNativePG documentation on resizing storage](https://cloudnative-pg.io/documentation/current/troubleshooting/#storage-is-full).
