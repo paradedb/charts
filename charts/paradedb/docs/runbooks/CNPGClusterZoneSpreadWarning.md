@@ -29,7 +29,7 @@ kubectl get nodes --label-columns topology.kubernetes.io/zone
 - Identify the current primary instance with the following command:
 
 ```bash
-kubectl get cluster paradedb -o 'jsonpath={"Current Primary: "}{.status.currentPrimary}{"; Target Primary: "}{.status.targetPrimary}{"\n"}' --namespace <namespace>
+kubectl get cluster <cluster-name> -o 'jsonpath={"Current Primary: "}{.status.currentPrimary}{"; Target Primary: "}{.status.targetPrimary}{"\n"}' --namespace <namespace>
 ```
 
 ## Mitigation

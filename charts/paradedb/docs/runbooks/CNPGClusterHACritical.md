@@ -17,7 +17,7 @@ Without standby replicas, the cluster will incur downtime if the primary fails. 
 Identify the current primary instance using the [CloudNativePG Grafana Dashboard](https://grafana.com/grafana/dashboards/20417-cloudnativepg/) or by running:
 
 ```bash
-kubectl get cluster paradedb -o 'jsonpath={"Current Primary: "}{.status.currentPrimary}{"; Target Primary: "}{.status.targetPrimary}{"\n"}' --namespace <namespace>
+kubectl get cluster <cluster-name> -o 'jsonpath={"Current Primary: "}{.status.currentPrimary}{"; Target Primary: "}{.status.targetPrimary}{"\n"}' --namespace <namespace>
 ```
 
 Since the primary is the only instance serving queries, avoid making any changes that could disrupt it.
@@ -39,7 +39,7 @@ kubectl describe --namespace <namespace> pod/<pod-name>
 - Inspect the cluster phase and reason:
 
 ```bash
-kubectl get cluster paradedb -o 'jsonpath={.status.phase}{"\n"}{.status.phaseReason}{"\n"}' --namespace <namespace>
+kubectl get cluster <cluster-name> -o 'jsonpath={.status.phase}{"\n"}{.status.phaseReason}{"\n"}' --namespace <namespace>
 ```
 
 - Inspect the logs of the affected CloudNativePG instances:

@@ -19,7 +19,7 @@ PostgreSQL stops applying changes when it hits a conflict and retries the same t
 - Confirm which subscription is failing and in which phase:
 
 ```bash
-kubectl exec --namespace <namespace> --stdin --tty services/<subscriber_cluster>-rw -- psql -c "
+kubectl exec --namespace <namespace> --stdin --tty services/<subscriber-cluster-name>-rw -- psql -c "
 SELECT
     s.subname,
     s.subenabled AS enabled,
@@ -56,7 +56,7 @@ Common causes, in rough order of frequency:
 - For a sync error, check which tables never reached a ready state:
 
 ```bash
-kubectl exec --namespace <namespace> --stdin --tty services/<subscriber_cluster>-rw -- psql -c "
+kubectl exec --namespace <namespace> --stdin --tty services/<subscriber-cluster-name>-rw -- psql -c "
 SELECT srrelid::regclass AS table_name, srsubstate AS state
 FROM pg_subscription_rel WHERE srsubstate NOT IN ('r', 's');
 "
@@ -65,8 +65,8 @@ FROM pg_subscription_rel WHERE srsubstate NOT IN ('r', 's');
 - Compare the definitions of the affected table on both clusters to rule out schema drift:
 
 ```bash
-kubectl exec --namespace <namespace> --stdin --tty services/<publisher_cluster>-rw -- psql -c "\d+ <table>"
-kubectl exec --namespace <namespace> --stdin --tty services/<subscriber_cluster>-rw -- psql -c "\d+ <table>"
+kubectl exec --namespace <namespace> --stdin --tty services/<publisher-cluster-name>-rw -- psql -c "\d+ <table>"
+kubectl exec --namespace <namespace> --stdin --tty services/<subscriber-cluster-name>-rw -- psql -c "\d+ <table>"
 ```
 
 ## Mitigation
@@ -76,7 +76,7 @@ kubectl exec --namespace <namespace> --stdin --tty services/<subscriber_cluster>
 This is the usual path. Remove or correct the conflicting row on the subscriber, and replication retries the transaction and resumes on its own — the transaction does not need to be skipped manually:
 
 ```sql
-DELETE FROM <table> WHERE <primary_key> = <conflicting_value>;
+DELETE FROM <table> WHERE <primary-key> = <conflicting-value>;
 ```
 
 Only delete the subscriber's row if the publisher's version should win.
@@ -84,7 +84,7 @@ Only delete the subscriber's row if the publisher's version should win.
 For schema drift, alter the subscriber's table to match the publisher, or create the missing table, then refresh the subscription:
 
 ```bash
-kubectl exec --namespace <namespace> --stdin --tty services/<subscriber_cluster>-rw -- psql -c "ALTER SUBSCRIPTION <subscription> REFRESH PUBLICATION;"
+kubectl exec --namespace <namespace> --stdin --tty services/<subscriber-cluster-name>-rw -- psql -c "ALTER SUBSCRIPTION <subscription> REFRESH PUBLICATION;"
 ```
 
 ### Skip the Transaction
@@ -103,7 +103,7 @@ ALTER SUBSCRIPTION <subscription> SKIP (lsn = '0/14C0378');
 If there are many conflicts, or the subscriber's state is unknown, re-copy the affected tables:
 
 ```bash
-kubectl exec --namespace <namespace> --stdin --tty services/<subscriber_cluster>-rw -- psql -c "
+kubectl exec --namespace <namespace> --stdin --tty services/<subscriber-cluster-name>-rw -- psql -c "
 ALTER SUBSCRIPTION <subscription> REFRESH PUBLICATION WITH (copy_data = true);
 "
 ```

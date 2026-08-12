@@ -23,7 +23,7 @@ kubectl get pods -A -l "cnpg.io/podRole=instance" -o json | jq -r '["Namespace",
 - Describe the cluster and check the affinity and tolerations configuration:
 
 ```bash
-kubectl describe --namespace <namespace> clusters.postgresql.cnpg.io/paradedb
+kubectl describe --namespace <namespace> clusters.postgresql.cnpg.io/<cluster-name>
 ```
 
 - Describe the pods:
