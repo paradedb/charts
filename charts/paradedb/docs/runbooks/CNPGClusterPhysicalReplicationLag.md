@@ -18,7 +18,7 @@ At the warning level, the staleness is usually tolerable for read-heavy workload
 Check replication status in the [CloudNativePG Grafana Dashboard](https://grafana.com/grafana/dashboards/20417-cloudnativepg/) or by running:
 
 ```bash
-kubectl exec --namespace <namespace> --stdin --tty services/<cluster-name>-rw -- psql -c "SELECT * FROM pg_stat_replication;"
+kubectl exec --namespace <namespace> --stdin --tty services/paradedb-rw -- psql -c "SELECT * FROM pg_stat_replication;"
 ```
 
 High physical replication lag can be caused by a number of factors:
@@ -34,7 +34,7 @@ kubectl top pods --namespace <namespace> -l "cnpg.io/podRole=instance"
 - Long-running transactions generating excessive changes. Inspect the `Stat Activity` section of the [CloudNativePG Grafana Dashboard](https://grafana.com/grafana/dashboards/20417-cloudnativepg/), or run:
 
 ```bash
-kubectl exec --namespace <namespace> --stdin --tty services/<cluster-name>-rw -- psql -c "
+kubectl exec --namespace <namespace> --stdin --tty services/paradedb-rw -- psql -c "
 SELECT pid, now() - query_start AS duration, query
 FROM pg_stat_activity
 WHERE state = 'active' AND now() - query_start > interval '5 minutes'
@@ -45,7 +45,7 @@ ORDER BY duration DESC;
 - Suboptimal PostgreSQL configuration, for example too few `max_wal_senders`. Inspect the `PostgreSQL Parameters` section of the [CloudNativePG Grafana Dashboard](https://grafana.com/grafana/dashboards/20417-cloudnativepg/), or run:
 
 ```bash
-kubectl exec --namespace <namespace> --stdin --tty services/<cluster-name>-rw -- psql -c "SHOW max_wal_senders; SHOW wal_compression;"
+kubectl exec --namespace <namespace> --stdin --tty services/paradedb-rw -- psql -c "SHOW max_wal_senders; SHOW wal_compression;"
 ```
 
 ## Mitigation
@@ -53,7 +53,7 @@ kubectl exec --namespace <namespace> --stdin --tty services/<cluster-name>-rw --
 - Terminate long-running transactions that generate excessive changes:
 
 ```bash
-kubectl exec --namespace <namespace> --stdin --tty services/<cluster-name>-rw -- psql -c "
+kubectl exec --namespace <namespace> --stdin --tty services/paradedb-rw -- psql -c "
 SELECT pg_terminate_backend(pid)
 FROM pg_stat_activity
 WHERE state = 'active'

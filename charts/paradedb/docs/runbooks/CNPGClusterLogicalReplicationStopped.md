@@ -19,7 +19,7 @@ The subscriber receives no updates from the publisher and its data becomes incre
 - Determine which of the two conditions applies:
 
 ```bash
-kubectl exec --namespace <namespace> --stdin --tty services/<subscriber-cluster-name>-rw -- psql -c "
+kubectl exec --namespace <namespace> --stdin --tty services/paradedb-rw -- psql -c "
 SELECT
     s.subname,
     s.subenabled AS enabled,
@@ -51,7 +51,7 @@ FROM pg_replication_slots WHERE slot_type = 'logical';
 - Check the worker limits on the subscriber. A subscription cannot start a worker if the pool is exhausted:
 
 ```bash
-kubectl exec --namespace <namespace> --stdin --tty services/<subscriber-cluster-name>-rw -- psql -c "
+kubectl exec --namespace <namespace> --stdin --tty services/paradedb-rw -- psql -c "
 SHOW max_logical_replication_workers;
 SHOW max_worker_processes;
 SELECT count(*) FROM pg_stat_activity WHERE backend_type = 'logical replication worker';
@@ -65,7 +65,7 @@ SELECT count(*) FROM pg_stat_activity WHERE backend_type = 'logical replication 
 Confirm the subscription was not disabled deliberately, for example during a maintenance window, then re-enable it:
 
 ```bash
-kubectl exec --namespace <namespace> --stdin --tty services/<subscriber-cluster-name>-rw -- psql -c "ALTER SUBSCRIPTION <subscription> ENABLE;"
+kubectl exec --namespace <namespace> --stdin --tty services/paradedb-rw -- psql -c "ALTER SUBSCRIPTION <subscription> ENABLE;"
 ```
 
 ### Stuck Subscription
@@ -75,7 +75,7 @@ kubectl exec --namespace <namespace> --stdin --tty services/<subscriber-cluster-
 - If a long-running transaction on the subscriber is blocking the apply worker, terminate it:
 
 ```bash
-kubectl exec --namespace <namespace> --stdin --tty services/<subscriber-cluster-name>-rw -- psql -c "
+kubectl exec --namespace <namespace> --stdin --tty services/paradedb-rw -- psql -c "
 SELECT pid, now() - query_start AS duration, query
 FROM pg_stat_activity
 WHERE state = 'active' AND now() - query_start > interval '10 minutes';
@@ -85,7 +85,7 @@ WHERE state = 'active' AND now() - query_start > interval '10 minutes';
 - Force the subscription to restart its worker:
 
 ```bash
-kubectl exec --namespace <namespace> --stdin --tty services/<subscriber-cluster-name>-rw -- psql -c "
+kubectl exec --namespace <namespace> --stdin --tty services/paradedb-rw -- psql -c "
 ALTER SUBSCRIPTION <subscription> DISABLE;
 ALTER SUBSCRIPTION <subscription> ENABLE;
 "
@@ -96,7 +96,7 @@ ALTER SUBSCRIPTION <subscription> ENABLE;
 If the publisher has already discarded the WAL the subscription needs, or its slot no longer exists, the subscription cannot catch up and the tables must be copied again:
 
 ```bash
-kubectl exec --namespace <namespace> --stdin --tty services/<subscriber-cluster-name>-rw -- psql -c "
+kubectl exec --namespace <namespace> --stdin --tty services/paradedb-rw -- psql -c "
 ALTER SUBSCRIPTION <subscription> REFRESH PUBLICATION WITH (copy_data = true);
 "
 ```

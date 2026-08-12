@@ -22,7 +22,7 @@ The cluster remains operational, but queries against the subscriber return stale
 - Identify which kind of lag is occurring:
 
 ```bash
-kubectl exec --namespace <namespace> --stdin --tty services/<subscriber-cluster-name>-rw -- psql -c "
+kubectl exec --namespace <namespace> --stdin --tty services/paradedb-rw -- psql -c "
 SELECT
     s.subname,
     s.subenabled AS enabled,
@@ -37,7 +37,7 @@ LEFT JOIN pg_stat_subscription ss ON s.oid = ss.subid;
 - For receipt lag, check connectivity to the publisher:
 
 ```bash
-kubectl exec --namespace <namespace> --stdin --tty services/<subscriber-cluster-name>-rw -- nc -zv <publisher-host> 5432
+kubectl exec --namespace <namespace> --stdin --tty services/paradedb-rw -- nc -zv <publisher-host> 5432
 ```
 
 - For apply lag, check resource usage and long-running queries on the subscriber:
@@ -47,7 +47,7 @@ kubectl top pods --namespace <namespace> -l "cnpg.io/podRole=instance"
 ```
 
 ```bash
-kubectl exec --namespace <namespace> --stdin --tty services/<subscriber-cluster-name>-rw -- psql -c "
+kubectl exec --namespace <namespace> --stdin --tty services/paradedb-rw -- psql -c "
 SELECT pid, now() - query_start AS duration, query
 FROM pg_stat_activity
 WHERE state = 'active' AND now() - query_start > interval '5 minutes'
@@ -58,7 +58,7 @@ ORDER BY duration DESC;
 - Verify the subscriber has enough worker processes. `max_worker_processes` must be at least `max_parallel_workers` plus `max_logical_replication_workers`:
 
 ```bash
-kubectl exec --namespace <namespace> --stdin --tty services/<subscriber-cluster-name>-rw -- psql -c "
+kubectl exec --namespace <namespace> --stdin --tty services/paradedb-rw -- psql -c "
 SHOW max_worker_processes; SHOW max_logical_replication_workers; SHOW max_parallel_workers;
 "
 ```

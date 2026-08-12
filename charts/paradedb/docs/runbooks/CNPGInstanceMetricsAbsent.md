@@ -48,7 +48,7 @@ ORDER BY duration DESC NULLS LAST;
 - On a standby, check from the primary whether replay is actually frozen:
 
 ```bash
-kubectl exec --namespace <namespace> --stdin --tty services/<cluster-name>-rw -- psql -c "
+kubectl exec --namespace <namespace> --stdin --tty services/paradedb-rw -- psql -c "
 SELECT application_name, state, replay_lsn, replay_lag FROM pg_stat_replication;
 "
 ```

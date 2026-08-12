@@ -19,7 +19,7 @@ The data volume also grows for as long as the condition persists, because Postgr
 - Inspect the cluster conditions:
 
 ```bash
-kubectl get cluster --namespace <namespace> <cluster-name> -o 'jsonpath={range .status.conditions[*]}{.type}={.status} {.message}{"\n"}{end}'
+kubectl get cluster paradedb -o 'jsonpath={range .status.conditions[*]}{.type}={.status} {.message}{"\n"}{end}' --namespace <namespace>
 ```
 
 `ContinuousArchiving=False` carries the underlying error. `exit status 4` from `barman-cloud-wal-archive` is a generic wrapper, so look for the real cause in the instance logs:
@@ -46,20 +46,20 @@ Compare what the pod holds against what the service account now advertises:
 
 ```bash
 kubectl get pod --namespace <namespace> <instance-pod-name> -o 'jsonpath={.spec.containers[0].env[?(@.name=="AWS_ROLE_ARN")].value}{"\n"}'
-kubectl get sa --namespace <namespace> <cluster-name> -o 'jsonpath={.metadata.annotations.eks\.amazonaws\.com/role-arn}{"\n"}'
+kubectl get sa --namespace <namespace> paradedb -o 'jsonpath={.metadata.annotations.eks\.amazonaws\.com/role-arn}{"\n"}'
 ```
 
 If they differ, the instances need new pods. A container restart is not enough, as the ARN is injected at pod admission and restarting in place preserves the stale value. Trigger a rolling restart:
 
 ```bash
-kubectl annotate cluster --namespace <namespace> <cluster-name> kubectl.kubernetes.io/restartedAt="$(date -u +%Y-%m-%dT%H:%M:%SZ)" --overwrite
+kubectl annotate cluster --namespace <namespace> paradedb kubectl.kubernetes.io/restartedAt="$(date -u +%Y-%m-%dT%H:%M:%SZ)" --overwrite
 ```
 
 > [!IMPORTANT]
 > CloudNativePG's default `primaryUpdateMethod` restarts the primary in place rather than recreating it. Verify afterwards that every instance pod is new: an instance whose `AGE` did not reset still holds the old ARN and must be deleted so the operator recreates it.
 
 ```bash
-kubectl get pods --namespace <namespace> -l "cnpg.io/cluster=<cluster-name>" -L cnpg.io/instanceRole
+kubectl get pods --namespace <namespace> -l "cnpg.io/cluster=paradedb" -L cnpg.io/instanceRole
 kubectl delete pod --namespace <namespace> <instance-pod-name>
 ```
 
