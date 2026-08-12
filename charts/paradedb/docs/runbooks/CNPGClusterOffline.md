@@ -32,4 +32,4 @@ kubectl logs -n cnpg-system -l "app.kubernetes.io/name=cloudnative-pg"
 
 ## Mitigation
 
-Refer to the [CloudNativePG Failure Modes](https://cloudnative-pg.io/documentation/current/failure_modes/) and [CloudNativePG Troubleshooting](https://cloudnative-pg.io/documentation/current/troubleshooting/) documentation for guidance on troubleshooting and recovery.
+For more details, see the [CloudNativePG Failure Modes](https://cloudnative-pg.io/documentation/current/failure_modes/) and [CloudNativePG Troubleshooting](https://cloudnative-pg.io/documentation/current/troubleshooting/) documentation.

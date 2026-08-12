@@ -28,7 +28,7 @@ kubectl get -n <namespace> cluster/paradedb -o 'jsonpath={range .status.conditio
 kubectl logs -n <namespace> pod/<instance-pod-name> -c postgres | grep -iE "archive|archiving|denied|credential"
 ```
 
-- Check free space on the data volume, which is the part of this with a deadline:
+- Check free space on the data volume, since the retained WAL grows until archiving recovers:
 
 ```bash
 kubectl exec -n <namespace> -it pod/<instance-pod-name> -c postgres -- df -h /var/lib/postgresql/data

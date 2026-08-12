@@ -6,19 +6,19 @@ The `CNPGInstanceMetricsAbsent` alert is triggered when a CloudNativePG instance
 
 ## Impact
 
-The risk is what this hides. The lag, HA and replication alerts all read metrics from this exporter:
+The instance keeps serving queries, so the risk is in what the missing metrics hide. The lag, HA and replication alerts all read from this exporter:
 
 - `CNPGClusterPhysicalReplicationLag*` reads `cnpg_pg_replication_lag`
 - `CNPGClusterHA*` reads `cnpg_pg_replication_streaming_replicas` and `cnpg_pg_replication_is_wal_receiver_up`
 - The logical replication alerts read `cnpg_pg_stat_subscription_*`
 
-These are all `expr > threshold` rules, so once the exporter goes silent there are no samples to evaluate and they cannot fire. While this alert is active, treat the other replication and HA alerts for the instance as blind. A hung exporter has previously coincided with a frozen standby, where replication was stuck with no notification because the metric that measures it had stopped reporting.
+These are all `expr > threshold` rules, so once the exporter goes silent there are no samples to evaluate and they cannot fire. While this alert is active, their silence means nothing for this instance. A hung exporter has previously coincided with a frozen standby, where replication was stuck and nothing alerted on it.
 
 ## Diagnosis
 
 The alert labels carry the `namespace`, `cluster` and `pod`.
 
-- Confirm the pod is up. If it is `Running` and `Ready`, it is alive but blind:
+- Confirm the pod is up. `Running` and `Ready` means the instance itself is healthy and only its exporter has failed:
 
 ```bash
 kubectl get -n <namespace> pods -l "cnpg.io/podRole=instance" -o wide

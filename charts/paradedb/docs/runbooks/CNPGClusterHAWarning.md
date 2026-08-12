@@ -58,11 +58,11 @@ kubectl logs -n cnpg-system -l "app.kubernetes.io/name=cloudnative-pg"
 
 ### Instance Failure
 
-First, consult the [CloudNativePG Failure Modes](https://cloudnative-pg.io/documentation/current/failure_modes/) and [CloudNativePG Troubleshooting](https://cloudnative-pg.io/documentation/current/troubleshooting/) documentation for more information on the conditions when CloudNativePG is unable to heal instances and standard troubleshooting steps.
+Start with the [CloudNativePG Failure Modes](https://cloudnative-pg.io/documentation/current/failure_modes/) and [CloudNativePG Troubleshooting](https://cloudnative-pg.io/documentation/current/troubleshooting/) documentation, which cover the conditions under which CloudNativePG cannot heal an instance on its own.
 
 ### Insufficient Storage
 
-If the above diagnosis commands indicate that an instance’s storage or WAL disk is full, increase the cluster storage size. Refer to the CloudNativePG documentation for more information on how to [Resize the CloudNativePG Cluster Storage](https://cloudnative-pg.io/documentation/current/troubleshooting/#storage-is-full).
+If the above diagnosis commands indicate that an instance's storage or WAL disk is full, increase the cluster storage size. For more details, see the [CloudNativePG documentation on resizing storage](https://cloudnative-pg.io/documentation/current/troubleshooting/#storage-is-full).
 
 ### Unknown
 

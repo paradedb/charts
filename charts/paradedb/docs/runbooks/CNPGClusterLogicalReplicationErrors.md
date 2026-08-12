@@ -31,7 +31,7 @@ LEFT JOIN pg_stat_subscription_stats sss ON s.oid = sss.subid;
 "
 ```
 
-- Find the error itself in the subscriber logs. The statistics counters say that something failed, but only the logs say what:
+- Find the error in the subscriber logs. The counters above only report that something failed:
 
 ```bash
 kubectl logs -n <namespace> pod/<instance-pod-name> --tail=200 | grep -i "logical replication\|conflict\|duplicate key"
@@ -46,7 +46,7 @@ CONTEXT: processing remote data for replication origin "pg_16395" during "INSERT
 for replication target relation "public.test" in transaction 725 finished at 0/14C0378
 ```
 
-Common causes, in rough order of frequency:
+Common causes:
 
 - Rows written directly on the subscriber that collide with replicated rows, giving unique or foreign key violations
 - Schema drift between publisher and subscriber, giving missing column or type errors
@@ -73,7 +73,7 @@ kubectl exec -n <namespace> -it services/paradedb-rw -- psql -c "\d+ <table>"
 
 ### Resolve the Conflict
 
-This is the usual path. Remove or correct the conflicting row on the subscriber, and replication retries the transaction and resumes on its own — the transaction does not need to be skipped manually:
+Remove or correct the conflicting row on the subscriber. Replication retries the transaction and resumes on its own, so there is no need to skip it manually:
 
 ```sql
 DELETE FROM <table> WHERE <primary-key> = <conflicting-value>;
@@ -110,4 +110,4 @@ ALTER SUBSCRIPTION <subscription> REFRESH PUBLICATION WITH (copy_data = true);
 
 This can take a long time on large tables. Treat it as a last resort.
 
-The most effective prevention is not writing to replicated tables on the subscriber, and applying schema changes to the subscriber before the publisher.
+To prevent a recurrence, do not write to replicated tables on the subscriber, and apply schema changes to the subscriber before the publisher.

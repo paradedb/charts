@@ -23,15 +23,15 @@ kubectl exec -n <namespace> -it services/paradedb-rw -- psql -c "SELECT * FROM p
 
 High physical replication lag can be caused by a number of factors:
 
-- Network congestion on the node interface, or insufficient bandwidth between the primary and its replicas. Inspect the network interface statistics using the `Kubernetes Cluster` section of the [CloudNativePG Grafana Dashboard](https://grafana.com/grafana/dashboards/20417-cloudnativepg/).
+- Network congestion on the node interface, or insufficient bandwidth between the primary and its replicas. Inspect the network interface statistics using the `Kubernetes Cluster` section of the Grafana dashboard.
 
-- High CPU or memory load on the primary or the replicas, or disk I/O bottlenecks on the replicas. Inspect the CPU, memory and disk I/O statistics using the [CloudNativePG Grafana Dashboard](https://grafana.com/grafana/dashboards/20417-cloudnativepg/), or run:
+- High CPU or memory load on the primary or the replicas, or disk I/O bottlenecks on the replicas. Inspect the CPU, memory and disk I/O statistics using the Grafana dashboard, or run:
 
 ```bash
 kubectl top -n <namespace> pods -l "cnpg.io/podRole=instance"
 ```
 
-- Long-running transactions generating excessive changes. Inspect the `Stat Activity` section of the [CloudNativePG Grafana Dashboard](https://grafana.com/grafana/dashboards/20417-cloudnativepg/), or run:
+- Long-running transactions generating excessive changes. Inspect the `Stat Activity` section of the Grafana dashboard, or run:
 
 ```bash
 kubectl exec -n <namespace> -it services/paradedb-rw -- psql -c "
@@ -42,7 +42,7 @@ ORDER BY duration DESC;
 "
 ```
 
-- Suboptimal PostgreSQL configuration, for example too few `max_wal_senders`. Inspect the `PostgreSQL Parameters` section of the [CloudNativePG Grafana Dashboard](https://grafana.com/grafana/dashboards/20417-cloudnativepg/), or run:
+- Suboptimal PostgreSQL configuration, for example too few `max_wal_senders`. Inspect the `PostgreSQL Parameters` section of the Grafana dashboard, or run:
 
 ```bash
 kubectl exec -n <namespace> -it services/paradedb-rw -- psql -c "SHOW max_wal_senders; SHOW wal_compression;"
@@ -62,7 +62,7 @@ WHERE state = 'active'
 "
 ```
 
-- Increase the Memory and CPU resources of the instances under heavy load. This can be done by setting `cluster.resources.requests` and `cluster.resources.limits` in your Helm values. Set both `requests` and `limits` to the same value to achieve QoS Guaranteed. This will require a restart of the CloudNativePG cluster instances and a primary switchover, which will cause a brief service disruption.
+- Increase the memory and CPU resources of the instances under heavy load. This can be done by setting `cluster.resources.requests` and `cluster.resources.limits` in your Helm values. Set both `requests` and `limits` to the same value to achieve QoS Guaranteed. This will require a restart of the CloudNativePG cluster instances and a primary switchover, which will cause a brief service disruption.
 
 - Enable `wal_compression` by setting the `cluster.postgresql.parameters.wal_compression` parameter to `on`. Doing so will reduce the size of the WAL files and can help reduce replication lag in a congested network. Changing `wal_compression` does not require a restart of the CloudNativePG cluster.
 

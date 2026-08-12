@@ -34,10 +34,10 @@ kubectl describe -n <namespace> pods -l "cnpg.io/podRole=instance"
 
 ## Mitigation
 
-- Verify that you have more than a single node with no taint preventing pods from being scheduled on these nodes.
+1. Verify that you have more than a single node with no taint preventing pods from being scheduled on these nodes.
 
-- Verify your [affinity](https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/), taints, and tolerations configuration.
+2. Verify your [affinity](https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/), taints, and tolerations configuration.
 
-- Increase the instance CPU and Memory resources so that no node can host more than one instance.
+3. Increase the instance CPU and memory resources so that no node can host more than one instance.
 
-For more information, please refer to the ["Scheduling"](https://cloudnative-pg.io/documentation/current/scheduling/) section of the documentation.
+For more details, see the [Scheduling](https://cloudnative-pg.io/documentation/current/scheduling/) section of the CloudNativePG documentation.

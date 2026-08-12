@@ -11,7 +11,7 @@ The `CNPGClusterLogicalReplicationLagging` and `CNPGClusterLogicalReplicationLag
 - **Warning level**: any of the above exceeds 60 seconds or 1GB
 - **Critical level**: any of the above exceeds 300 seconds or 4GB
 
-Which metric fired narrows the cause considerably: receipt lag points at the network between the two clusters, apply lag at resource contention on the subscriber.
+Which metric fired narrows the cause. Receipt lag points at the network between the two clusters, apply lag at resource contention on the subscriber.
 
 ## Impact
 
@@ -84,7 +84,7 @@ For receipt lag:
 
 For apply lag:
 
-- Increase the Memory and CPU resources of the subscriber by setting `cluster.resources.requests` and `cluster.resources.limits` in your Helm values.
+- Increase the memory and CPU resources of the subscriber by setting `cluster.resources.requests` and `cluster.resources.limits` in your Helm values.
 
 - Increase IOPS or throughput of the subscriber's storage if disk I/O is the bottleneck.
 
