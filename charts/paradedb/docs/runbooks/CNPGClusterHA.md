@@ -4,7 +4,7 @@
 
 The `CNPGClusterHAWarning` and `CNPGClusterHACritical` alerts are triggered when the CloudNativePG cluster is short of ready standby replicas.
 
-- **Warning level**: fewer than two ready standby replicas
+- **Warning level**: one ready standby replica
 - **Critical level**: no ready standby replicas
 
 Either may occur briefly during a regular failover or a planned automated version upgrade, while only the primary is active and the failover completes.
@@ -13,7 +13,7 @@ On a single-instance cluster both alerts remain active at all times, and on a tw
 
 ## Impact
 
-With fewer than two standby replicas, the `-ro` endpoint is at risk of downtime if the last replica fails. The cluster continues to function, but both the `-ro` and `-r` endpoints operate with reduced capacity.
+With a single standby replica, the `-ro` endpoint is at risk of downtime if that replica fails. The cluster continues to function, but both the `-ro` and `-r` endpoints operate with reduced capacity.
 
 With no standby replicas at all, the cluster will incur downtime if the primary fails, and connections through the `-ro` endpoint fail immediately. The primary itself remains online and able to serve queries.
 
