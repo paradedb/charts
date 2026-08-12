@@ -4,9 +4,6 @@ on:
   pull_request:
     branches-ignore:
       - "gh-pages"
-  # Lets the suite be run against a branch on demand. Without this it only ever
-  # runs as a side effect of a pull request, so a merge to `dev` re-tests nothing
-  # and a run lost to a flaky download cannot be retried except by pushing.
   workflow_dispatch:
 
 permissions: read-all
