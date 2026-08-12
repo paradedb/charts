@@ -19,19 +19,19 @@ The data volume also grows for as long as the condition persists, because Postgr
 - Inspect the cluster conditions:
 
 ```bash
-kubectl get cluster paradedb -o 'jsonpath={range .status.conditions[*]}{.type}={.status} {.message}{"\n"}{end}' --namespace <namespace>
+kubectl get -n <namespace> cluster/paradedb -o 'jsonpath={range .status.conditions[*]}{.type}={.status} {.message}{"\n"}{end}'
 ```
 
 `ContinuousArchiving=False` carries the underlying error. `exit status 4` from `barman-cloud-wal-archive` is a generic wrapper, so look for the real cause in the instance logs:
 
 ```bash
-kubectl logs --namespace <namespace> pod/<instance-pod-name> -c postgres | grep -iE "archive|archiving|denied|credential"
+kubectl logs -n <namespace> pod/<instance-pod-name> -c postgres | grep -iE "archive|archiving|denied|credential"
 ```
 
 - Check free space on the data volume, which is the part of this with a deadline:
 
 ```bash
-kubectl exec --namespace <namespace> pod/<instance-pod-name> -c postgres -- df -h /var/lib/postgresql/data
+kubectl exec -n <namespace> -it pod/<instance-pod-name> -c postgres -- df -h /var/lib/postgresql/data
 ```
 
 ## Mitigation
@@ -45,22 +45,22 @@ On EKS with IRSA, a common trigger is the IAM role being recreated or renamed. P
 Compare what the pod holds against what the service account now advertises:
 
 ```bash
-kubectl get pod --namespace <namespace> <instance-pod-name> -o 'jsonpath={.spec.containers[0].env[?(@.name=="AWS_ROLE_ARN")].value}{"\n"}'
-kubectl get sa --namespace <namespace> paradedb -o 'jsonpath={.metadata.annotations.eks\.amazonaws\.com/role-arn}{"\n"}'
+kubectl get -n <namespace> pod/<instance-pod-name> -o 'jsonpath={.spec.containers[0].env[?(@.name=="AWS_ROLE_ARN")].value}{"\n"}'
+kubectl get -n <namespace> sa/paradedb -o 'jsonpath={.metadata.annotations.eks\.amazonaws\.com/role-arn}{"\n"}'
 ```
 
 If they differ, the instances need new pods. A container restart is not enough, as the ARN is injected at pod admission and restarting in place preserves the stale value. Trigger a rolling restart:
 
 ```bash
-kubectl annotate cluster --namespace <namespace> paradedb kubectl.kubernetes.io/restartedAt="$(date -u +%Y-%m-%dT%H:%M:%SZ)" --overwrite
+kubectl annotate -n <namespace> cluster/paradedb kubectl.kubernetes.io/restartedAt="$(date -u +%Y-%m-%dT%H:%M:%SZ)" --overwrite
 ```
 
 > [!IMPORTANT]
 > CloudNativePG's default `primaryUpdateMethod` restarts the primary in place rather than recreating it. Verify afterwards that every instance pod is new: an instance whose `AGE` did not reset still holds the old ARN and must be deleted so the operator recreates it.
 
 ```bash
-kubectl get pods --namespace <namespace> -l "cnpg.io/cluster=paradedb" -L cnpg.io/instanceRole
-kubectl delete pod --namespace <namespace> <instance-pod-name>
+kubectl get -n <namespace> pods -l "cnpg.io/cluster=paradedb" -L cnpg.io/instanceRole
+kubectl delete -n <namespace> pod/<instance-pod-name>
 ```
 
 ### Object Store Configuration

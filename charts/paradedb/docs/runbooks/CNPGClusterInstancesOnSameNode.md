@@ -17,19 +17,19 @@ To investigate node placement of database pods:
 - List all database pods and their node assignments:
 
 ```bash
-kubectl get pods -A -l "cnpg.io/podRole=instance" -o json | jq -r '["Namespace", "Pod", "Node"], ( .items[] | [.metadata.namespace, .metadata.name, .spec.nodeName]) | @tsv' | column -t
+kubectl get -n <namespace> pods -l "cnpg.io/podRole=instance" -o json | jq -r '["Namespace", "Pod", "Node"], ( .items[] | [.metadata.namespace, .metadata.name, .spec.nodeName]) | @tsv' | column -t
 ```
 
 - Describe the cluster and check the affinity and tolerations configuration:
 
 ```bash
-kubectl describe --namespace <namespace> clusters.postgresql.cnpg.io/paradedb
+kubectl describe -n <namespace> cluster/paradedb
 ```
 
 - Describe the pods:
 
 ```bash
-kubectl describe pods -A -l "cnpg.io/podRole=instance"
+kubectl describe -n <namespace> pods -l "cnpg.io/podRole=instance"
 ```
 
 ## Mitigation

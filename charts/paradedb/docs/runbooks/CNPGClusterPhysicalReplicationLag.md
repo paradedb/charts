@@ -18,7 +18,7 @@ At the warning level, the staleness is usually tolerable for read-heavy workload
 Check replication status in the [CloudNativePG Grafana Dashboard](https://grafana.com/grafana/dashboards/20417-cloudnativepg/) or by running:
 
 ```bash
-kubectl exec --namespace <namespace> --stdin --tty services/paradedb-rw -- psql -c "SELECT * FROM pg_stat_replication;"
+kubectl exec -n <namespace> -it services/paradedb-rw -- psql -c "SELECT * FROM pg_stat_replication;"
 ```
 
 High physical replication lag can be caused by a number of factors:
@@ -28,13 +28,13 @@ High physical replication lag can be caused by a number of factors:
 - High CPU or memory load on the primary or the replicas, or disk I/O bottlenecks on the replicas. Inspect the CPU, memory and disk I/O statistics using the [CloudNativePG Grafana Dashboard](https://grafana.com/grafana/dashboards/20417-cloudnativepg/), or run:
 
 ```bash
-kubectl top pods --namespace <namespace> -l "cnpg.io/podRole=instance"
+kubectl top -n <namespace> pods -l "cnpg.io/podRole=instance"
 ```
 
 - Long-running transactions generating excessive changes. Inspect the `Stat Activity` section of the [CloudNativePG Grafana Dashboard](https://grafana.com/grafana/dashboards/20417-cloudnativepg/), or run:
 
 ```bash
-kubectl exec --namespace <namespace> --stdin --tty services/paradedb-rw -- psql -c "
+kubectl exec -n <namespace> -it services/paradedb-rw -- psql -c "
 SELECT pid, now() - query_start AS duration, query
 FROM pg_stat_activity
 WHERE state = 'active' AND now() - query_start > interval '5 minutes'
@@ -45,7 +45,7 @@ ORDER BY duration DESC;
 - Suboptimal PostgreSQL configuration, for example too few `max_wal_senders`. Inspect the `PostgreSQL Parameters` section of the [CloudNativePG Grafana Dashboard](https://grafana.com/grafana/dashboards/20417-cloudnativepg/), or run:
 
 ```bash
-kubectl exec --namespace <namespace> --stdin --tty services/paradedb-rw -- psql -c "SHOW max_wal_senders; SHOW wal_compression;"
+kubectl exec -n <namespace> -it services/paradedb-rw -- psql -c "SHOW max_wal_senders; SHOW wal_compression;"
 ```
 
 ## Mitigation
@@ -53,7 +53,7 @@ kubectl exec --namespace <namespace> --stdin --tty services/paradedb-rw -- psql 
 - Terminate long-running transactions that generate excessive changes:
 
 ```bash
-kubectl exec --namespace <namespace> --stdin --tty services/paradedb-rw -- psql -c "
+kubectl exec -n <namespace> -it services/paradedb-rw -- psql -c "
 SELECT pg_terminate_backend(pid)
 FROM pg_stat_activity
 WHERE state = 'active'
@@ -81,5 +81,5 @@ If you decide to go this route:
 4. Don't start with the active primary instance. Delete one of the standby replicas first.
 
 ```bash
-kubectl delete --namespace <namespace> pod/<pod-name> pvc/<pod-name> pvc/<pod-name>-wal
+kubectl delete -n <namespace> pod/<pod-name> pvc/<pod-name> pvc/<pod-name>-wal
 ```

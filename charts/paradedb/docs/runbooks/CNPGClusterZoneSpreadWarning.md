@@ -17,19 +17,19 @@ To investigate pod distribution across zones:
 - Get the status of the CloudNativePG cluster instances:
 
 ```bash
-kubectl get pods -A -l "cnpg.io/podRole=instance" -o wide
+kubectl get -n <namespace> pods -l "cnpg.io/podRole=instance" -o wide
 ```
 
 - Get the nodes and their respective zones:
 
 ```bash
-kubectl get nodes --label-columns topology.kubernetes.io/zone
+kubectl get nodes -L topology.kubernetes.io/zone
 ```
 
 - Identify the current primary instance with the following command:
 
 ```bash
-kubectl get cluster paradedb -o 'jsonpath={"Current Primary: "}{.status.currentPrimary}{"; Target Primary: "}{.status.targetPrimary}{"\n"}' --namespace <namespace>
+kubectl get -n <namespace> cluster/paradedb -o 'jsonpath={"Current Primary: "}{.status.currentPrimary}{"; Target Primary: "}{.status.targetPrimary}{"\n"}'
 ```
 
 ## Mitigation
@@ -46,5 +46,5 @@ Before doing so, carefully verify that:
 - You are not deleting the active primary instance.
 
 ```bash
-kubectl delete --namespace <namespace> pod/<pod-name> pvc/<pod-name> pvc/<pod-name>-wal
+kubectl delete -n <namespace> pod/<pod-name> pvc/<pod-name> pvc/<pod-name>-wal
 ```

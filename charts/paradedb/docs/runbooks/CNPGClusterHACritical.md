@@ -17,7 +17,7 @@ Without standby replicas, the cluster will incur downtime if the primary fails. 
 Identify the current primary instance using the [CloudNativePG Grafana Dashboard](https://grafana.com/grafana/dashboards/20417-cloudnativepg/) or by running:
 
 ```bash
-kubectl get cluster paradedb -o 'jsonpath={"Current Primary: "}{.status.currentPrimary}{"; Target Primary: "}{.status.targetPrimary}{"\n"}' --namespace <namespace>
+kubectl get -n <namespace> cluster/paradedb -o 'jsonpath={"Current Primary: "}{.status.currentPrimary}{"; Target Primary: "}{.status.targetPrimary}{"\n"}'
 ```
 
 Since the primary is the only instance serving queries, avoid making any changes that could disrupt it.
@@ -27,31 +27,31 @@ To inspect cluster health and instance status:
 - Get the status of the CloudNativePG cluster instances:
 
 ```bash
-kubectl get pods -A -l "cnpg.io/podRole=instance" -o wide
+kubectl get -n <namespace> pods -l "cnpg.io/podRole=instance" -o wide
 ```
 
 - If any pods are Pending, describe them to identify the cause:
 
 ```bash
-kubectl describe --namespace <namespace> pod/<pod-name>
+kubectl describe -n <namespace> pod/<pod-name>
 ```
 
 - Inspect the cluster phase and reason:
 
 ```bash
-kubectl get cluster paradedb -o 'jsonpath={.status.phase}{"\n"}{.status.phaseReason}{"\n"}' --namespace <namespace>
+kubectl get -n <namespace> cluster/paradedb -o 'jsonpath={.status.phase}{"\n"}{.status.phaseReason}{"\n"}'
 ```
 
 - Inspect the logs of the affected CloudNativePG instances:
 
 ```bash
-kubectl logs --namespace <namespace> pod/<instance-pod-name>
+kubectl logs -n <namespace> pod/<instance-pod-name>
 ```
 
 - Inspect the CloudNativePG operator logs:
 
 ```bash
-kubectl logs --namespace cnpg-system -l "app.kubernetes.io/name=cloudnative-pg"
+kubectl logs -n cnpg-system -l "app.kubernetes.io/name=cloudnative-pg"
 ```
 
 ## Mitigation
@@ -75,5 +75,5 @@ Before doing so, carefully verify that:
 - You are not deleting the active primary instance.
 
 ```bash
-kubectl delete --namespace <namespace> pod/<pod-name> pvc/<pod-name> pvc/<pod-name>-wal
+kubectl delete -n <namespace> pod/<pod-name> pvc/<pod-name> pvc/<pod-name>-wal
 ```
