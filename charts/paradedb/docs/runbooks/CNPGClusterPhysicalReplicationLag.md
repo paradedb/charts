@@ -70,15 +70,14 @@ WHERE state = 'active'
 
 - Increase IOPS or throughput of the storage used by the cluster to alleviate disk I/O bottlenecks. This requires creating a new storage class with higher IOPS/throughput and rebuilding cluster instances and their PVCs one by one using the new storage class. This is a slow process that will also affect the cluster's availability.
 
-If you decide to go this route:
+If you decide to go this route, start by creating a new storage class. Storage classes are immutable, so you cannot change the storage class of existing Persistent Volume Claims (PVCs). Then rebuild the instances onto it, starting with a standby rather than the primary.
 
-1. Start by creating a new storage class. Storage classes are immutable, so you cannot change the storage class of existing Persistent Volume Claims (PVCs).
-
-2. Make sure to only replace one instance at a time to avoid service disruption.
-
-3. Double check you are deleting the correct pod.
-
-4. Don't start with the active primary instance. Delete one of the standby replicas first.
+> [!IMPORTANT]
+> Recreate pods one at a time, to avoid increasing the load on the primary instance. Before deleting, verify that:
+>
+> - You are connected to the correct cluster.
+> - You are deleting the correct pod.
+> - You are not deleting the active primary instance.
 
 ```bash
 kubectl delete -n <namespace> pod/<pod-name> pvc/<pod-name> pvc/<pod-name>-wal

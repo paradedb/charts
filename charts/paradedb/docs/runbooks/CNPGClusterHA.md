@@ -71,13 +71,14 @@ If the above diagnosis commands indicate that an instance's storage or WAL disk 
 
 ### Unknown
 
-If the root cause remains unclear, recreating the affected pods can sometimes resolve the issue. Recreating a pod involves deleting the pod, its storage PVC, and its WAL storage PVC. This will trigger a full rebuild of the node from a base backup and can take several hours, depending on the size of the database. Note that pods should **always** be recreated one at a time to avoid increasing the load on the primary instance.
+If the root cause remains unclear, recreating the affected pods can sometimes resolve the issue. Recreating a pod involves deleting the pod, its storage PVC, and its WAL storage PVC. This triggers a full rebuild of the instance from a base backup and can take several hours, depending on the size of the database.
 
-Before doing so, carefully verify that:
-
-- You are connected to the correct cluster.
-- You are deleting the correct pod.
-- You are not deleting the active primary instance.
+> [!IMPORTANT]
+> Recreate pods one at a time, to avoid increasing the load on the primary instance. Before deleting, verify that:
+>
+> - You are connected to the correct cluster.
+> - You are deleting the correct pod.
+> - You are not deleting the active primary instance.
 
 ```bash
 kubectl delete -n <namespace> pod/<pod-name> pvc/<pod-name> pvc/<pod-name>-wal

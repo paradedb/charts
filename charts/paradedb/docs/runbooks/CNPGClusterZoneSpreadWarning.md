@@ -38,12 +38,14 @@ kubectl get -n <namespace> cluster/paradedb -o 'jsonpath={"Current Primary: "}{.
 
 2. Verify your [affinity](https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/), taints, and tolerations configuration.
 
-3. Delete pods and PVCs that are not in the desired availability zone. The CloudNativePG operator will automatically create replacement pods. Always delete pods one at a time to avoid placing excess load on the primary instance.
+3. Delete pods and PVCs that are not in the desired availability zone. The CloudNativePG operator will automatically create replacement pods.
 
-Before doing so, carefully verify that:
-
-- You are deleting the correct pod.
-- You are not deleting the active primary instance.
+> [!IMPORTANT]
+> Recreate pods one at a time, to avoid increasing the load on the primary instance. Before deleting, verify that:
+>
+> - You are connected to the correct cluster.
+> - You are deleting the correct pod.
+> - You are not deleting the active primary instance.
 
 ```bash
 kubectl delete -n <namespace> pod/<pod-name> pvc/<pod-name> pvc/<pod-name>-wal
