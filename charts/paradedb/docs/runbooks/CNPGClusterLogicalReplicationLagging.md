@@ -2,234 +2,102 @@
 
 ## Description
 
-The `CNPGClusterLogicalReplicationLagging` alert indicates that a CloudNativePG cluster with a logical replication subscription is falling behind its publisher. This alert aggregates three types of lag:
+The `CNPGClusterLogicalReplicationLagging` and `CNPGClusterLogicalReplicationLaggingCritical` alerts are triggered when a logical replication subscription falls behind its publisher. Three metrics can raise them:
 
-1. **Receipt Lag** (`cnpg_pg_stat_subscription_receipt_lag_seconds`): Time since the last WAL message was received from the publisher
-2. **Apply Lag** (`cnpg_pg_stat_subscription_apply_lag_seconds`): Time delay between receiving and actually applying changes
-3. **LSN Distance** (`cnpg_pg_stat_subscription_buffered_lag_bytes`): Amount of WAL data buffered but not yet applied (measured in bytes)
+- `cnpg_pg_stat_subscription_receipt_lag_seconds`: time since the last WAL message was received from the publisher
+- `cnpg_pg_stat_subscription_apply_lag_seconds`: delay between receiving changes and applying them
+- `cnpg_pg_stat_subscription_buffered_lag_bytes`: WAL data received but not yet applied
 
-- **Warning level**: Any lag metric exceeds 60s or 1GB
-- **Critical level**: Any lag metric exceeds 300s or 4GB
+- **Warning level**: any of the above exceeds 60 seconds or 1GB
+- **Critical level**: any of the above exceeds 300 seconds or 4GB
+
+Which metric fired narrows the cause considerably: receipt lag points at the network between the two clusters, apply lag at resource contention on the subscriber.
 
 ## Impact
 
-The cluster remains operational, but:
-- Queries to the subscriber will return stale data
-- Data inconsistency between publisher and subscriber
-- In critical cases, disk space on the publisher may fill up with unapplied WAL
-- Recovery time increases with lag duration
+The cluster remains operational, but queries against the subscriber return stale data and the divergence from the publisher grows for as long as the lag persists. The publisher also retains WAL for the subscription's replication slot, so a sustained lag consumes disk space there.
 
 ## Diagnosis
 
-### Step 1: Identify the Lag Type
-
-Connect to the subscriber and check the current state:
+- Identify which kind of lag is occurring:
 
 ```bash
-kubectl exec -it svc/SUBSCRIBER-CLUSTER-rw -n NAMESPACE -- psql -c "
+kubectl exec --namespace <namespace> --stdin --tty services/<subscriber_cluster>-rw -- psql -c "
 SELECT
     s.subname,
     s.subenabled AS enabled,
     EXTRACT(EPOCH FROM (NOW() - ss.last_msg_receipt_time)) AS receipt_lag_seconds,
     EXTRACT(EPOCH FROM (NOW() - ss.latest_end_time)) AS apply_lag_seconds,
-    COALESCE(pg_wal_lsn_diff(ss.received_lsn, ss.latest_end_lsn), 0) AS pending_bytes,
-    CASE
-        WHEN EXTRACT(EPOCH FROM (NOW() - ss.last_msg_receipt_time)) > 60 THEN 'High receipt lag'
-        WHEN EXTRACT(EPOCH FROM (NOW() - ss.latest_end_time)) > 60 THEN 'High apply lag'
-        WHEN COALESCE(pg_wal_lsn_diff(ss.received_lsn, ss.latest_end_lsn), 0) > 1024^3 THEN 'High LSN distance'
-        ELSE 'Healthy'
-    END as primary_issue
+    COALESCE(pg_wal_lsn_diff(ss.received_lsn, ss.latest_end_lsn), 0) AS pending_bytes
 FROM pg_subscription s
 LEFT JOIN pg_stat_subscription ss ON s.oid = ss.subid;
 "
 ```
 
-### Step 2: Check Network Connectivity
-
-For **receipt lag** issues:
+- For receipt lag, check connectivity to the publisher:
 
 ```bash
-# Check network latency between publisher and subscriber
-kubectl exec -it svc/SUBSCRIBER-CLUSTER-rw -n NAMESPACE -- \
-  ping -c 10 PUBLISHER-HOSTNAME
-
-# Check bandwidth (if tools are available)
-kubectl exec -it svc/SUBSCRIBER-CLUSTER-rw -n NAMESPACE -- \
-  nc -zv PUBLISHER-HOSTNAME 5432
+kubectl exec --namespace <namespace> --stdin --tty services/<subscriber_cluster>-rw -- nc -zv <publisher-host> 5432
 ```
 
-### Step 3: Check Resource Utilization
-
-For **apply lag** issues:
+- For apply lag, check resource usage and long-running queries on the subscriber:
 
 ```bash
-# Check CPU/Memory usage on subscriber
-kubectl top pod -n NAMESPACE -l app=postgresql
+kubectl top pods --namespace <namespace> -l "cnpg.io/podRole=instance"
+```
 
-# Check disk I/O
-kubectl exec -it svc/SUBSCRIBER-CLUSTER-rw -n NAMESPACE -- \
-  iostat -x 1 5
-
-# Check for long-running queries
-kubectl exec -it svc/SUBSCRIBER-CLUSTER-rw -n NAMESPACE -- psql -c "
-SELECT pid, now() - pg_stat_activity.query_start AS duration, query
+```bash
+kubectl exec --namespace <namespace> --stdin --tty services/<subscriber_cluster>-rw -- psql -c "
+SELECT pid, now() - query_start AS duration, query
 FROM pg_stat_activity
 WHERE state = 'active' AND now() - query_start > interval '5 minutes'
 ORDER BY duration DESC;
 "
 ```
 
-### Step 4: Check Configuration
+- Verify the subscriber has enough worker processes. `max_worker_processes` must be at least `max_parallel_workers` plus `max_logical_replication_workers`:
 
 ```bash
-# Verify replication worker settings
-kubectl exec -it svc/SUBSCRIBER-CLUSTER-rw -n NAMESPACE -- psql -c "
-SHOW max_worker_processes;
-SHOW max_logical_replication_workers;
-SHOW max_parallel_workers;
+kubectl exec --namespace <namespace> --stdin --tty services/<subscriber_cluster>-rw -- psql -c "
+SHOW max_worker_processes; SHOW max_logical_replication_workers; SHOW max_parallel_workers;
 "
-
-# Ensure adequate worker processes:
-# max_worker_processes >= max_parallel_workers + max_logical_replication_workers
 ```
 
-### Step 5: Monitor Trends
-
-Use the CloudNativePG Grafana Dashboard:
-- Navigate to the Logical Replication section
-- Examine all lag graphs over time
-- Check if lag is stable, increasing, or fluctuating
-- Correlate with workload spikes
-
-## Resolution
-
-### For Receipt Lag (Network Issues)
-
-1. **Check Network Latency**:
-   - Verify network connectivity between clusters
-   - Consider placing clusters in the same region/availability zone
-   - Check for network congestion or throttling
-
-2. **Optimize Network Configuration**:
-   ```yaml
-   # In the subscriber's postgresql configuration
-   postgresql:
-     parameters:
-       wal_sender_timeout: '60s'
-       wal_receiver_status_interval: '10s'
-   ```
-
-### For Apply Lag (Resource Issues)
-
-1. **Scale Up Resources**:
-   ```yaml
-   # Increase CPU/memory for the subscriber
-   resources:
-     requests:
-       cpu: 2
-       memory: 8Gi
-     limits:
-       cpu: 4
-       memory: 16Gi
-   ```
-
-2. **Optimize Disk I/O**:
-   - Use faster storage (SSD if not already)
-   - Consider increasing storage IOPS
-   - Check for disk bottlenecks
-
-3. **Tune PostgreSQL Settings**:
-   ```yaml
-   postgresql:
-     parameters:
-       # Increase for better write performance
-       wal_buffers: '16MB'
-       checkpoint_completion_target: 0.9
-       # Reduce checkpoint frequency
-       max_wal_size: '4GB'
-       min_wal_size: '1GB'
-   ```
-
-### For High Transaction Volume
-
-1. **Batch Large Transactions**:
-   - Break large transactions into smaller ones
-   - Use `COPY` instead of many INSERT statements
-
-2. **Consider Row Filtering**:
-   ```sql
-   -- Only replicate needed data
-   ALTER PUBLICATION publication_name SET (publish = 'insert, update, delete');
-   ALTER PUBLICATION publication_name ADD TABLE table_name WHERE (condition);
-   ```
-
-3. **Temporarily Disable Triggers**:
-   ```sql
-   -- On subscriber for performance-critical periods
-   ALTER TABLE table_name DISABLE TRIGGER ALL;
-   -- Remember to re-enable after
-   ```
-
-### General Tuning
-
-1. **Increase Replication Slots**:
-   ```yaml
-   # If multiple publications
-   postgresql:
-     parameters:
-       max_replication_slots: 10
-       max_wal_senders: 10
-   ```
-
-2. **Monitor and Restart**:
-   ```bash
-   # If subscriber is stuck
-   kubectl cnpg subscription restart SUBSCRIPTION-NAME -n NAMESPACE
-
-   # Or restart the entire cluster
-   kubectl cnpg restart SUBSCRIBER-CLUSTER -n NAMESPACE
-   ```
-
-## Prevention
-
-1. **Right-size Resources**:
-   - Allocate adequate CPU, memory, and storage IOPS
-   - Monitor resource utilization regularly
-
-2. **Network Optimization**:
-   - Place publisher and subscriber close to each other
-   - Use dedicated network connections if possible
-
-3. **Regular Monitoring**:
-   - Set up proactive monitoring before issues become critical
-   - Review lag trends regularly
-   - Set up automated scaling based on metrics
-
-4. **Maintenance Windows**:
-   - Schedule large data operations during low-traffic periods
-   - Consider pausing replication during major maintenance
-
-## Additional Commands
+- Check how much WAL the publisher is retaining for the subscription:
 
 ```bash
-# Check replication slot status
-kubectl exec -it svc/PUBLISHER-CLUSTER-rw -n NAMESPACE -- psql -c "
-SELECT slot_name, active, pg_size_pretty(pg_wal_lsn_diff(pg_current_wal_lsn(), restart_lsn)) as lag_bytes
-FROM pg_replication_slots
-WHERE slot_type = 'logical';
+kubectl exec --namespace <namespace> --stdin --tty services/<publisher_cluster>-rw -- psql -c "
+SELECT slot_name, active, pg_size_pretty(pg_wal_lsn_diff(pg_current_wal_lsn(), restart_lsn)) AS retained_wal
+FROM pg_replication_slots WHERE slot_type = 'logical';
 "
-
-# Force sync (if needed)
-kubectl cnpg subscription enable SUBSCRIPTION-NAME -n NAMESPACE
-
-# Check subscription details
-kubectl exec -it svc/SUBSCRIBER-CLUSTER-rw -n NAMESPACE -- psql -c "\dRs+"
 ```
 
-## When to Escalate
+- Review the lag graphs over time in the `Logical Replication` section of the [CloudNativePG Grafana Dashboard](https://grafana.com/grafana/dashboards/20417-cloudnativepg/) to establish whether the lag is stable, growing, or correlated with workload spikes.
 
-- Contact support if:
-  - Lag continues to increase despite optimization
-  - Network issues persist between clusters
-  - Resource utilization is at maximum but lag continues
-  - You experience frequent replication failures
+## Mitigation
+
+For receipt lag:
+
+- Check for network congestion or throttling between the two clusters. Where possible, run the publisher and subscriber in the same region.
+
+- Tune `cluster.postgresql.parameters.wal_receiver_status_interval` and `wal_sender_timeout` so that a slow link is not mistaken for a dead one.
+
+For apply lag:
+
+- Increase the Memory and CPU resources of the subscriber by setting `cluster.resources.requests` and `cluster.resources.limits` in your Helm values.
+
+- Increase IOPS or throughput of the subscriber's storage if disk I/O is the bottleneck.
+
+- Raise `cluster.postgresql.parameters.max_wal_size` and `wal_buffers` on the subscriber to reduce checkpoint pressure while a backlog is being applied.
+
+For a sustained high transaction volume:
+
+- Break large transactions into smaller ones on the publisher, and prefer `COPY` over large batches of individual `INSERT` statements.
+
+- Replicate less by narrowing the publication or adding row filters, so the subscriber has less to apply:
+
+```sql
+ALTER PUBLICATION <publication> ADD TABLE <table> WHERE (<condition>);
+```
+
+If the subscription is not lagging but stalled entirely, see the [`CNPGClusterLogicalReplicationStopped`](./CNPGClusterLogicalReplicationStopped.md) runbook.
