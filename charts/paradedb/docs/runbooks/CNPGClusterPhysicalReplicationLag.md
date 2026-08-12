@@ -62,6 +62,8 @@ WHERE state = 'active'
 "
 ```
 
+Terminating a backend is disruptive, and a query long enough to cause replication lag has usually tripped [`PostgreSQLLongRunningQueriesWarning`](./PostgreSQLLongRunningQueriesWarning.md) as well. That runbook covers which queries are safe to cancel and why `pg_cancel_backend` is preferred over terminating.
+
 - Increase the memory and CPU resources of the instances under heavy load. This can be done by setting `cluster.resources.requests` and `cluster.resources.limits` in your Helm values. Set both `requests` and `limits` to the same value to achieve QoS Guaranteed. This will require a restart of the CloudNativePG cluster instances and a primary switchover, which will cause a brief service disruption.
 
 - Enable `wal_compression` by setting the `cluster.postgresql.parameters.wal_compression` parameter to `on`. Doing so will reduce the size of the WAL files and can help reduce replication lag in a congested network. Changing `wal_compression` does not require a restart of the CloudNativePG cluster.
