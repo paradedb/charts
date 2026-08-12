@@ -7,8 +7,8 @@ The `CNPGClusterLogicalReplicationErrors` and `CNPGClusterLogicalReplicationErro
 - **Apply errors**: raised when applying changes received from the publisher
 - **Sync errors**: raised during the initial table synchronization
 
-- **Warning level**: any error in the last 5 minutes
-- **Critical level**: 5 or more errors in the last 5 minutes
+- **Warning level**: the subscription reports at least one error in the last 5 minutes
+- **Critical level**: the subscription reports 5 or more errors in the last 5 minutes
 
 ## Impact
 

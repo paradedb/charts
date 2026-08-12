@@ -2,7 +2,7 @@
 
 ## Description
 
-The `CNPGClusterZoneSpreadWarning` alert is triggered when pods are not evenly distributed across availability zones. To be more precise, the alert is raised when the number of pods exceeds the number of zones and the cluster runs in fewer than three zones.
+The `CNPGClusterZoneSpreadWarning` alert is triggered when pods are not evenly distributed across availability zones, specifically when the number of pods exceeds the number of zones and the cluster runs in fewer than three zones.
 
 This can be caused by insufficient nodes in the cluster or by misconfigured scheduling rules, such as pod affinity/anti-affinity rules or tolerations.
 
@@ -34,7 +34,7 @@ kubectl get -n <namespace> cluster/paradedb -o 'jsonpath={"Current Primary: "}{.
 
 ## Mitigation
 
-1. Verify that there are more than one schedulable node per availability zone, with no taints preventing pod placement.
+1. Verify that there are two or more schedulable nodes per availability zone, with no taints preventing pod placement.
 
 2. Verify your [affinity](https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/), taints, and tolerations configuration.
 

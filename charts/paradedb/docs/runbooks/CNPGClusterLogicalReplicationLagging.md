@@ -8,8 +8,8 @@ The `CNPGClusterLogicalReplicationLagging` and `CNPGClusterLogicalReplicationLag
 - `cnpg_pg_stat_subscription_apply_lag_seconds`: delay between receiving changes and applying them
 - `cnpg_pg_stat_subscription_buffered_lag_bytes`: WAL data received but not yet applied
 
-- **Warning level**: any of the above exceeds 60 seconds or 1GB
-- **Critical level**: any of the above exceeds 300 seconds or 4GB
+- **Warning level**: any of the above exceeds 60 seconds or 1 GB
+- **Critical level**: any of the above exceeds 300 seconds or 4 GB
 
 Which metric fired narrows the cause. Receipt lag points at the network between the two clusters, apply lag at resource contention on the subscriber.
 

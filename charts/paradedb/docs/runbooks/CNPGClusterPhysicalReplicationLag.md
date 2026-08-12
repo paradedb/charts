@@ -66,7 +66,7 @@ WHERE state = 'active'
 
 - Enable `wal_compression` by setting the `cluster.postgresql.parameters.wal_compression` parameter to `on`. Doing so will reduce the size of the WAL files and can help reduce replication lag in a congested network. Changing `wal_compression` does not require a restart of the CloudNativePG cluster.
 
-- In the event that the cluster has 9+ instances, ensure that the `cluster.postgresql.parameters.max_wal_senders` parameter is set to a value greater than or equal to the total number of instances in your cluster. The default of 10 is usually sufficient.
+- If the cluster has nine or more instances, ensure that the `cluster.postgresql.parameters.max_wal_senders` parameter is set to a value greater than or equal to the total number of instances in your cluster. The default of 10 is usually sufficient.
 
 - Increase IOPS or throughput of the storage used by the cluster to alleviate disk I/O bottlenecks. This requires creating a new storage class with higher IOPS/throughput and rebuilding cluster instances and their PVCs one by one using the new storage class. This is a slow process that will also affect the cluster's availability.
 

@@ -7,7 +7,7 @@ The `CNPGClusterLowDiskSpaceWarning` and `CNPGClusterLowDiskSpaceCritical` alert
 - **Warning level**: disk usage exceeds 80%
 - **Critical level**: disk usage exceeds 90%
 
-They may occur on the following volumes:
+Disk usage is measured on the following volumes:
 
 - The PVC hosting `PGDATA` (`storage` section)
 - The PVC hosting WAL files (`walStorage` section)
@@ -17,7 +17,7 @@ They may occur on the following volumes:
 
 At 100% disk usage, the cluster will experience downtime and potential data loss.
 
-High disk usage can also cause fragmentation, where files are split due to insufficient contiguous free space, significantly increasing random I/O and degrading performance. Disk fragmentation can start happening at ~80% disk space usage.
+High disk usage can also cause fragmentation, where files are split due to insufficient contiguous free space, significantly increasing random I/O and degrading performance. Disk fragmentation can begin at around 80% disk space usage.
 
 ## Diagnosis
 

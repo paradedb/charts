@@ -8,7 +8,7 @@ This can be caused by insufficient nodes in the cluster or misconfigured schedul
 
 ## Impact
 
-This configuration reduces high availability, as a node failure hosting multiple database pods will cause all of them to go down simultaneously.
+This configuration reduces high availability, as the failure of a node hosting multiple database pods will take all of them down at once.
 
 ## Diagnosis
 
@@ -34,7 +34,7 @@ kubectl describe -n <namespace> pods -l "cnpg.io/podRole=instance"
 
 ## Mitigation
 
-1. Verify that you have more than a single node with no taint preventing pods from being scheduled on these nodes.
+1. Verify that there are two or more schedulable nodes, with no taints preventing pod placement.
 
 2. Verify your [affinity](https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/), taints, and tolerations configuration.
 
