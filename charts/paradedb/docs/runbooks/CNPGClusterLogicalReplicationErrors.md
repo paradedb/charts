@@ -2,13 +2,12 @@
 
 ## Description
 
-The `CNPGClusterLogicalReplicationErrors` and `CNPGClusterLogicalReplicationErrorsCritical` alerts are triggered when a logical replication subscription reports errors. These come in two kinds:
-
-- **Apply errors**: raised when applying changes received from the publisher
-- **Sync errors**: raised during the initial table synchronization
+The `CNPGClusterLogicalReplicationErrors` and `CNPGClusterLogicalReplicationErrorsCritical` alerts are triggered when a logical replication subscription reports errors.
 
 - **Warning level**: the subscription reports at least one error in the last 5 minutes
 - **Critical level**: the subscription reports 5 or more errors in the last 5 minutes
+
+Both count apply errors, raised when applying changes received from the publisher, and sync errors, raised during the initial table synchronization.
 
 ## Impact
 
@@ -46,13 +45,6 @@ CONTEXT: processing remote data for replication origin "pg_16395" during "INSERT
 for replication target relation "public.test" in transaction 725 finished at 0/14C0378
 ```
 
-Common causes:
-
-- Rows written directly on the subscriber that collide with replicated rows, giving unique or foreign key violations
-- Schema drift between publisher and subscriber, giving missing column or type errors
-- A table that does not exist on the subscriber, which fails during initial sync
-- Insufficient privileges for the subscription owner on the target tables
-
 - For a sync error, check which tables never reached a ready state:
 
 ```bash
@@ -68,6 +60,13 @@ FROM pg_subscription_rel WHERE srsubstate NOT IN ('r', 's');
 kubectl exec -n <namespace> -it services/<publisher-cluster-name>-rw -- psql -c "\d+ <table>"
 kubectl exec -n <namespace> -it services/paradedb-rw -- psql -c "\d+ <table>"
 ```
+
+Whatever the logs show usually comes down to one of the following:
+
+- Rows written directly on the subscriber that collide with replicated rows, giving unique or foreign key violations
+- Schema drift between publisher and subscriber, giving missing column or type errors
+- A table that does not exist on the subscriber, which fails during initial sync
+- Insufficient privileges for the subscription owner on the target tables
 
 ## Mitigation
 

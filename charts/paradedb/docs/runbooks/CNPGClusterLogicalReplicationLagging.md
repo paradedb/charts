@@ -2,14 +2,16 @@
 
 ## Description
 
-The `CNPGClusterLogicalReplicationLagging` and `CNPGClusterLogicalReplicationLaggingCritical` alerts are triggered when a logical replication subscription falls behind its publisher. Three metrics can raise them:
+The `CNPGClusterLogicalReplicationLagging` and `CNPGClusterLogicalReplicationLaggingCritical` alerts are triggered when a logical replication subscription falls behind its publisher.
+
+- **Warning level**: any lag metric exceeds 60 seconds or 1 GB
+- **Critical level**: any lag metric exceeds 300 seconds or 4 GB
+
+Three metrics can raise them:
 
 - `cnpg_pg_stat_subscription_receipt_lag_seconds`: time since the last WAL message was received from the publisher
 - `cnpg_pg_stat_subscription_apply_lag_seconds`: delay between receiving changes and applying them
 - `cnpg_pg_stat_subscription_buffered_lag_bytes`: WAL data received but not yet applied
-
-- **Warning level**: any of the above exceeds 60 seconds or 1 GB
-- **Critical level**: any of the above exceeds 300 seconds or 4 GB
 
 Which metric fired narrows the cause. Receipt lag points at the network between the two clusters, apply lag at resource contention on the subscriber.
 

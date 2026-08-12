@@ -2,7 +2,7 @@
 
 ## Description
 
-The `CNPGClusterHAWarning` and `CNPGClusterHACritical` alerts are triggered when the CloudNativePG cluster is short of ready standby replicas.
+The `CNPGClusterHAWarning` and `CNPGClusterHACritical` alerts are triggered when the CloudNativePG cluster has fewer than two ready standby replicas.
 
 - **Warning level**: the cluster has one ready standby replica
 - **Critical level**: the cluster has no ready standby replicas

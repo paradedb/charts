@@ -2,13 +2,12 @@
 
 ## Description
 
-The `CNPGClusterLogicalReplicationStopped` and `CNPGClusterLogicalReplicationStoppedCritical` alerts are triggered when a logical replication subscription is not actively replicating data. This happens in one of two ways:
-
-- The subscription has been explicitly disabled (`subenabled = false`)
-- The subscription is enabled but has no worker process while data is still pending
+The `CNPGClusterLogicalReplicationStopped` and `CNPGClusterLogicalReplicationStoppedCritical` alerts are triggered when a logical replication subscription is not actively replicating data.
 
 - **Warning level**: the subscription has been stopped for 5 minutes
 - **Critical level**: the subscription has been stopped for 15 minutes
+
+A subscription counts as stopped either when it has been explicitly disabled (`subenabled = false`), or when it is enabled but has no worker process while data is still pending.
 
 ## Impact
 

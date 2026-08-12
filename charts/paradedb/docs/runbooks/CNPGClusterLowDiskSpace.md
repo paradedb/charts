@@ -2,7 +2,7 @@
 
 ## Description
 
-The `CNPGClusterLowDiskSpaceWarning` and `CNPGClusterLowDiskSpaceCritical` alerts are triggered when disk usage on any CloudNativePG cluster volume passes a threshold.
+The `CNPGClusterLowDiskSpaceWarning` and `CNPGClusterLowDiskSpaceCritical` alerts are triggered when a CloudNativePG cluster volume is running low on free space.
 
 - **Warning level**: disk usage exceeds 80%
 - **Critical level**: disk usage exceeds 90%
