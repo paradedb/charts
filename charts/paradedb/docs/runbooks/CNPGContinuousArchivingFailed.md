@@ -4,61 +4,67 @@
 
 The `CNPGContinuousArchivingFailed` alert is triggered when a CloudNativePG cluster's most recent WAL archival attempt failed more recently than its last successful one.
 
-This is a distinct condition from the backup alerts. `CNPGBackupFailed` and `CNPGBackupStale` both look at *base backups*. A cluster can report last nightly backup succeeded, e.g. `LastBackupSucceeded=True` and `Ready=True`, while every WAL segment since then has failed to ship.  This alert is designed to catch that situation.
+This is a separate condition from the backup alerts, which look at base backups. A cluster can report `LastBackupSucceeded=True` and `Ready=True` while every WAL segment written since the last base backup has failed to ship.
 
-The alert compares `cnpg_pg_stat_archiver_last_failed_time` against `cnpg_pg_stat_archiver_last_archived_time`, both exported by CloudNativePG's default metrics from `pg_stat_archiver`. Only the primary archives; replicas report `-1` for both and cannot trigger it.
+The alert compares `cnpg_pg_stat_archiver_last_failed_time` against `cnpg_pg_stat_archiver_last_archived_time`, both exported by CloudNativePG from `pg_stat_archiver`. Only the primary archives WAL; replicas report `-1` for both and cannot trigger the alert.
 
 ## Impact
 
-**Point-in-time recovery is frozen at the last archived segment.** Everything written since exists only on the instance's own volume. If the cluster is lost while this is firing, recovery goes back to that point regardless of how recent the last base backup was since the base backup alone cannot replay past its own timestamp.
+Point-in-time recovery is frozen at the last archived segment. Everything written since then exists only on the instance's own volume and is lost with the cluster, however recent the last base backup is.
 
-**The data volume grows.** PostgreSQL retains unarchived WAL rather than discarding it, precisely so the backlog can ship once archiving recovers. That is the desired behaviour, but it means the volume fills for as long as the condition persists, and a full PGDATA volume takes the database down.
-
+The data volume also grows for as long as the condition persists, because PostgreSQL retains unarchived WAL so that the backlog can ship once archiving recovers. At 100% disk usage, the cluster will experience downtime and potential data loss.
 
 ## Diagnosis
 
-Confirm the cluster's own view:
+- Inspect the cluster conditions:
 
-kubectl get cluster -n <namespace> <cluster> \
-  -o jsonpath='{range .status.conditions[*]}{.type}={.status} {.message}{"\n"}{end}'
+```bash
+kubectl get -n <namespace> cluster/paradedb -o 'jsonpath={range .status.conditions[*]}{.type}={.status} {.message}{"\n"}{end}'
 ```
 
-`ContinuousArchiving=False` carries the underlying error. `exit status 4` from `barman-cloud-wal-archive` is the generic wrapper — the real cause is in the instance logs:
+`ContinuousArchiving=False` carries the underlying error. `exit status 4` from `barman-cloud-wal-archive` is a generic wrapper, so look for the real cause in the instance logs:
 
-kubectl logs -n <namespace> <cluster>-<n> -c postgres | grep -iE "archiv|denied|credential"
+```bash
+kubectl logs -n <namespace> pod/<instance-pod-name> -c postgres | grep -iE "archive|archiving|denied|credential"
 ```
 
-Check headroom on the data volume, since this is the part with a deadline:
+- Check free space on the data volume, since the retained WAL grows until archiving recovers:
 
-kubectl exec -n <namespace> <cluster>-<n> -c postgres -- df -h /var/lib/postgresql/data
+```bash
+kubectl exec -n <namespace> -it pod/<instance-pod-name> -c postgres -- df -h /var/lib/postgresql/data
 ```
 
 ## Mitigation
 
-The cause is most often object store credentials rather than the object store itself.
+The cause is usually object store credentials rather than the object store itself.
 
-On EKS with IRSA, a common trigger is the IAM role being recreated or renamed. Pods receive `AWS_ROLE_ARN` at admission and keep it for their lifetime, so an instance that was running before the role changed holds an ARN that no longer resolves. It continues working on cached credentials until they expire, then fails to refresh — which is why the failure can appear hours after the change that caused it.
+### Stale IRSA Role
+
+On EKS with IRSA, a common trigger is the IAM role being recreated or renamed. Pods receive `AWS_ROLE_ARN` at admission and keep it for their lifetime, so an instance that was running before the role changed holds an ARN that no longer resolves. It keeps working on cached credentials until they expire, which is why the failure can appear hours after the change that caused it.
 
 Compare what the pod holds against what the service account now advertises:
 
-kubectl get pod -n <namespace> <cluster>-<n> \
-  -o jsonpath='{.spec.containers[0].env[?(@.name=="AWS_ROLE_ARN")].value}{"\n"}'
-kubectl get sa -n <namespace> <cluster> \
-  -o jsonpath='{.metadata.annotations.eks\.amazonaws\.com/role-arn}{"\n"}'
+```bash
+kubectl get -n <namespace> pod/<instance-pod-name> -o 'jsonpath={.spec.containers[0].env[?(@.name=="AWS_ROLE_ARN")].value}{"\n"}'
+kubectl get -n <namespace> sa/paradedb -o 'jsonpath={.metadata.annotations.eks\.amazonaws\.com/role-arn}{"\n"}'
 ```
 
-If they differ, the instances need genuinely new pods. A container restart is not enough — the ARN is injected at pod admission, so restarting in place preserves the stale value. Trigger a rolling restart:
+If they differ, the instances need new pods. A container restart is not enough, as the ARN is injected at pod admission and restarting in place preserves the stale value. Trigger a rolling restart:
 
-kubectl annotate cluster -n <namespace> <cluster> \
-  kubectl.kubernetes.io/restartedAt="$(date -u +%Y-%m-%dT%H:%M:%SZ)" --overwrite
+```bash
+kubectl annotate -n <namespace> cluster/paradedb kubectl.kubernetes.io/restartedAt="$(date -u +%Y-%m-%dT%H:%M:%SZ)" --overwrite
 ```
 
-Note that CloudNativePG's default `primaryUpdateMethod` restarts the primary in place rather than recreating it. Check afterwards that every instance pod is genuinely new — an instance whose `AGE` did not reset still holds the old ARN and must be deleted so it is recreated:
+> [!IMPORTANT]
+> CloudNativePG's default `primaryUpdateMethod` restarts the primary in place rather than recreating it. Verify afterwards that every instance pod is new: an instance whose `AGE` did not reset still holds the old ARN and must be deleted so the operator recreates it.
 
-kubectl get pods -n <namespace> -l cnpg.io/cluster=<cluster> -L cnpg.io/instanceRole
-kubectl delete pod -n <namespace> <cluster>-<n>
+```bash
+kubectl get -n <namespace> pods -l "cnpg.io/cluster=paradedb" -L cnpg.io/instanceRole
+kubectl delete -n <namespace> pod/<instance-pod-name>
 ```
 
-Once credentials work, archiving resumes on PostgreSQL's own retry and the backlog drains without intervention. Confirm with `ContinuousArchiving=True` and by watching the data volume free space recover.
+### Object Store Configuration
 
-If credentials are not the cause, check that the object store bucket and path in `.spec.backup.barmanObjectStore` still exist and that the bucket policy has not changed.
+If credentials are not the cause, verify that the bucket and path in `.spec.backup.barmanObjectStore` still exist and that the bucket policy has not changed.
+
+Once archiving works again, PostgreSQL retries on its own and the backlog drains without intervention. Confirm with `ContinuousArchiving=True` and by watching free space on the data volume recover.
