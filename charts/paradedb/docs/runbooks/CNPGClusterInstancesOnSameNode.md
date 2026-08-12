@@ -8,7 +8,7 @@ This can be caused by insufficient nodes in the cluster or misconfigured schedul
 
 ## Impact
 
-This configuration reduces high availability, as a node failure hosting multiple database pods will cause all of them to go down simultaneously.
+This configuration reduces high availability, as the failure of a node hosting multiple database pods will take all of them down at once.
 
 ## Diagnosis
 
@@ -17,27 +17,27 @@ To investigate node placement of database pods:
 - List all database pods and their node assignments:
 
 ```bash
-kubectl get pods -A -l "cnpg.io/podRole=instance" -o json | jq -r '["Namespace", "Pod", "Node"], ( .items[] | [.metadata.namespace, .metadata.name, .spec.nodeName]) | @tsv' | column -t
+kubectl get -n <namespace> pods -l "cnpg.io/podRole=instance" -o json | jq -r '["Namespace", "Pod", "Node"], ( .items[] | [.metadata.namespace, .metadata.name, .spec.nodeName]) | @tsv' | column -t
 ```
 
 - Describe the cluster and check the affinity and tolerations configuration:
 
 ```bash
-kubectl describe --namespace <namespace> clusters.postgresql.cnpg.io/paradedb
+kubectl describe -n <namespace> cluster/paradedb
 ```
 
 - Describe the pods:
 
 ```bash
-kubectl describe pods -A -l "cnpg.io/podRole=instance"
+kubectl describe -n <namespace> pods -l "cnpg.io/podRole=instance"
 ```
 
 ## Mitigation
 
-- Verify that you have more than a single node with no taint preventing pods from being scheduled on these nodes.
+1. Verify that there are two or more schedulable nodes, with no taints preventing pod placement.
 
-- Verify your [affinity](https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/), taints, and tolerations configuration.
+2. Verify your [affinity](https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/), taints, and tolerations configuration.
 
-- Increase the instance CPU and Memory resources so that no node can host more than one instance.
+3. Increase the instance CPU and memory resources so that no node can host more than one instance.
 
-For more information, please refer to the ["Scheduling"](https://cloudnative-pg.io/documentation/current/scheduling/) section of the documentation.
+For more details, see the [Scheduling](https://cloudnative-pg.io/documentation/current/scheduling/) section of the CloudNativePG documentation.

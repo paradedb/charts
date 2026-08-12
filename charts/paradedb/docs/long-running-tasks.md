@@ -14,7 +14,7 @@ By setting `cluster.console.enabled=true`, the chart deploys a StatefulSet with 
 To use the console pod, you can run the following command:
 
 ```bash
-kubectl --namespace <namespace> exec --stdin --tty statefulset/<cluster-name>-console -- bash
+kubectl exec -n <namespace> -it statefulset/paradedb-console -- bash
 ```
 
 ## Database credentials

@@ -1,8 +1,11 @@
-# CNPGClusterHighConnectionsCritical
+# CNPGClusterHighConnections
 
 ## Description
 
-The `CNPGClusterHighConnectionsCritical` alert is triggered when the number of connections on the CloudNativePG cluster instance exceeds 95% of its configured capacity.
+The `CNPGClusterHighConnectionsWarning` and `CNPGClusterHighConnectionsCritical` alerts are triggered when the number of connections on a CloudNativePG cluster instance approaches the instance's `max_connections` limit.
+
+- **Warning level**: connections exceed 80% of capacity
+- **Critical level**: connections exceed 95% of capacity
 
 ## Impact
 
@@ -15,7 +18,7 @@ Use the [CloudNativePG Grafana Dashboard](https://grafana.com/grafana/dashboards
 You can check the current primary instance using the following command:
 
 ```bash
-kubectl get cluster paradedb -o 'jsonpath={"Current Primary: "}{.status.currentPrimary}{"; Target Primary: "}{.status.targetPrimary}{"\n"}' --namespace <namespace>
+kubectl get -n <namespace> cluster/paradedb -o 'jsonpath={"Current Primary: "}{.status.currentPrimary}{"; Target Primary: "}{.status.targetPrimary}{"\n"}'
 ```
 
 ## Mitigation

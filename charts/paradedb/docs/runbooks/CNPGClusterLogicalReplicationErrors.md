@@ -2,384 +2,111 @@
 
 ## Description
 
-The `CNPGClusterLogicalReplicationErrors` alert indicates that a logical replication subscription is experiencing errors during data replication. This includes:
+The `CNPGClusterLogicalReplicationErrors` and `CNPGClusterLogicalReplicationErrorsCritical` alerts are triggered when a logical replication subscription reports errors.
 
-1. **Apply Errors**: Errors that occur when applying received changes from the publisher
-2. **Sync Errors**: Errors that occur during the initial table synchronization phase
+- **Warning level**: the subscription reports at least one error in the last 5 minutes
+- **Critical level**: the subscription reports 5 or more errors in the last 5 minutes
 
-- **Warning level**: Any error detected in the last 5 minutes
-- **Critical level**: 5 or more errors in the last 5 minutes
+Both count apply errors, raised when applying changes received from the publisher, and sync errors, raised during the initial table synchronization.
 
 ## Impact
 
-- **Data Inconsistency**: The subscriber may have missing or incorrect data
-- **Replication Paused**: Depending on configuration, replication might stop on errors
-- **Growing Lag**: Errors can cause replication to fall behind
-- **Critical**: Persistent errors may lead to complete replication failure
+PostgreSQL stops applying changes when it hits a conflict and retries the same transaction, so the subscription makes no progress until the conflict is resolved. The subscriber's data diverges from the publisher, and the publisher retains WAL for the subscription's replication slot in the meantime.
 
 ## Diagnosis
 
-### Step 1: Check Error Details
+- Confirm which subscription is failing and in which phase:
 
 ```bash
-# Connect to the subscriber and check subscription status
-kubectl exec -it svc/SUBSCRIBER-CLUSTER-rw -n NAMESPACE -- psql -c "
+kubectl exec -n <namespace> -it services/paradedb-rw -- psql -c "
 SELECT
     s.subname,
-    s.subenabled,
+    s.subenabled AS enabled,
     COALESCE(sss.apply_error_count, 0) AS apply_error_count,
     COALESCE(sss.sync_error_count, 0) AS sync_error_count,
     sss.stats_reset
 FROM pg_subscription s
-LEFT JOIN pg_stat_subscription_stats sss ON s.oid = sss.subid
-WHERE COALESCE(sss.apply_error_count, 0) > 0 OR COALESCE(sss.sync_error_count, 0) > 0;
-"
-
-# Check the last error message
-kubectl exec -it svc/SUBSCRIBER-CLUSTER-rw -n NAMESPACE -- psql -c "
-SELECT
-    s.subname,
-    ss.last_msg_receipt_time,
-    ss.latest_end_time,
-    CASE
-        WHEN COALESCE(sss.apply_error_count, 0) > 0 THEN 'Apply errors detected'
-        WHEN COALESCE(sss.sync_error_count, 0) > 0 THEN 'Sync errors detected'
-        ELSE 'No errors detected'
-    END as error_type
-FROM pg_subscription s
-LEFT JOIN pg_stat_subscription ss ON s.oid = ss.subid
 LEFT JOIN pg_stat_subscription_stats sss ON s.oid = sss.subid;
 "
 ```
 
-### Step 2: Check PostgreSQL Logs
+- Find the error in the subscriber logs. The counters above only report that something failed:
 
 ```bash
-# Get the pod name
-POD=$(kubectl get pods -n NAMESPACE -l app=postgresql -o name | head -1 | cut -d/ -f2)
-
-# Check recent logs for errors
-kubectl logs -n NAMESPACE $POD --tail=100 | grep -i "replication\|subscription\|error"
-
-# Stream logs for real-time monitoring
-kubectl logs -n NAMESPACE $POD -f | grep -i "replication\|subscription\|error"
+kubectl logs -n <namespace> pod/<instance-pod-name> --tail=200 | grep -i "logical replication\|conflict\|duplicate key"
 ```
 
-### Step 3: Identify Common Error Patterns
+A conflict is logged with the table and key involved:
 
-1. **Constraint Violations**:
-   ```bash
-   kubectl logs -n NAMESPACE $POD | grep "violates.*constraint"
-   ```
-
-2. **Permission Issues**:
-   ```bash
-   kubectl logs -n NAMESPACE $POD | grep "permission denied\|role"
-   ```
-
-3. **Data Type Mismatches**:
-   ```bash
-   kubectl logs -n NAMESPACE $POD | grep "invalid input syntax\|datatype"
-   ```
-
-4. **Connection Issues**:
-   ```bash
-   kubectl logs -n NAMESPACE $POD | grep "connection\|timeout"
-   ```
-
-### Step 4: Verify Publication/Subscription Configuration
-
-```bash
-# On publisher - check publication tables
-kubectl exec -it svc/PUBLISHER-CLUSTER-rw -n NAMESPACE -- psql -c "
-SELECT pubname, puballtables, pubinsert, pubupdate, pubdelete
-FROM pg_publication;
-"
-
-# On subscriber - check subscription details
-kubectl exec -it svc/SUBSCRIBER-CLUSTER-rw -n NAMESPACE -- psql -c "
-SELECT
-    subname,
-    subconninfo,
-    subslotname,
-    subsynccommit,
-    subpublications
-FROM pg_subscription;
-"
-
-# Check which tables are being replicated
-kubectl exec -it svc/SUBSCRIBER-CLUSTER-rw -n NAMESPACE -- psql -c "
-SELECT
-    sr.srrelid::regclass as table_name,
-    sr.srsubstate as state
-FROM pg_subscription_rel sr
-JOIN pg_class c ON sr.srrelid = c.oid
-WHERE sr.srsubstate NOT IN ('r', 's');  -- Not ready or synchronizing
-"
-```
-
-### Step 5: Check for Data Conflicts
-
-```bash
-# Check for conflicting primary keys
-kubectl exec -it svc/SUBSCRIBER-CLUSTER-rw -n NAMESPACE -- psql -c "
-SELECT schemaname, tablename, attname, n_distinct, correlation
-FROM pg_stats
-WHERE schemaname NOT IN ('pg_catalog', 'information_schema')
-ORDER BY schemaname, tablename;
-"
-```
-
-## Resolution
-
-### For Constraint Violations
-
-1. **Identify the Constraint**:
-   ```sql
-   -- Find the violated constraint
-   SELECT conname, contype, pg_get_constraintdef(oid)
-   FROM pg_constraint
-   WHERE conrelid = 'table_name'::regclass;
-   ```
-
-2. **Resolve Data Conflicts**:
-   ```sql
-   -- Option 1: Remove conflicting data on subscriber
-   DELETE FROM table_name WHERE id = conflicting_id;
-
-   -- Option 2: Update conflicting data
-   UPDATE table_name
-   SET conflicting_column = new_value
-   WHERE id = conflicting_id;
-
-   -- Option 3: Temporarily disable constraint (use with caution)
-   ALTER TABLE table_name DISABLE TRIGGER ALL;
-   -- After sync, re-enable
-   ALTER TABLE table_name ENABLE TRIGGER ALL;
-   ```
-
-### For Permission Issues
-
-1. **Check Subscription Owner**:
-   ```sql
-   SELECT usename, usesuper, usecreatedb
-   FROM pg_user
-   WHERE usename = current_user;
-   ```
-
-2. **Grant Necessary Permissions**:
-   ```sql
-   -- On subscriber, ensure subscription owner has rights
-   GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO subscription_user;
-   GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO subscription_user;
-   ```
-
-### For Data Type Mismatches
-
-1. **Verify Schema Consistency**:
-   ```sql
-   -- On publisher
-   \d+ table_name
-
-   -- On subscriber
-   \d+ table_name
-
-   -- Compare columns and types
-   SELECT column_name, data_type, is_nullable
-   FROM information_schema.columns
-   WHERE table_name = 'table_name';
-   ```
-
-2. **Fix Schema Issues**:
-   ```sql
-   -- Alter table to match publisher schema
-   ALTER TABLE table_name ALTER COLUMN column_name TYPE new_type;
-   ```
-
-### For Initial Sync Errors
-
-1. **Check if Tables Exist**:
-   ```sql
-   -- On subscriber, ensure tables exist
-   SELECT tablename FROM pg_tables WHERE schemaname = 'public';
-   ```
-
-2. **Create Missing Tables**:
-   ```sql
-   -- Export schema from publisher
-   pg_dump -h PUBLISHER-HOST -U postgres -s -t table_name database_name
-
-   -- Import into subscriber
-   psql -h SUBSCRIBER-HOST -U postgres -d database_name < schema_dump.sql
-   ```
-
-3. **Reset Subscription**:
-   ```bash
-   # WARNING: This will resync all data
-   kubectl cnpg subscription restart SUBSCRIPTION-NAME -n NAMESPACE
-
-   # Or completely recreate
-   kubectl cnpg subscription delete SUBSCRIPTION-NAME -n NAMESPACE
-   # Recreate with proper configuration
-   ```
-
-### For Connection/Timeout Issues
-
-1. **Check Connectivity**:
-   ```bash
-   # Test connection from subscriber to publisher
-   kubectl exec -it svc/SUBSCRIBER-CLUSTER-rw -n NAMESPACE -- \
-     psql -h PUBLISHER-HOST -U postgres -d database_name -c "SELECT 1;"
-   ```
-
-2. **Increase Timeout Values**:
-   ```yaml
-   # In subscription configuration
-   spec:
-     parameters:
-       application_name: "my_subscription"
-       synchronous_commit: "off"
-       # Increase timeout for slow networks
-   ```
-
-## Recovery Procedures
-
-Choose one of the following approaches based on your situation:
-
-### Option 1: Resolve Data Conflict (Recommended - Lets Replication Retry Automatically)
-
-**When to use**: When you have a specific constraint violation (e.g., duplicate key) and want to let the publisher's data replicate correctly.
-
-The most common cause of replication errors is conflicting data between publisher and subscriber. PostgreSQL's logical replication **stops** when it encounters a conflict and requires manual intervention.
-
-#### Step 1: Identify the conflicting data
-
-Check the PostgreSQL logs for the conflict details:
-
-```bash
-kubectl logs -n NAMESPACE $POD | grep "conflict detected\|duplicate key"
-```
-
-You'll see something like:
-```
+```text
 ERROR: duplicate key value violates unique constraint "test_pkey"
 DETAIL: Key (c)=(1) already exists.
-CONTEXT: processing remote data for replication origin "pg_16395" during "INSERT" 
+CONTEXT: processing remote data for replication origin "pg_16395" during "INSERT"
 for replication target relation "public.test" in transaction 725 finished at 0/14C0378
 ```
 
-This tells you which table and key is causing the conflict.
-
-#### Step 2: Remove or fix the conflicting row on the subscriber
-
-```sql
--- For INSERT conflicts: Delete the conflicting row to let publisher's data replicate
-DELETE FROM table_name WHERE id = conflicting_id;
-```
-
-**That's it!** Once you remove the conflicting row, logical replication will **automatically retry** the transaction and apply the publisher's data. You do NOT need to manually skip the transaction.
-
-**Important**: Only delete the subscriber's data if you're certain the publisher's version should win.
-
-### Option 2: Skip Transaction Without Applying Publisher's Data (Use With Caution)
-
-**When to use**: When you want to keep the subscriber's version of the data and permanently ignore what the publisher tried to send. This causes data divergence.
-
-If you've decided that the subscriber's conflicting data is correct and you want to ignore the publisher's transaction:
-
-```sql
--- Using ALTER SUBSCRIPTION SKIP
--- The subscription must be enabled for this to work
-ALTER SUBSCRIPTION your_subscription SKIP (lsn = '0/14C0378');
-```
-
-**WARNING**: This permanently skips the transaction and causes the subscriber to differ from the publisher. Document what was skipped.
-
-### Option 3: Full Resynchronization (For Multiple Conflicts or Unknown State)
-
-**When to use**: When you have many conflicts, corrupted data, or prefer to start fresh rather than manually fixing individual rows.
-
-**WARNING**: This will re-copy all table data and may take a long time for large tables.
+- For a sync error, check which tables never reached a ready state:
 
 ```bash
-# Mark subscription for full refresh
-kubectl exec -it svc/SUBSCRIBER-CLUSTER-rw -n NAMESPACE -- psql -c "
-ALTER SUBSCRIPTION your_subscription REFRESH PUBLICATION WITH (copy_data = true);
+kubectl exec -n <namespace> -it services/paradedb-rw -- psql -c "
+SELECT srrelid::regclass AS table_name, srsubstate AS state
+FROM pg_subscription_rel WHERE srsubstate NOT IN ('r', 's');
 "
-
-# Or restart the subscription
-kubectl cnpg subscription restart your_subscription -n NAMESPACE
 ```
 
-## Important Notes
+- Compare the definitions of the affected table on both clusters to rule out schema drift:
 
-- **PostgreSQL logical replication automatically retries after you fix the conflict** - Just delete or fix the conflicting row, and replication will resume on its own
-- **Only use SKIP if you want to ignore the publisher's data** - Skipping means you're choosing to keep the subscriber's version and create data divergence
-- **For typical constraint violations** - Delete the subscriber's conflicting row (Option 1), don't skip the transaction
+```bash
+kubectl exec -n <namespace> -it services/<publisher-cluster-name>-rw -- psql -c "\d+ <table>"
+kubectl exec -n <namespace> -it services/paradedb-rw -- psql -c "\d+ <table>"
+```
 
-## Prevention
+Whatever the logs show usually comes down to one of the following:
 
-1. **Schema Changes**:
-   - Always test schema changes in staging first
-   - Use DDL replication tools or manually sync schemas
-   - Coordinate schema changes between publisher and subscriber
+- Rows written directly on the subscriber that collide with replicated rows, giving unique or foreign key violations
+- Schema drift between publisher and subscriber, giving missing column or type errors
+- A table that does not exist on the subscriber, which fails during initial sync
+- Insufficient privileges for the subscription owner on the target tables
 
-2. **Data Validation**:
-   ```sql
-   -- Regular data consistency checks
-   SELECT COUNT(*) FROM table_name;
-   -- Compare counts between publisher and subscriber
-   ```
+## Mitigation
 
-3. **Monitoring**:
-   - Set up alerts for error rates
-   - Monitor pg_stat_subscription regularly
-   - Log error details for faster troubleshooting
+### Resolve the Conflict
 
-4. **Best Practices**:
-   - Don't modify subscriber data directly (unless bidirectional replication)
-   - Use consistent character sets and collations
-   - Ensure sufficient disk space for WAL retention
+Remove or correct the conflicting row on the subscriber. Replication retries the transaction and resumes on its own, so there is no need to skip it manually:
 
-## Common Error Scenarios
-
-### Primary Key Conflicts
 ```sql
--- Find duplicates
-SELECT id, COUNT(*)
-FROM table_name
-GROUP BY id
-HAVING COUNT(*) > 1;
-
--- Resolve by updating or removing duplicates
+DELETE FROM <table> WHERE <primary-key> = <conflicting-value>;
 ```
 
-### Missing Sequences
+Only delete the subscriber's row if the publisher's version should win.
+
+For schema drift, alter the subscriber's table to match the publisher, or create the missing table, then refresh the subscription:
+
+```bash
+kubectl exec -n <namespace> -it services/paradedb-rw -- psql -c "ALTER SUBSCRIPTION <subscription> REFRESH PUBLICATION;"
+```
+
+### Skip the Transaction
+
+If the subscriber's version of the data is the one to keep, skip the failing transaction using the LSN from the `CONTEXT` line in the log:
+
 ```sql
--- Check sequence ownership
-SELECT relname, seqrelid::regclass
-FROM pg_depend
-WHERE refobjid = 'table_name'::regclass
-  AND deptype = 'a';
-
--- Sync sequence values
-SELECT setval('sequence_name', (SELECT max(id) FROM table_name));
+ALTER SUBSCRIPTION <subscription> SKIP (lsn = '0/14C0378');
 ```
 
-### Trigger Conflicts
-```sql
--- Disable problematic triggers during sync
-ALTER TABLE table_name DISABLE TRIGGER trigger_name;
+> [!IMPORTANT]
+> Skipping discards the publisher's transaction permanently and leaves the two clusters divergent. Record what was skipped and why.
 
--- Re-enable after sync
-ALTER TABLE table_name ENABLE TRIGGER trigger_name;
+### Resynchronize
+
+If there are many conflicts, or the subscriber's state is unknown, re-copy the affected tables:
+
+```bash
+kubectl exec -n <namespace> -it services/paradedb-rw -- psql -c "
+ALTER SUBSCRIPTION <subscription> REFRESH PUBLICATION WITH (copy_data = true);
+"
 ```
 
-## When to Escalate
+This can take a long time on large tables. Treat it as a last resort.
 
-- Contact support if:
-  - Errors persist after all troubleshooting steps
-  - You encounter frequent constraint violations
-  - The schema cannot be synchronized
-  - You need to skip transactions repeatedly
-  - Error rate is increasing despite fixes
+To prevent a recurrence, do not write to replicated tables on the subscriber, and apply schema changes to the subscriber before the publisher.
