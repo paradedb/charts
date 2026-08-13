@@ -972,7 +972,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "Elapsed time since the last successful base backup.",
+      "description": "Elapsed time since the last successful base backup. A cluster that takes none of its own, such as a dedicated replica, reports N/A instead of an age.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -981,10 +981,20 @@
           "mappings": [
             {
               "options": {
+                "-1": {
+                  "color": "text",
+                  "index": 0,
+                  "text": "N/A"
+                }
+              },
+              "type": "value"
+            },
+            {
+              "options": {
                 "from": 1,
                 "result": {
                   "color": "semi-dark-orange",
-                  "index": 0,
+                  "index": 1,
                   "text": "Invalid date"
                 },
                 "to": 1e+42
@@ -996,7 +1006,7 @@
                 "from": -2147483648,
                 "result": {
                   "color": "red",
-                  "index": 1,
+                  "index": 2,
                   "text": "N/A"
                 },
                 "to": -1577847600
@@ -1066,7 +1076,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "-(time() - max(cnpg_collector_last_available_backup_timestamp{namespace=\"$namespace\",pod=~\"$instances\"}))",
+          "expr": "(-(time() - max(cnpg_collector_last_available_backup_timestamp{namespace=\"$namespace\",pod=~\"$instances\"} > 0))) or on() vector(-1)",
           "instant": true,
           "legendFormat": "__auto",
           "range": false,
@@ -1400,7 +1410,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "Base Backups are considered healthy when there has been at least one base backup in the last 24 hours.",
+      "description": "Base Backups are considered healthy when there has been at least one base backup in the last 24 hours. A cluster that takes none of its own, such as a dedicated replica, reports N/A instead of an age.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1409,10 +1419,20 @@
           "mappings": [
             {
               "options": {
+                "-1": {
+                  "color": "text",
+                  "index": 0,
+                  "text": "N/A"
+                }
+              },
+              "type": "value"
+            },
+            {
+              "options": {
                 "match": "null",
                 "result": {
                   "color": "orange",
-                  "index": 0,
+                  "index": 1,
                   "text": "None"
                 }
               },
@@ -1423,7 +1443,7 @@
                 "from": 0,
                 "result": {
                   "color": "green",
-                  "index": 1,
+                  "index": 2,
                   "text": "Healthy"
                 },
                 "to": 90000
@@ -1435,7 +1455,7 @@
                 "from": 90000,
                 "result": {
                   "color": "orange",
-                  "index": 2,
+                  "index": 3,
                   "text": "Degraded"
                 },
                 "to": 108000
@@ -1447,7 +1467,7 @@
                 "from": 108000,
                 "result": {
                   "color": "red",
-                  "index": 3,
+                  "index": 4,
                   "text": "None recent"
                 },
                 "to": 4294967295
@@ -1560,7 +1580,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "time() - max(cnpg_collector_last_available_backup_timestamp{namespace=\"$namespace\", pod=~\"$instances\"})",
+          "expr": "(time() - max(cnpg_collector_last_available_backup_timestamp{namespace=\"$namespace\", pod=~\"$instances\"} > 0)) or on() vector(-1)",
           "legendFormat": "Backups",
           "range": true,
           "refId": "BACKUPS"
