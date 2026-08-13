@@ -2956,7 +2956,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "max(clamp_min(timestamp(cnpg_pg_stat_subscription_last_msg_receipt_time{namespace=\"$namespace\"}) - cnpg_pg_stat_subscription_last_msg_receipt_time{namespace=\"$namespace\"},0))",
+          "expr": "max(clamp_min(cnpg_pg_stat_subscription_receipt_lag_seconds{namespace=\"$namespace\"},0))",
           "instant": false,
           "legendFormat": "Replication Lag",
           "range": true,
@@ -3037,7 +3037,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "max(abs(cnpg_pg_stat_subscription_received_lsn{namespace=\"$namespace\"} - cnpg_pg_stat_subscription_latest_end_lsn{namespace=\"$namespace\"}))",
+          "expr": "max(abs(cnpg_pg_stat_subscription_buffered_lag_bytes{namespace=\"$namespace\"}))",
           "instant": false,
           "legendFormat": "LSN Distance",
           "range": true,
@@ -3359,7 +3359,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "min(avg by (subname) (avg_over_time(((abs(cnpg_pg_stat_subscription_received_lsn{namespace=\"$namespace\",worker_type=\"apply\"} - cnpg_pg_stat_subscription_latest_end_lsn{namespace=\"$namespace\"})) < BOOL 500*1024*1024)[$__range:])) * avg by (subname) (avg_over_time((time() - cnpg_pg_stat_subscription_last_msg_receipt_time{namespace=\"$namespace\",worker_type=\"apply\"} < BOOL 120))))",
+          "expr": "min(avg by (subname) (avg_over_time(((abs(cnpg_pg_stat_subscription_buffered_lag_bytes{namespace=\"$namespace\",worker_type=\"apply\"})) < BOOL 500*1024*1024)[$__range:])) * avg by (subname) (avg_over_time((cnpg_pg_stat_subscription_receipt_lag_seconds{namespace=\"$namespace\",worker_type=\"apply\"} < BOOL 120))))",
           "legendFormat": "Logical Replication SLO 99.9% < 500MB",
           "range": true,
           "refId": "SLO"
@@ -4591,7 +4591,7 @@
         {
           "editorMode": "code",
           "exemplar": false,
-          "expr": "clamp_min(timestamp(cnpg_pg_stat_subscription_last_msg_receipt_time) - cnpg_pg_stat_subscription_last_msg_receipt_time{namespace=\"$namespace\",job=\"$namespace/$cluster\",worker_type=\"apply\"},0)",
+          "expr": "clamp_min(cnpg_pg_stat_subscription_receipt_lag_seconds{namespace=\"$namespace\",job=\"$namespace/$cluster\",worker_type=\"apply\"},0)",
           "format": "table",
           "instant": true,
           "legendFormat": "__auto",
@@ -4605,7 +4605,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "cnpg_pg_stat_subscription_received_lsn{namespace=\"$namespace\",job=\"$namespace/$cluster\",worker_type=\"apply\"} - cnpg_pg_stat_subscription_latest_end_lsn",
+          "expr": "cnpg_pg_stat_subscription_buffered_lag_bytes{namespace=\"$namespace\",job=\"$namespace/$cluster\",worker_type=\"apply\"}",
           "format": "table",
           "hide": false,
           "instant": true,
@@ -4620,7 +4620,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "avg by (subname) \n(\n    avg by (subname, pod) (\n        last_over_time(\n            avg_over_time(\n                (cnpg_pg_stat_subscription_received_lsn{namespace=\"$namespace\",job=\"$namespace/$cluster\",worker_type=\"apply\"} - cnpg_pg_stat_subscription_latest_end_lsn < bool 500 * 1024 * 1024)[$__range]\n            )[$__interval]\n        )\n    )\n    *\n    avg by (subname, pod) (\n        last_over_time(\n            avg_over_time(\n                (time() - cnpg_pg_stat_subscription_last_msg_receipt_time {namespace=\"$namespace\",job=\"$namespace/$cluster\",worker_type=\"apply\"} < bool 120)[$__range]\n            )[$__interval]\n        )\n    )\n    * \n    on (pod) group_left() (label_replace(kube_customresource_primary_info{customresource_group=\"postgresql.cnpg.io\", customresource_kind=\"Cluster\", namespace=\"$namespace\",cluster=\"$cluster\"}, \"pod\", \"$1\", \"current_primary\", \"(.*)\"))\n)[7d]",
+          "expr": "avg by (subname) \n(\n    avg by (subname, pod) (\n        last_over_time(\n            avg_over_time(\n                (cnpg_pg_stat_subscription_buffered_lag_bytes{namespace=\"$namespace\",job=\"$namespace/$cluster\",worker_type=\"apply\"} < bool 500 * 1024 * 1024)[$__range]\n            )[$__interval]\n        )\n    )\n    *\n    avg by (subname, pod) (\n        last_over_time(\n            avg_over_time(\n                (cnpg_pg_stat_subscription_receipt_lag_seconds{namespace=\"$namespace\",job=\"$namespace/$cluster\",worker_type=\"apply\"} < bool 120)[$__range]\n            )[$__interval]\n        )\n    )\n    * \n    on (pod) group_left() (label_replace(kube_customresource_primary_info{customresource_group=\"postgresql.cnpg.io\", customresource_kind=\"Cluster\", namespace=\"$namespace\",cluster=\"$cluster\"}, \"pod\", \"$1\", \"current_primary\", \"(.*)\"))\n)[7d]",
           "format": "table",
           "hide": false,
           "instant": true,
@@ -4787,7 +4787,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "max by (subname,worker_type)(max_over_time(cnpg_pg_stat_subscription_received_lsn{namespace=\"$namespace\"} - cnpg_pg_stat_subscription_latest_end_lsn{namespace=\"$namespace\"}))",
+          "expr": "max by (subname,worker_type)(max_over_time(cnpg_pg_stat_subscription_buffered_lag_bytes{namespace=\"$namespace\"}))",
           "legendFormat": "{{subname}}",
           "range": true,
           "refId": "A"
@@ -4878,7 +4878,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "avg by (subname,worker_type)(deriv(cnpg_pg_stat_subscription_received_lsn{namespace=\"$namespace\",job=\"$namespace/$cluster\"} - cnpg_pg_stat_subscription_latest_end_lsn))",
+          "expr": "avg by (subname,worker_type)(deriv(cnpg_pg_stat_subscription_buffered_lag_bytes{namespace=\"$namespace\",job=\"$namespace/$cluster\"}))",
           "legendFormat": "{{subname}} ({{type}})",
           "range": true,
           "refId": "A"
@@ -4977,7 +4977,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "max by(subname, worker_type) (max_over_time(clamp_min(timestamp(cnpg_pg_stat_subscription_last_msg_receipt_time) - cnpg_pg_stat_subscription_last_msg_receipt_time{namespace=\"$namespace\",job=\"$namespace/$cluster\",worker_type=\"apply\"},0)[$__rate_interval]))*1000",
+          "expr": "max by(subname, worker_type) (max_over_time(clamp_min(cnpg_pg_stat_subscription_receipt_lag_seconds{namespace=\"$namespace\",job=\"$namespace/$cluster\",worker_type=\"apply\"},0)[$__rate_interval]))*1000",
           "legendFormat": "{{subname}} ({{type}})",
           "range": true,
           "refId": "A"
@@ -5087,7 +5087,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "avg by (subname) (avg_over_time(((abs(cnpg_pg_stat_subscription_received_lsn{namespace=\"$namespace\",worker_type=\"apply\"} - cnpg_pg_stat_subscription_latest_end_lsn{namespace=\"$namespace\"})) < BOOL 500*1024*1024)[$__range:])) * avg by (subname) (avg_over_time((time() - cnpg_pg_stat_subscription_last_msg_receipt_time{namespace=\"$namespace\",worker_type=\"apply\"} < BOOL 120)))",
+          "expr": "avg by (subname) (avg_over_time(((abs(cnpg_pg_stat_subscription_buffered_lag_bytes{namespace=\"$namespace\",worker_type=\"apply\"})) < BOOL 500*1024*1024)[$__range:])) * avg by (subname) (avg_over_time((cnpg_pg_stat_subscription_receipt_lag_seconds{namespace=\"$namespace\",worker_type=\"apply\"} < BOOL 120)))",
           "legendFormat": "{{subname}}",
           "range": true,
           "refId": "SLO"
@@ -8648,12 +8648,114 @@
       "type": "timeseries"
     },
     {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 30,
+            "gradientMode": "opacity",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "percentunit",
+          "min": 0,
+          "max": 1
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 158
+      },
+      "id": 834,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "11.5.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "editorMode": "code",
+          "exemplar": true,
+          "expr": "sum by (pod, datname) (rate(cnpg_pg_stat_database_blks_hit{namespace=~\"$namespace\",pod=~\"$instances\",datname!=\"\",datname!~\"template.*\"}[$__rate_interval]))\n/\n(\n  sum by (pod, datname) (rate(cnpg_pg_stat_database_blks_hit{namespace=~\"$namespace\",pod=~\"$instances\",datname!=\"\",datname!~\"template.*\"}[$__rate_interval]))\n  +\n  sum by (pod, datname) (rate(cnpg_pg_stat_database_blks_read{namespace=~\"$namespace\",pod=~\"$instances\",datname!=\"\",datname!~\"template.*\"}[$__rate_interval]))\n)",
+          "interval": "",
+          "legendFormat": "{{datname}} ({{pod}})",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Cache Hit Ratio",
+      "type": "timeseries",
+      "description": "Share of block reads served from the buffer cache rather than from disk, per database. Template databases and the shared-objects row are excluded."
+    },
+    {
       "collapsed": false,
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 158
+        "y": 166
       },
       "id": 827,
       "panels": [],
@@ -8720,7 +8822,7 @@
         "h": 10,
         "w": 24,
         "x": 0,
-        "y": 159
+        "y": 167
       },
       "id": 828,
       "options": {
@@ -8742,7 +8844,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "sum by (node) (rate(container_network_receive_bytes_total{}[$__rate_interval])) * on(node) group_left(pod) kube_pod_info{namespace=~\"$namespace\", pod=~\"$instances\", node=\"$nodes\"}",
+          "expr": "sum by (node) (rate(container_network_receive_bytes_total{node=~\"$nodes\"}[$__rate_interval])) * on(node) group_left(pod) kube_pod_info{namespace=~\"$namespace\", pod=~\"$instances\", node=~\"$nodes\"}",
           "legendFormat": "{{node}} ({{pod}}) (RX)",
           "range": true,
           "refId": "RX"
@@ -8753,7 +8855,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "- sum by (node) (rate(container_network_transmit_bytes_total{}[$__rate_interval])) * on(node) group_left(pod) kube_pod_info{namespace=~\"$namespace\", pod=~\"$instances\", node=\"$nodes\"}",
+          "expr": "- sum by (node) (rate(container_network_transmit_bytes_total{node=~\"$nodes\"}[$__rate_interval])) * on(node) group_left(pod) kube_pod_info{namespace=~\"$namespace\", pod=~\"$instances\", node=~\"$nodes\"}",
           "hide": false,
           "instant": false,
           "legendFormat": "{{node}} ({{pod}}) (TX)",
@@ -8761,7 +8863,7 @@
           "refId": "TX"
         }
       ],
-      "title": "Network Throughout: $nodes",
+      "title": "Network Throughput: $nodes",
       "type": "timeseries"
     },
     {
@@ -8770,7 +8872,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 169
+        "y": 177
       },
       "id": 37,
       "panels": [],
@@ -8840,7 +8942,7 @@
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 170
+        "y": 178
       },
       "id": 6,
       "options": {
@@ -8948,7 +9050,7 @@
         "h": 8,
         "w": 8,
         "x": 8,
-        "y": 170
+        "y": 178
       },
       "id": 52,
       "options": {
@@ -9058,7 +9160,7 @@
         "h": 8,
         "w": 8,
         "x": 16,
-        "y": 170
+        "y": 178
       },
       "id": 53,
       "options": {
@@ -9154,7 +9256,7 @@
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 178
+        "y": 186
       },
       "id": 725,
       "options": {
@@ -9194,7 +9296,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 186
+        "y": 194
       },
       "id": 18,
       "panels": [],
@@ -9269,7 +9371,7 @@
         "h": 8,
         "w": 6,
         "x": 0,
-        "y": 187
+        "y": 195
       },
       "id": 16,
       "options": {
@@ -9367,7 +9469,7 @@
         "h": 8,
         "w": 6,
         "x": 6,
-        "y": 187
+        "y": 195
       },
       "id": 14,
       "options": {
@@ -9466,7 +9568,7 @@
         "h": 8,
         "w": 6,
         "x": 12,
-        "y": 187
+        "y": 195
       },
       "id": 59,
       "options": {
@@ -9566,7 +9668,7 @@
         "h": 8,
         "w": 6,
         "x": 18,
-        "y": 187
+        "y": 195
       },
       "id": 20,
       "options": {
@@ -9607,7 +9709,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 195
+        "y": 203
       },
       "id": 231,
       "panels": [],
@@ -9638,7 +9740,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 196
+        "y": 204
       },
       "id": 233,
       "options": {
@@ -9759,7 +9861,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 196
+        "y": 204
       },
       "id": 235,
       "options": {
@@ -9798,7 +9900,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 204
+        "y": 212
       },
       "id": 239,
       "panels": [],
@@ -9869,7 +9971,7 @@
         "h": 6,
         "w": 8,
         "x": 0,
-        "y": 205
+        "y": 213
       },
       "id": 237,
       "options": {
@@ -9909,7 +10011,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 211
+        "y": 219
       },
       "id": 293,
       "panels": [],
@@ -9981,7 +10083,7 @@
         "h": 6,
         "w": 5,
         "x": 0,
-        "y": 212
+        "y": 220
       },
       "id": 295,
       "options": {
@@ -10096,7 +10198,7 @@
         "h": 6,
         "w": 5,
         "x": 5,
-        "y": 212
+        "y": 220
       },
       "id": 296,
       "options": {
@@ -10152,7 +10254,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 218
+        "y": 226
       },
       "id": 794,
       "panels": [],
@@ -10236,7 +10338,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 219
+        "y": 227
       },
       "id": 792,
       "options": {
@@ -10321,7 +10423,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 227
+        "y": 235
       },
       "id": 696,
       "panels": [],
@@ -10379,7 +10481,7 @@
         "h": 2,
         "w": 4,
         "x": 0,
-        "y": 228
+        "y": 236
       },
       "id": 697,
       "options": {
@@ -10481,7 +10583,7 @@
         "h": 2,
         "w": 4,
         "x": 4,
-        "y": 228
+        "y": 236
       },
       "id": 702,
       "options": {
@@ -10583,7 +10685,7 @@
         "h": 2,
         "w": 4,
         "x": 8,
-        "y": 228
+        "y": 236
       },
       "id": 698,
       "options": {
@@ -10685,7 +10787,7 @@
         "h": 2,
         "w": 4,
         "x": 12,
-        "y": 228
+        "y": 236
       },
       "id": 704,
       "options": {
@@ -10787,7 +10889,7 @@
         "h": 2,
         "w": 4,
         "x": 16,
-        "y": 228
+        "y": 236
       },
       "id": 703,
       "options": {
@@ -10911,7 +11013,7 @@
         "h": 8,
         "w": 4,
         "x": 0,
-        "y": 230
+        "y": 238
       },
       "id": 746,
       "options": {
@@ -11041,7 +11143,7 @@
         "h": 8,
         "w": 4,
         "x": 4,
-        "y": 230
+        "y": 238
       },
       "id": 767,
       "options": {
@@ -11170,7 +11272,7 @@
         "h": 8,
         "w": 4,
         "x": 8,
-        "y": 230
+        "y": 238
       },
       "id": 768,
       "options": {
@@ -11299,7 +11401,7 @@
         "h": 8,
         "w": 4,
         "x": 12,
-        "y": 230
+        "y": 238
       },
       "id": 790,
       "options": {
@@ -11430,7 +11532,7 @@
         "h": 8,
         "w": 4,
         "x": 16,
-        "y": 230
+        "y": 238
       },
       "id": 769,
       "options": {
