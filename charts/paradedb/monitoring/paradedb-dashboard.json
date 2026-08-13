@@ -1391,7 +1391,7 @@
           },
           "editorMode": "builder",
           "exemplar": false,
-          "expr": "cnpg_collector_postgres_version{namespace=~\"$namespace\",pod=~\"$instances\"}",
+          "expr": "max by (pod) (cnpg_collector_postgres_version{namespace=~\"$namespace\",pod=~\"$instances\"})",
           "format": "table",
           "hide": false,
           "instant": true,
@@ -3803,7 +3803,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": true,
-          "expr": "1 - cnpg_pg_replication_in_recovery{namespace=~\"$namespace\",pod=~\"$instances\"} + cnpg_pg_replication_is_wal_receiver_up{namespace=~\"$namespace\",pod=~\"$instances\"}",
+          "expr": "max by (pod) (1 - cnpg_pg_replication_in_recovery{namespace=~\"$namespace\",pod=~\"$instances\"} + cnpg_pg_replication_is_wal_receiver_up{namespace=~\"$namespace\",pod=~\"$instances\"})",
           "instant": true,
           "interval": "",
           "legendFormat": "{{pod}}",
@@ -3878,7 +3878,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "cnpg_pg_replication_streaming_replicas{namespace=~\"$namespace\", pod=~\"$instances\"}",
+          "expr": "max by (pod) (cnpg_pg_replication_streaming_replicas{namespace=~\"$namespace\", pod=~\"$instances\"})",
           "instant": true,
           "interval": "",
           "legendFormat": "{{pod}}",
@@ -4286,7 +4286,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "cnpg_pg_postmaster_start_time{namespace=~\"$namespace\", pod=~\"$instances\"}*1000",
+          "expr": "max by (pod) (cnpg_pg_postmaster_start_time{namespace=~\"$namespace\", pod=~\"$instances\"}*1000)",
           "format": "time_series",
           "hide": false,
           "instant": true,
@@ -4360,7 +4360,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "cnpg_collector_postgres_version{namespace=~\"$namespace\", pod=~\"$instances\"}",
+          "expr": "max by (pod) (cnpg_collector_postgres_version{namespace=~\"$namespace\", pod=~\"$instances\"})",
           "format": "table",
           "hide": false,
           "instant": true,
@@ -5198,7 +5198,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "cnpg_paradedb_index_segments_count * on (pod) group_left() (label_replace(kube_customresource_primary_info{customresource_group=\"postgresql.cnpg.io\", customresource_kind=\"Cluster\", namespace=\"$namespace\"}, \"pod\", \"$1\", \"current_primary\", \"(.*)\"))",
+          "expr": "max by (relname) (cnpg_paradedb_index_segments_count * on (pod) group_left() (label_replace(kube_customresource_primary_info{customresource_group=\"postgresql.cnpg.io\", customresource_kind=\"Cluster\", namespace=\"$namespace\"}, \"pod\", \"$1\", \"current_primary\", \"(.*)\")))",
           "legendFormat": "{{relname}}",
           "range": true,
           "refId": "A"
@@ -5292,7 +5292,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "cnpg_paradedb_index_segments_max_size * on (pod) group_left() (label_replace(kube_customresource_primary_info{customresource_group=\"postgresql.cnpg.io\", customresource_kind=\"Cluster\", namespace=\"$namespace\"}, \"pod\", \"$1\", \"current_primary\", \"(.*)\"))",
+          "expr": "max by (relname) (cnpg_paradedb_index_segments_max_size * on (pod) group_left() (label_replace(kube_customresource_primary_info{customresource_group=\"postgresql.cnpg.io\", customresource_kind=\"Cluster\", namespace=\"$namespace\"}, \"pod\", \"$1\", \"current_primary\", \"(.*)\")))",
           "legendFormat": "max {{relname}}",
           "range": true,
           "refId": "A"
@@ -5303,7 +5303,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "cnpg_paradedb_index_segments_avg_size * on (pod) group_left() (label_replace(kube_customresource_primary_info{customresource_group=\"postgresql.cnpg.io\", customresource_kind=\"Cluster\", namespace=\"$namespace\"}, \"pod\", \"$1\", \"current_primary\", \"(.*)\"))",
+          "expr": "max by (relname) (cnpg_paradedb_index_segments_avg_size * on (pod) group_left() (label_replace(kube_customresource_primary_info{customresource_group=\"postgresql.cnpg.io\", customresource_kind=\"Cluster\", namespace=\"$namespace\"}, \"pod\", \"$1\", \"current_primary\", \"(.*)\")))",
           "hide": false,
           "legendFormat": "avg {{relname}}",
           "range": true,
@@ -5692,7 +5692,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": true,
-          "expr": "cnpg_pg_settings_setting{name=\"max_connections\",namespace=~\"$namespace\",pod=~\"$instances\"}",
+          "expr": "max by (pod) (cnpg_pg_settings_setting{name=\"max_connections\",namespace=~\"$namespace\",pod=~\"$instances\"})",
           "instant": true,
           "interval": "",
           "legendFormat": "{{pod}}",
@@ -5902,7 +5902,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": true,
-          "expr": "cnpg_pg_settings_setting{name=\"work_mem\",namespace=~\"$namespace\",pod=~\"$instances\"} * 1024",
+          "expr": "max by (pod) (cnpg_pg_settings_setting{name=\"work_mem\",namespace=~\"$namespace\",pod=~\"$instances\"} * 1024)",
           "instant": true,
           "interval": "",
           "legendFormat": "{{pod}}",
@@ -5971,7 +5971,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": true,
-          "expr": "cnpg_pg_settings_setting{name=\"maintenance_work_mem\",namespace=~\"$namespace\",pod=~\"$instances\"} * 1024",
+          "expr": "max by (pod) (cnpg_pg_settings_setting{name=\"maintenance_work_mem\",namespace=~\"$namespace\",pod=~\"$instances\"} * 1024)",
           "instant": true,
           "interval": "",
           "legendFormat": "{{pod}}",
@@ -6040,7 +6040,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": true,
-          "expr": "cnpg_pg_settings_setting{name=\"random_page_cost\",namespace=~\"$namespace\",pod=~\"$instances\"}",
+          "expr": "max by (pod) (cnpg_pg_settings_setting{name=\"random_page_cost\",namespace=~\"$namespace\",pod=~\"$instances\"})",
           "instant": true,
           "interval": "",
           "legendFormat": "{{pod}}",
@@ -6109,7 +6109,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": true,
-          "expr": "cnpg_pg_settings_setting{name=\"seq_page_cost\",namespace=~\"$namespace\",pod=~\"$instances\"}",
+          "expr": "max by (pod) (cnpg_pg_settings_setting{name=\"seq_page_cost\",namespace=~\"$namespace\",pod=~\"$instances\"})",
           "instant": true,
           "interval": "",
           "legendFormat": "{{pod}}",
@@ -7039,7 +7039,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": true,
-          "expr": "cnpg_backends_waiting_total{namespace=~\"$namespace\",pod=~\"$instances\"}",
+          "expr": "max by (pod) (cnpg_backends_waiting_total{namespace=~\"$namespace\",pod=~\"$instances\"})",
           "interval": "",
           "legendFormat": "{{pod}}",
           "refId": "A"
@@ -8966,7 +8966,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": true,
-          "expr": "cnpg_collector_pg_wal_archive_status{value=\"ready\",namespace=~\"$namespace\",pod=~\"$instances\"}",
+          "expr": "max by (pod) (cnpg_collector_pg_wal_archive_status{value=\"ready\",namespace=~\"$namespace\",pod=~\"$instances\"})",
           "interval": "",
           "legendFormat": "ready ({{pod}})",
           "refId": "A"
@@ -8977,7 +8977,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": true,
-          "expr": "cnpg_collector_pg_wal_archive_status{value=\"done\",namespace=~\"$namespace\",pod=~\"$instances\"}",
+          "expr": "max by (pod) (cnpg_collector_pg_wal_archive_status{value=\"done\",namespace=~\"$namespace\",pod=~\"$instances\"})",
           "hide": false,
           "interval": "",
           "legendFormat": "done ({{pod}})",
@@ -9074,7 +9074,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": true,
-          "expr": "rate(cnpg_pg_stat_archiver_archived_count{namespace=~\"$namespace\",pod=~\"$instances\"}[5m])",
+          "expr": "sum by (pod) (rate(cnpg_pg_stat_archiver_archived_count{namespace=~\"$namespace\",pod=~\"$instances\"}[5m]))",
           "interval": "",
           "legendFormat": "archived ({{pod}})",
           "refId": "A"
@@ -9085,7 +9085,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": true,
-          "expr": "rate(cnpg_pg_stat_archiver_failed_count{namespace=~\"$namespace\",pod=~\"$instances\"}[5m])",
+          "expr": "sum by (pod) (rate(cnpg_pg_stat_archiver_failed_count{namespace=~\"$namespace\",pod=~\"$instances\"}[5m]))",
           "hide": false,
           "interval": "",
           "legendFormat": "failed ({{pod}})",
@@ -9184,7 +9184,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": true,
-          "expr": "cnpg_pg_stat_archiver_seconds_since_last_archival{namespace=~\"$namespace\",pod=~\"$instances\"}",
+          "expr": "max by (pod) (cnpg_pg_stat_archiver_seconds_since_last_archival{namespace=~\"$namespace\",pod=~\"$instances\"})",
           "interval": "",
           "legendFormat": "age ({{pod}})",
           "refId": "A"
@@ -9280,7 +9280,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "cnpg_collector_pg_wal{pod=~\"$instances\", namespace=~\"$namespace\", value=\"count\"}",
+          "expr": "max by (pod) (cnpg_collector_pg_wal{pod=~\"$instances\", namespace=~\"$namespace\", value=\"count\"})",
           "instant": false,
           "legendFormat": "{{pod}}",
           "range": true,
@@ -9885,7 +9885,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": true,
-          "expr": "cnpg_collector_last_collection_error{namespace=~\"$namespace\",pod=~\"$instances\"}",
+          "expr": "max by (pod) (cnpg_collector_last_collection_error{namespace=~\"$namespace\",pod=~\"$instances\"})",
           "interval": "",
           "legendFormat": "{{pod}}",
           "refId": "A"
@@ -9995,7 +9995,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": true,
-          "expr": "cnpg_collector_first_recoverability_point{namespace=~\"$namespace\",pod=~\"$instances\"}*1000 > 0",
+          "expr": "max by (pod) (cnpg_collector_first_recoverability_point{namespace=~\"$namespace\",pod=~\"$instances\"}*1000 > 0)",
           "format": "time_series",
           "interval": "",
           "legendFormat": "{{pod}}",
@@ -10107,7 +10107,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": true,
-          "expr": "{__name__=~\"cnpg_pg_stat_(bgwriter|checkpointer)_checkpoints_req\",namespace=~\"$namespace\",pod=~\"$instances\"}",
+          "expr": "max by (pod) ({__name__=~\"cnpg_pg_stat_(bgwriter|checkpointer)_checkpoints_req\",namespace=~\"$namespace\",pod=~\"$instances\"})",
           "format": "time_series",
           "hide": false,
           "instant": false,
@@ -10122,7 +10122,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": true,
-          "expr": "{__name__=~\"cnpg_pg_stat_(bgwriter|checkpointer)_checkpoints_timed\",namespace=~\"$namespace\",pod=~\"$instances\"}",
+          "expr": "max by (pod) ({__name__=~\"cnpg_pg_stat_(bgwriter|checkpointer)_checkpoints_timed\",namespace=~\"$namespace\",pod=~\"$instances\"})",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -10222,7 +10222,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": true,
-          "expr": "{__name__=~\"cnpg_pg_stat_(bgwriter_checkpoint|checkpointer)_write_time\",namespace=~\"$namespace\",pod=~\"$instances\"}",
+          "expr": "max by (pod) ({__name__=~\"cnpg_pg_stat_(bgwriter_checkpoint|checkpointer)_write_time\",namespace=~\"$namespace\",pod=~\"$instances\"})",
           "format": "time_series",
           "hide": false,
           "instant": false,
@@ -10237,7 +10237,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": true,
-          "expr": "{__name__=~\"cnpg_pg_stat_(bgwriter_checkpoint|checkpointer)_sync_time\",namespace=~\"$namespace\",pod=~\"$instances\"}",
+          "expr": "max by (pod) ({__name__=~\"cnpg_pg_stat_(bgwriter_checkpoint|checkpointer)_sync_time\",namespace=~\"$namespace\",pod=~\"$instances\"})",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
