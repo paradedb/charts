@@ -5477,19 +5477,19 @@
         }
       },
       "pluginVersion": "11.5.1",
-      "repeat": "bm25_indicies",
+      "repeat": "paradedb_indexes",
       "repeatDirection": "h",
       "targets": [
         {
           "editorMode": "code",
-          "expr": "avg(cnpg_paradedb_index_layer_segments_bucket{namespace=\"$namespace\",relname=~\"$bm25_indicies\"}) by (le)",
+          "expr": "avg(cnpg_paradedb_index_layer_segments_bucket{namespace=\"$namespace\",relname=~\"$paradedb_indexes\"}) by (le)",
           "format": "heatmap",
           "legendFormat": "{{relname}}",
           "range": true,
           "refId": "A"
         }
       ],
-      "title": "$bm25_indicies segments",
+      "title": "$paradedb_indexes segments",
       "type": "heatmap"
     },
     {
@@ -11906,7 +11906,7 @@
         "definition": "label_values(cnpg_paradedb_index_layer_segments_bucket{namespace=\"$namespace\"},relname)",
         "hide": 2,
         "includeAll": true,
-        "name": "bm25_indicies",
+        "name": "paradedb_indexes",
         "options": [],
         "query": {
           "qryType": 1,
