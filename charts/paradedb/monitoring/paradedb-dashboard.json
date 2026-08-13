@@ -3359,7 +3359,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "min(avg by (subname) (avg_over_time(((abs(cnpg_pg_stat_subscription_buffered_lag_bytes{namespace=\"$namespace\",worker_type=\"apply\"})) < BOOL 500*1024*1024)[$__range:])) * avg by (subname) (avg_over_time((cnpg_pg_stat_subscription_receipt_lag_seconds{namespace=\"$namespace\",worker_type=\"apply\"} < BOOL 120))))",
+          "expr": "min(avg by (subname) (avg_over_time(((abs(cnpg_pg_stat_subscription_buffered_lag_bytes{namespace=\"$namespace\",worker_type=\"apply\"})) < BOOL 500*1024*1024)[$__range:])) * avg by (subname) (avg_over_time((cnpg_pg_stat_subscription_receipt_lag_seconds{namespace=\"$namespace\",worker_type=\"apply\"} < BOOL 120)[$__range:])))",
           "legendFormat": "Logical Replication SLO 99.9% < 500MB",
           "range": true,
           "refId": "SLO"
@@ -4787,7 +4787,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "max by (subname,worker_type)(max_over_time(cnpg_pg_stat_subscription_buffered_lag_bytes{namespace=\"$namespace\"}))",
+          "expr": "max by (subname,worker_type)(max_over_time(cnpg_pg_stat_subscription_buffered_lag_bytes{namespace=\"$namespace\"}[$__rate_interval]))",
           "legendFormat": "{{subname}}",
           "range": true,
           "refId": "A"
@@ -4878,7 +4878,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "avg by (subname,worker_type)(deriv(cnpg_pg_stat_subscription_buffered_lag_bytes{namespace=\"$namespace\",job=\"$namespace/$cluster\"}))",
+          "expr": "avg by (subname,worker_type)(deriv(cnpg_pg_stat_subscription_buffered_lag_bytes{namespace=\"$namespace\",job=\"$namespace/$cluster\"}[$__rate_interval]))",
           "legendFormat": "{{subname}} ({{type}})",
           "range": true,
           "refId": "A"
@@ -5087,7 +5087,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "avg by (subname) (avg_over_time(((abs(cnpg_pg_stat_subscription_buffered_lag_bytes{namespace=\"$namespace\",worker_type=\"apply\"})) < BOOL 500*1024*1024)[$__range:])) * avg by (subname) (avg_over_time((cnpg_pg_stat_subscription_receipt_lag_seconds{namespace=\"$namespace\",worker_type=\"apply\"} < BOOL 120)))",
+          "expr": "avg by (subname) (avg_over_time(((abs(cnpg_pg_stat_subscription_buffered_lag_bytes{namespace=\"$namespace\",worker_type=\"apply\"})) < BOOL 500*1024*1024)[$__range:])) * avg by (subname) (avg_over_time((cnpg_pg_stat_subscription_receipt_lag_seconds{namespace=\"$namespace\",worker_type=\"apply\"} < BOOL 120)[$__range:]))",
           "legendFormat": "{{subname}}",
           "range": true,
           "refId": "SLO"
@@ -8074,7 +8074,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "rate(sum by (instance) (node_disk_read_bytes_total) * on(instance) group_left(nodename) node_uname_info) * on(nodename) group_left(pod) label_replace(kube_pod_info{pod=~\"$instances\", namespace=\"$namespace\"}, \"nodename\", \"$1\", \"node\", \"(.*)\")",
+          "expr": "sum by (instance) (rate(node_disk_read_bytes_total[$__rate_interval])) * on(instance) group_left(nodename) node_uname_info * on(nodename) group_left(pod) label_replace(kube_pod_info{pod=~\"$instances\", namespace=\"$namespace\"}, \"nodename\", \"$1\", \"node\", \"(.*)\")",
           "format": "time_series",
           "interval": "",
           "legendFormat": "{{pod}}",
@@ -8173,7 +8173,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "rate(sum by (instance) (node_disk_written_bytes_total) * on(instance) group_left(nodename) node_uname_info) * on(nodename) group_left(pod) label_replace(kube_pod_info{pod=~\"$instances\", namespace=\"$namespace\"}, \"nodename\", \"$1\", \"node\", \"(.*)\")",
+          "expr": "sum by (instance) (rate(node_disk_written_bytes_total[$__rate_interval])) * on(instance) group_left(nodename) node_uname_info * on(nodename) group_left(pod) label_replace(kube_pod_info{pod=~\"$instances\", namespace=\"$namespace\"}, \"nodename\", \"$1\", \"node\", \"(.*)\")",
           "format": "time_series",
           "interval": "",
           "legendFormat": "{{pod}}",
@@ -8272,7 +8272,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "max by (customer,instance) (max_over_time(rate(node_disk_reads_completed_total+node_disk_writes_completed_total)[$__rate_interval])[$__interval]) * on(instance,customer) group_left(nodename) node_uname_info{} * on(customer,nodename) group_left(pod) label_replace(kube_pod_info{pod=~\"$cluster-([1-9][0-9]*)$\", namespace=\"$namespace\"}, \"nodename\", \"$1\", \"node\", \"(.*)\")",
+          "expr": "max by (instance) (max_over_time((sum by (instance) (rate(node_disk_reads_completed_total[$__rate_interval]) + rate(node_disk_writes_completed_total[$__rate_interval])))[$__interval:])) * on(instance) group_left(nodename) node_uname_info * on(nodename) group_left(pod) label_replace(kube_pod_info{pod=~\"$instances\", namespace=\"$namespace\"}, \"nodename\", \"$1\", \"node\", \"(.*)\")",
           "format": "time_series",
           "interval": "",
           "legendFormat": "{{pod}}",
