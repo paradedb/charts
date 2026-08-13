@@ -33,7 +33,7 @@ cnpg/cloudnative-pg
 #### Setting up a ParadeDB CNPG Cluster
 
 > [!IMPORTANT]
-> When deploying a cluster with more than one instance, you must use `type: paradedb-enterprise` to enable replication of BM25 indexes across instances.
+> When deploying a cluster with more than one instance, you must use `type: paradedb-enterprise` to enable replication of ParadeDB indexes across instances.
 > Using ParadeDB Enterprise requires an access token. To request one, please [contact sales](mailto:sales@paradedb.com).
 
 Create a `values.yaml` and configure it to your requirements. Here is a basic example:
@@ -155,7 +155,7 @@ There is a separate document outlining the recovery procedure here: **[Recovery]
 
 The ParadeDB Helm chart supports monitoring with Prometheus and Grafana. The chart includes a comprehensive Grafana dashboard that provides complete monitoring for both PostgreSQL/cluster operations and ParadeDB-specific search and analytics features. The dashboard is provisioned as a ConfigMap that works with the Grafana sidecar to automatically import dashboards. You can enable this by setting `monitoring.grafanaDashboard.create`.
 
-**Note:** This is a complete, all-in-one dashboard that includes both standard CloudNativePG monitoring (replication, backups, storage, WAL, connections) and ParadeDB-specific metrics (pg_search, BM25 search, index segments). You do not need to install any additional dashboards.
+**Note:** This is a complete, all-in-one dashboard that includes both standard CloudNativePG monitoring (replication, backups, storage, WAL, connections) and ParadeDB-specific metrics (pg_search, ParadeDB indexes, index segments). You do not need to install any additional dashboards.
 
 ### Dashboard Features
 
@@ -170,7 +170,7 @@ The comprehensive dashboard includes monitoring for:
 - Logical replication metrics
 
 **ParadeDB Search & Analytics:**
-- BM25 index segments and sizes
+- ParadeDB index segments and sizes
 - `pg_search` performance metrics
 - Search-specific analytics
 - Index layer monitoring

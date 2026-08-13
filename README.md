@@ -67,7 +67,7 @@ cnpg/cloudnative-pg
 #### Setting up a ParadeDB CNPG Cluster
 
 > [!IMPORTANT]
-> When deploying a cluster with more than one instance, you must use `type: paradedb-enterprise` to enable replication of BM25 indexes across instances.
+> When deploying a cluster with more than one instance, you must use `type: paradedb-enterprise` to enable replication of ParadeDB indexes across instances.
 > Using ParadeDB Enterprise requires an access token. To request one, please [contact sales](mailto:sales@paradedb.com).
 
 Create a `values.yaml` and configure it to your requirements. Here is a basic example:
