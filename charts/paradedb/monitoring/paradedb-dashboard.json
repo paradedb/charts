@@ -2232,7 +2232,7 @@
         "percentChangeColorMode": "standard",
         "reduceOptions": {
           "calcs": [
-            "sum"
+            "lastNotNull"
           ],
           "fields": "",
           "values": false
@@ -2250,11 +2250,11 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "cnpg_pg_database_size_bytes{namespace=\"$namespace\", pod=~\"$instances\"}",
+          "expr": "sum(max by (datname) (cnpg_pg_database_size_bytes{namespace=\"$namespace\", pod=~\"$instances\"}))",
           "format": "table",
-          "instant": false,
+          "instant": true,
           "legendFormat": "__auto",
-          "range": true,
+          "range": false,
           "refId": "A"
         }
       ],
