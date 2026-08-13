@@ -5410,7 +5410,7 @@
       ],
       "title": "Relation size",
       "type": "timeseries",
-      "description": "On-disk size of each BM25 index, read from the current primary."
+      "description": "On-disk size of each ParadeDB index, read from the current primary."
     },
     {
       "datasource": {
