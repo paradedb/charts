@@ -4620,7 +4620,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "avg by (subname) \n(\n    avg by (subname, pod) (\n        last_over_time(\n            avg_over_time(\n                (cnpg_pg_stat_subscription_buffered_lag_bytes{namespace=\"$namespace\",job=\"$namespace/$cluster\",worker_type=\"apply\"} < bool 500 * 1024 * 1024)[$__range]\n            )[$__interval]\n        )\n    )\n    *\n    avg by (subname, pod) (\n        last_over_time(\n            avg_over_time(\n                (cnpg_pg_stat_subscription_receipt_lag_seconds{namespace=\"$namespace\",job=\"$namespace/$cluster\",worker_type=\"apply\"} < bool 120)[$__range]\n            )[$__interval]\n        )\n    )\n    * \n    on (pod) group_left() (label_replace(kube_customresource_primary_info{customresource_group=\"postgresql.cnpg.io\", customresource_kind=\"Cluster\", namespace=\"$namespace\",cluster=\"$cluster\"}, \"pod\", \"$1\", \"current_primary\", \"(.*)\"))\n)[7d]",
+          "expr": "avg by (subname) \n(\n    avg by (subname, pod) (\n        last_over_time(\n            avg_over_time(\n                (cnpg_pg_stat_subscription_buffered_lag_bytes{namespace=\"$namespace\",job=\"$namespace/$cluster\",worker_type=\"apply\"} < bool 500 * 1024 * 1024)[$__range:]\n            )[$__interval:]\n        )\n    )\n    *\n    avg by (subname, pod) (\n        last_over_time(\n            avg_over_time(\n                (cnpg_pg_stat_subscription_receipt_lag_seconds{namespace=\"$namespace\",job=\"$namespace/$cluster\",worker_type=\"apply\"} < bool 120)[$__range:]\n            )[$__interval:]\n        )\n    )\n    * \n    on (pod) group_left() (label_replace(kube_customresource_primary_info{customresource_group=\"postgresql.cnpg.io\", customresource_kind=\"Cluster\", namespace=\"$namespace\",cluster=\"$cluster\"}, \"pod\", \"$1\", \"current_primary\", \"(.*)\"))\n)[7d:]",
           "format": "table",
           "hide": false,
           "instant": true,
@@ -4977,7 +4977,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "max by(subname, worker_type) (max_over_time(clamp_min(cnpg_pg_stat_subscription_receipt_lag_seconds{namespace=\"$namespace\",job=\"$namespace/$cluster\",worker_type=\"apply\"},0)[$__rate_interval]))*1000",
+          "expr": "max by(subname, worker_type) (max_over_time(clamp_min(cnpg_pg_stat_subscription_receipt_lag_seconds{namespace=\"$namespace\",job=\"$namespace/$cluster\",worker_type=\"apply\"},0)[$__rate_interval:]))*1000",
           "legendFormat": "{{subname}} ({{type}})",
           "range": true,
           "refId": "A"
