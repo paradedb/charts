@@ -372,7 +372,7 @@ refer to the [CloudNativePG Documentation](https://cloudnative-pg.io/documentati
 | recovery.s3.secretKey | string | `""` |  |
 | recovery.secret.create | bool | `true` | Whether to create a secret for the backup credentials |
 | recovery.secret.name | string | `""` | Name of the backup credentials secret |
-| replica.bootstrap.database | string | `""` | Name of the database used by the application |
+| replica.bootstrap.database | string | `"paradedb"` | Name of the database used by the application. Default: `paradedb`. Must match the application database of the origin cluster: CNPG falls back to `app` when this is empty, and the metrics exporter then connects to a database that does not exist on the replica, which fails every SQL-backed metric. |
 | replica.bootstrap.owner | string | `""` | Name of the owner of the database in the instance to be used by applications. Defaults to the value of the `database` key. |
 | replica.bootstrap.secret | string | `""` | Name of the secret containing the initial credentials for the owner of the user database. If empty a new secret will be created from scratch |
 | replica.bootstrap.source | string | `""` | One of `object_store` or `pg_basebackup`. Method to use for bootstrap. |

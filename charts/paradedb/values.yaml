@@ -540,8 +540,10 @@ replica:
   bootstrap:
     # -- One of `object_store` or `pg_basebackup`. Method to use for bootstrap.
     source: ""
-    # -- Name of the database used by the application
-    database: ""
+    # -- Name of the database used by the application. Default: `paradedb`. Must match the application database of
+    # the origin cluster: CNPG falls back to `app` when this is empty, and the metrics exporter then connects to a
+    # database that does not exist on the replica, which fails every SQL-backed metric.
+    database: paradedb
     # -- Name of the secret containing the initial credentials for the owner of the user database. If empty a new secret will be created from scratch
     secret: ""
     # -- Name of the owner of the database in the instance to be used by applications. Defaults to the value of the `database` key.

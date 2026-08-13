@@ -3,6 +3,12 @@ kind: Cluster
 metadata:
   name: replica-object-store-paradedb
 spec:
+  bootstrap:
+    recovery:
+      source: originCluster
+      # The metrics exporter connects to this database, so it must be set: CNPG otherwise defaults it
+      # to `app`, which does not exist on a replica of a ParadeDB cluster.
+      database: paradedb
   replica:
     enabled: true
     source: originCluster

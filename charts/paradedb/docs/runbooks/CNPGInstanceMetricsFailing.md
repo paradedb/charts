@@ -22,13 +22,19 @@ A standby in this state has previously replayed nothing for two months without a
 
 The alert labels carry the `namespace`, `cluster` and `pod`.
 
-- Confirm the collector is up but erroring. `cnpg_collector_up` reads 1 and `cnpg_collector_last_collection_error` reads 1 at the same time, which is the whole signature:
+- Confirm the collector is up but erroring. `cnpg_collector_up` reads 1 while one of the two error flags reads 1, which is the whole signature. The flags cover different work: `cnpg_collector_last_collection_error` is the collector's own, `cnpg_last_error` is the SQL it runs against the databases. Failing queries set only the second one, so check both:
 
 ```bash
-kubectl exec -n <namespace> -it pod/<instance-pod-name> -- curl -sS --max-time 5 http://localhost:9187/metrics | grep -E "cnpg_collector_up|cnpg_collector_last_collection_error"
+kubectl exec -n <namespace> -it pod/<instance-pod-name> -- curl -sS --max-time 5 http://localhost:9187/metrics | grep -E "cnpg_collector_up|cnpg_collector_last_collection_error|cnpg_last_error"
 ```
 
-- Find which query is failing. The instance logs name both the query and the database it could not reach:
+- Find which query is failing. Every failure is published as a `cnpg_errors_total` series whose `errorUserQueries` label names the query, the database it ran against and the error:
+
+```bash
+kubectl exec -n <namespace> -it pod/<instance-pod-name> -- curl -sS --max-time 5 http://localhost:9187/metrics | grep cnpg_errors_total
+```
+
+One failing query is a broken instrumentation query, often one naming a relation that has since been dropped. Every query failing at once on the same database is the collector being unable to reach that database at all. The instance logs say the same thing:
 
 ```bash
 kubectl logs -n <namespace> pod/<instance-pod-name> --tail=200 | grep -i "error collecting"
@@ -40,14 +46,15 @@ A line naming a `targetDatabase` the cluster does not have is the common case:
 "Error collecting user query","query":"pg_settings","targetDatabase":"app"
 ```
 
-- Check what the application database is actually called. The collector queries the name in `.spec.bootstrap.initdb.database`, and a cluster bootstrapped without one gets `app` by default:
+- Check what the application database is actually called. The collector queries the name the cluster declares in its bootstrap section, and a cluster bootstrapped without one gets `app` by default:
 
 ```bash
-kubectl get -n <namespace> cluster/paradedb -o jsonpath='{.spec.bootstrap.initdb.database}'
+# Whichever of the three the cluster bootstrapped with; a replica cluster uses recovery or pg_basebackup.
+kubectl get -n <namespace> cluster/<cluster-name> -o jsonpath='{.spec.bootstrap}'
 kubectl exec -n <namespace> -it pod/<instance-pod-name> -- psql -lqt | cut -d '|' -f 1
 ```
 
-If the two disagree, that is the fault. A dedicated replica declared as its own cluster is the easiest place to get this wrong, because the database name has to be repeated there and is easy to leave out.
+If the two disagree, that is the fault. A dedicated replica declared as its own cluster is the easiest place to get this wrong, because the database name has to be repeated there and is easy to leave out. With this chart, that name comes from `replica.bootstrap.database`.
 
 - Confirm which series are actually missing, so you know what was unmonitored:
 
@@ -65,7 +72,7 @@ SELECT application_name, state, replay_lsn, replay_lag FROM pg_stat_replication;
 
 ## Mitigation
 
-- If the application database name is wrong, correct it on the cluster and let the operator roll the change out. On a dedicated replica, set it to the same name the source cluster uses.
+- If the application database name is wrong, correct it on the cluster and let the operator roll the change out. On a dedicated replica, set `replica.bootstrap.database` to the same name the source cluster uses.
 
 - If the failure is a custom monitoring query rather than a default one, disable that instrumentation under `.spec.monitoring` until a fixed version is rolled out. The default collectors keep working, so the alerts above stay live.
 
@@ -85,7 +92,7 @@ kubectl exec -n <namespace> -it pod/<instance-pod-name> -- psql -c "SELECT pg_te
 The alert resolves once a collection completes without error. Confirm the missing series are back:
 
 ```bash
-kubectl exec -n <namespace> -it pod/<instance-pod-name> -- curl -sS --max-time 5 http://localhost:9187/metrics | grep -E "cnpg_collector_last_collection_error|cnpg_pg_replication_lag"
+kubectl exec -n <namespace> -it pod/<instance-pod-name> -- curl -sS --max-time 5 http://localhost:9187/metrics | grep -E "cnpg_collector_last_collection_error|cnpg_last_error|cnpg_pg_replication_lag"
 ```
 
 Afterwards, audit whether any replication or HA alert should have fired while the series were missing, and for how long they had been missing before this alert existed. Escalate if the collection error persists after the database name is correct, if it appears across several instances at once, which suggests a bad instrumentation rollout rather than one misconfigured cluster, or if `pg_stat_replication` on the primary shows a standby that has not been replaying.
