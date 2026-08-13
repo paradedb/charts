@@ -1857,7 +1857,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum(kube_pod_status_ready{namespace=\"$operatorNamespace\", pod=~\"cloudnative-pg-operator.+\", condition=\"true\"})",
+          "expr": "sum(kube_pod_status_ready{namespace=\"$operatorNamespace\", condition=\"true\"} * on (namespace, pod) group_left() kube_pod_labels{namespace=\"$operatorNamespace\", label_app_kubernetes_io_name=\"cloudnative-pg\"})",
           "hide": false,
           "instant": true,
           "legendFormat": "Operator Status",
@@ -5383,7 +5383,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "avg(cnpg_paradedb_index_layer_segments_bucket{namespace=\"$namespace\",relname=\"$bm25_indicies\"}) by (le)",
+          "expr": "avg(cnpg_paradedb_index_layer_segments_bucket{namespace=\"$namespace\",relname=~\"$bm25_indicies\"}) by (le)",
           "format": "heatmap",
           "legendFormat": "{{relname}}",
           "range": true,
@@ -10510,7 +10510,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "sum(kube_pod_status_ready{namespace=\"$operatorNamespace\", pod=~\"cloudnative-pg-operator.+\", condition=\"true\"})",
+          "expr": "sum(kube_pod_status_ready{namespace=\"$operatorNamespace\", condition=\"true\"} * on (namespace, pod) group_left() kube_pod_labels{namespace=\"$operatorNamespace\", label_app_kubernetes_io_name=\"cloudnative-pg\"})",
           "hide": false,
           "instant": true,
           "legendFormat": "Ready Operator Pods",
@@ -11037,7 +11037,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum(kube_pod_status_ready{namespace=\"$operatorNamespace\", pod=~\"cloudnative-pg-operator.+\", condition=\"true\"})",
+          "expr": "sum(kube_pod_status_ready{namespace=\"$operatorNamespace\", condition=\"true\"} * on (namespace, pod) group_left() kube_pod_labels{namespace=\"$operatorNamespace\", label_app_kubernetes_io_name=\"cloudnative-pg\"})",
           "hide": false,
           "instant": false,
           "legendFormat": "Ready Operator Pods",
