@@ -15,6 +15,7 @@ spec:
       rules:
         {{- $dict := dict "excludeRules" .Values.cluster.monitoring.prometheusRule.excludeRules -}}
         {{- $_ := set $dict "value"       "{{ $value }}" -}}
+        {{- $_ := set $dict "valuePercent" "{{ $value | humanizePercentage }}" -}}
         {{- $_ := set $dict "namespace"   .Release.Namespace -}}
         {{- $_ := set $dict "cluster"     (include "cluster.fullname" .) -}}
         {{- $_ := set $dict "labels"      (dict "job" "{{ $labels.job }}" "node" "{{ $labels.node }}" "pod" "{{ $labels.pod }}" "subname" "{{ $labels.subname }}" "lag_type" "{{ $labels.lag_type }}" "stop_reason" "{{ $labels.stop_reason }}") -}}
