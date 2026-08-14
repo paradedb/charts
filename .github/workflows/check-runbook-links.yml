@@ -1,0 +1,36 @@
+# workflows/check-runbook-links.yml
+#
+# Check Runbook Links
+# Fail the build when an alert rule links to a runbook that does not exist.
+
+name: Check Runbook Links
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - ".github/scripts/check_runbook_links.py"
+      - ".github/workflows/check-runbook-links.yml"
+      - "charts/paradedb/prometheus_rules/**"
+      - "charts/paradedb/docs/runbooks/**"
+  workflow_dispatch:
+
+concurrency:
+  group: check-runbook-links-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  check-runbook-links:
+    name: Check Every Rule Links to a Runbook That Exists
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+
+    steps:
+      - name: Checkout Git Repository
+        uses: actions/checkout@v4
+
+      - name: Check Runbook Links
+        run: python3 .github/scripts/check_runbook_links.py
