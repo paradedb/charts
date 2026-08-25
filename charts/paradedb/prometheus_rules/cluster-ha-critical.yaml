@@ -1,5 +1,5 @@
 {{- $alert := "CNPGClusterHACritical" -}}
-{{- if not (has $alert .excludeRules) -}}
+{{- if and (gt (int .Values.cluster.instances) 1) (not (has $alert .excludeRules)) -}}
 alert: {{ $alert }}
 annotations:
   summary: ParadeDB CNPG Cluster has no standby replicas!
@@ -9,8 +9,6 @@ annotations:
     The primary instance is still online and able to serve queries, although connections to the `-ro` endpoint will fail. The `-r` endpoint is operating at reduced capacity and all traffic is being served by the primary.
 
     This can happen during a normal fail-over or automated minor version upgrades in a cluster with 2 or less instances. The replaced instance may need some time to catch-up with the cluster primary instance.
-
-    This alarm will be constantly triggered if your cluster is configured to run with only 1 instance. If this is intentional, you may want to silence it.
   runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterHA.md
 expr: |
   max by (job) (

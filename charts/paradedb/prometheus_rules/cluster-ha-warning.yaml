@@ -1,14 +1,13 @@
 {{- $alert := "CNPGClusterHAWarning" -}}
-{{- if not (has $alert .excludeRules) -}}
+{{- $desiredStandbys := sub (int .Values.cluster.instances) 1 -}}
+{{- if and (gt $desiredStandbys 0) (not (has $alert .excludeRules)) -}}
 alert: {{ $alert }}
 annotations:
-  summary: ParadeDB CNPG Cluster less than 2 standby replicas.
+  summary: ParadeDB CNPG Cluster has fewer standby replicas than configured.
   description: |-
-    ParadeDB CloudNativePG Cluster "{{ .labels.job }}" has only {{ .value }} standby replicas, putting your cluster at risk if another instance fails. The cluster is still able to operate normally, although the `-ro` and `-r` endpoints are operating at reduced capacity.
+    ParadeDB CloudNativePG Cluster "{{ .labels.job }}" has only {{ .value }} of its {{ $desiredStandbys }} configured standby replicas, putting your cluster at risk if another instance fails. The cluster is still able to operate normally, although the `-ro` and `-r` endpoints are operating at reduced capacity.
 
     This can happen during a normal fail-over or automated minor version upgrades. The replaced instance may need some time to catch-up with the cluster primary instance.
-
-    This alarm will be constantly triggered if your cluster is configured to run with less than 3 instances. If this is intentional, you may want to silence it.
   runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterHA.md
 expr: |
   max by (job) (
@@ -19,7 +18,7 @@ expr: |
     )
     unless on (namespace, pod)
     (cnpg_pg_replication_in_recovery{namespace="{{ .namespace }}",pod=~"{{ .podSelector }}"} == 1)
-  ) < 2
+  ) < {{ $desiredStandbys }}
 for: 5m
 labels:
   severity: warning
