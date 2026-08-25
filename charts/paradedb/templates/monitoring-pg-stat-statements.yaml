@@ -11,14 +11,22 @@ data:
   custom-queries: |
     pg_stat_statements:
       query: |
+        -- PostgreSQL 17 renamed blk_*_time to shared_blk_*_time. Reading the row as
+        -- JSON keeps this query compatible with both the old and new column names.
         SELECT d.datname
              , sum(s.calls) AS calls
              , sum(s.total_exec_time) / 1000 AS total_exec_time_seconds
              , sum(s.rows) AS rows
              , sum(s.shared_blks_hit) AS shared_blks_hit
              , sum(s.shared_blks_read) AS shared_blks_read
-             , sum(s.blk_read_time) / 1000 AS blk_read_time_seconds
-             , sum(s.blk_write_time) / 1000 AS blk_write_time_seconds
+             , sum(COALESCE(
+                   (to_jsonb(s) ->> 'shared_blk_read_time')::double precision,
+                   (to_jsonb(s) ->> 'blk_read_time')::double precision
+               )) / 1000 AS blk_read_time_seconds
+             , sum(COALESCE(
+                   (to_jsonb(s) ->> 'shared_blk_write_time')::double precision,
+                   (to_jsonb(s) ->> 'blk_write_time')::double precision
+               )) / 1000 AS blk_write_time_seconds
         FROM pg_stat_statements s
         JOIN pg_database d ON s.dbid = d.oid
         GROUP BY d.datname;
