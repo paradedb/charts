@@ -4,8 +4,8 @@
 
 The `CNPGClusterPhysicalReplicationLagWarning` and `CNPGClusterPhysicalReplicationLagCritical` alerts are triggered when the standby replicas fall too far behind the primary instance. Physical replication lag measures that distance in time.
 
-- **Warning level**: replication lag exceeds 1 second
-- **Critical level**: replication lag exceeds 15 seconds
+- **Warning level**: replication lag exceeds 60 seconds
+- **Critical level**: replication lag exceeds 600 seconds
 
 ## Impact
 
