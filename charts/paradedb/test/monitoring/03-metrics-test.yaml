@@ -50,7 +50,10 @@ spec:
             # The cluster enables monitoring.tls, so the metrics port serves HTTPS
             # using the cluster's serving certificate. Scrape with -k since the job
             # has no access to the cluster CA bundle.
-            POD_URL="https://$(kubectl -n $NAMESPACE get pods -l cnpg.io/podRole=instance -o jsonpath="{.items[0].status.podIP}"):9187/metrics"
+            # pg_stat_statements is local to each PostgreSQL instance. Scrape the
+            # primary, where the test setup executed queries, rather than an
+            # arbitrary instance that may be an idle replica with no series.
+            POD_URL="https://$(kubectl -n $NAMESPACE get pods -l cnpg.io/instanceRole=primary -o jsonpath="{.items[0].status.podIP}"):9187/metrics"
             echo "POD_URL: $POD_URL"
 
             echo "pg_stat_subscription_received_lsn"
