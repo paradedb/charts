@@ -85,43 +85,43 @@ spec:
             done
 
             echo "pg_stat_subscription_received_lsn"
-            curl -sk $POD_URL | grep pg_stat_subscription_received_lsn
+            echo "$METRICS" | grep pg_stat_subscription_received_lsn
             echo "pg_stat_subscription_last_msg_send_time"
-            curl -sk $POD_URL | grep pg_stat_subscription_last_msg_send_time
+            echo "$METRICS" | grep pg_stat_subscription_last_msg_send_time
             echo "pg_stat_subscription_last_msg_receipt_time"
-            curl -sk $POD_URL | grep pg_stat_subscription_last_msg_receipt_time
+            echo "$METRICS" | grep pg_stat_subscription_last_msg_receipt_time
             echo "pg_stat_subscription_latest_end_lsn"
-            curl -sk $POD_URL | grep pg_stat_subscription_latest_end_lsn
+            echo "$METRICS" | grep pg_stat_subscription_latest_end_lsn
             echo "pg_stat_subscription_latest_end_time"
-            curl -sk $POD_URL | grep pg_stat_subscription_latest_end_time
+            echo "$METRICS" | grep pg_stat_subscription_latest_end_time
             echo "pg_stat_subscription_enabled"
-            curl -sk $POD_URL | grep pg_stat_subscription_enabled
+            echo "$METRICS" | grep pg_stat_subscription_enabled
             echo "pg_stat_subscription_apply_error_count"
-            curl -sk $POD_URL | grep pg_stat_subscription_apply_error_count
+            echo "$METRICS" | grep pg_stat_subscription_apply_error_count
             echo "pg_stat_subscription_sync_error_count"
-            curl -sk $POD_URL | grep pg_stat_subscription_sync_error_count
+            echo "$METRICS" | grep pg_stat_subscription_sync_error_count
             echo "pg_stat_subscription_stats_reset"
-            curl -sk $POD_URL | grep pg_stat_subscription_stats_reset
+            echo "$METRICS" | grep pg_stat_subscription_stats_reset
             echo "pg_stat_subscription_pid"
-            curl -sk $POD_URL | grep pg_stat_subscription_pid
+            echo "$METRICS" | grep pg_stat_subscription_pid
 
             echo "paradedb_index_relation_size"
-            curl -sk $POD_URL | grep paradedb_index_relation_size
+            echo "$METRICS" | grep paradedb_index_relation_size
             echo "paradedb_index_segments_count"
-            curl -sk $POD_URL | grep paradedb_index_segments_count
+            echo "$METRICS" | grep paradedb_index_segments_count
             echo "paradedb_index_segments_min_size"
-            curl -sk $POD_URL | grep paradedb_index_segments_min_size
+            echo "$METRICS" | grep paradedb_index_segments_min_size
             echo "paradedb_index_segments_max_size"
-            curl -sk $POD_URL | grep paradedb_index_segments_max_size
+            echo "$METRICS" | grep paradedb_index_segments_max_size
             echo "paradedb_index_segments_avg_size"
-            curl -sk $POD_URL | grep paradedb_index_segments_avg_size
+            echo "$METRICS" | grep paradedb_index_segments_avg_size
 
             echo "paradedb_index_layer_segments_bucket"
-            curl -sk $POD_URL | grep paradedb_index_layer_segments_bucket
+            echo "$METRICS" | grep paradedb_index_layer_segments_bucket
             echo "paradedb_index_layer_segments_count"
-            curl -sk $POD_URL | grep paradedb_index_layer_segments_count
+            echo "$METRICS" | grep paradedb_index_layer_segments_count
             echo "paradedb_index_layer_segments_sum"
-            curl -sk $POD_URL | grep paradedb_index_layer_segments_sum
+            echo "$METRICS" | grep paradedb_index_layer_segments_sum
 
             echo "pg_stat_statements_blk_read_time_seconds"
             echo "$METRICS" | grep pg_stat_statements_blk_read_time_seconds
@@ -129,10 +129,10 @@ spec:
             echo "$METRICS" | grep pg_stat_statements_blk_write_time_seconds
 
             echo "pg_stat_activity_long_running_avg_duration"
-            curl -sk $POD_URL | grep pg_stat_activity_long_running_avg_duration
+            echo "$METRICS" | grep pg_stat_activity_long_running_avg_duration
             echo "pg_stat_activity_long_running_max_duration"
-            curl -sk $POD_URL | grep pg_stat_activity_long_running_max_duration
+            echo "$METRICS" | grep pg_stat_activity_long_running_max_duration
             echo "pg_stat_activity_long_running_count"
-            curl -sk $POD_URL | grep pg_stat_activity_long_running_count
+            echo "$METRICS" | grep pg_stat_activity_long_running_count
             echo "pg_stat_activity_long_running_queries_bucket"
-            curl -sk $POD_URL | grep pg_stat_activity_long_running_queries_bucket
+            echo "$METRICS" | grep pg_stat_activity_long_running_queries_bucket
