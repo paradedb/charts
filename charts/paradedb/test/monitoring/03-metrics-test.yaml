@@ -43,9 +43,14 @@ spec:
             valueFrom:
               fieldRef:
                 fieldPath: metadata.namespace
+          - name: DB_URI
+            valueFrom:
+              secretKeyRef:
+                name: monitoring-paradedb-app
+                key: uri
         args:
           - |
-            apk --no-cache add curl kubectl
+            apk --no-cache add curl kubectl postgresql-client
             set -e
             # The cluster enables monitoring.tls, so the metrics port serves HTTPS
             # using the cluster's serving certificate. Scrape with -k since the job
@@ -55,6 +60,28 @@ spec:
             # arbitrary instance that may be an idle replica with no series.
             POD_URL="https://$(kubectl -n $NAMESPACE get pods -l cnpg.io/instanceRole=primary -o jsonpath="{.items[0].status.podIP}"):9187/metrics"
             echo "POD_URL: $POD_URL"
+
+            # Ensure pg_stat_statements has an entry in the application database.
+            # Its statistics are instance-local and a newly started test cluster
+            # may otherwise have no row for the collector to expose yet.
+            psql "$DB_URI" -c "SELECT count(*) FROM mock_items;"
+
+            # The CNPG exporter evaluates custom queries during a scrape. Retry to
+            # allow its reloaded query configuration and the new statement to be
+            # observed before asserting the resulting series.
+            for attempt in $(seq 1 10); do
+              METRICS="$(curl -sk "$POD_URL")"
+              if echo "$METRICS" | grep -q pg_stat_statements_blk_read_time_seconds && \
+                 echo "$METRICS" | grep -q pg_stat_statements_blk_write_time_seconds; then
+                break
+              fi
+              if [ "$attempt" -eq 10 ]; then
+                echo "pg_stat_statements metrics were not exposed after $attempt attempts"
+                echo "$METRICS" | grep -E 'cnpg_(collector_last_collection_error|last_error|errors_total)' || true
+                exit 1
+              fi
+              sleep 2
+            done
 
             echo "pg_stat_subscription_received_lsn"
             curl -sk $POD_URL | grep pg_stat_subscription_received_lsn
@@ -96,9 +123,9 @@ spec:
             curl -sk $POD_URL | grep paradedb_index_layer_segments_sum
 
             echo "pg_stat_statements_blk_read_time_seconds"
-            curl -sk $POD_URL | grep pg_stat_statements_blk_read_time_seconds
+            echo "$METRICS" | grep pg_stat_statements_blk_read_time_seconds
             echo "pg_stat_statements_blk_write_time_seconds"
-            curl -sk $POD_URL | grep pg_stat_statements_blk_write_time_seconds
+            echo "$METRICS" | grep pg_stat_statements_blk_write_time_seconds
 
             echo "pg_stat_activity_long_running_avg_duration"
             curl -sk $POD_URL | grep pg_stat_activity_long_running_avg_duration
