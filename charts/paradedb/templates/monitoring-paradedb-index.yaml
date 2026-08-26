@@ -13,11 +13,23 @@ data:
       query: |
         SELECT current_database() as datname
              , i.schemaname AS schema
+             , i.tablename
              , i.indexname AS relname
              , pg_relation_size(i.indexrelid) AS relation_size
              , i.num_segments AS segments_count
              , i.total_docs
-        FROM pdb.indexes() i;
+             , COALESCE(s.deleted_docs, 0) AS deleted_docs
+             , COALESCE(s.max_docs, 0) AS max_docs
+             , CASE
+                 WHEN COALESCE(s.max_docs, 0) = 0 THEN 0::double precision
+                 ELSE s.deleted_docs::double precision / s.max_docs
+               END AS deleted_ratio
+        FROM pdb.indexes() i
+        LEFT JOIN LATERAL (
+          SELECT SUM(num_deleted)::bigint AS deleted_docs
+               , SUM(max_doc)::bigint AS max_docs
+          FROM pdb.index_segments(i.indexrelid)
+        ) s ON true;
       target_databases: ["*"]
       predicate_query: "SELECT 1 FROM pg_extension WHERE extname = 'pg_search' AND extversion = '{{ .Values.version.paradedb }}';"
       metrics:
@@ -26,6 +38,9 @@ data:
             usage: LABEL
         - schema:
             description: Schema within the database
+            usage: LABEL
+        - tablename:
+            description: Table the index is on
             usage: LABEL
         - relname:
             description: Index name
@@ -38,6 +53,15 @@ data:
             usage: GAUGE
         - total_docs:
             description: Total live documents across all segments
+            usage: GAUGE
+        - deleted_docs:
+            description: Total deleted documents across all segments
+            usage: GAUGE
+        - max_docs:
+            description: Total allocated document slots across all segments
+            usage: GAUGE
+        - deleted_ratio:
+            description: Fraction of allocated document slots that are deleted
             usage: GAUGE
     paradedb_index_document_distribution:
       query: |

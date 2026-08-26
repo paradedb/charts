@@ -80,6 +80,12 @@ spec:
             curl -sk $POD_URL | grep paradedb_index_segments_count
             echo "paradedb_index_total_docs"
             curl -sk $POD_URL | grep paradedb_index_total_docs
+            echo "paradedb_index_deleted_docs"
+            curl -sk $POD_URL | grep paradedb_index_deleted_docs
+            echo "paradedb_index_max_docs"
+            curl -sk $POD_URL | grep paradedb_index_max_docs
+            echo "paradedb_index_deleted_ratio"
+            curl -sk $POD_URL | grep paradedb_index_deleted_ratio
 
             echo "paradedb_index_document_distribution_segment_count"
             curl -sk $POD_URL | grep 'paradedb_index_document_distribution_segment_count.*document_range="<= 100K docs"'
