@@ -126,7 +126,7 @@ data:
     pg_database_size_bytes:
       query: "SELECT current_database() as datname, pg_database_size(current_database()) as size_bytes;"
       target_databases: ["*"]
-      predicate_query: "SELECT 'paradedb' = 'paradedb';"
+      predicate_query: "SELECT 'paradedb';"
       metrics:
         - datname:
             description: Name of the database

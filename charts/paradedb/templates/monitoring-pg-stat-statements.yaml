@@ -1,6 +1,5 @@
 {{- if .Values.cluster.monitoring.instrumentation.pgStatStatements }}
-{{- /* PostgreSQL 17 renamed blk_*_time to shared_blk_*_time. */}}
-{{- $postgresMajor := include "cluster.postgresqlMajor" . | int }}
+{{- /* This monitoring query only works on PostgreSQL 17+, where blk_*_time was renamed to shared_blk_*_time. */}}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -19,8 +18,8 @@ data:
              , sum(s.rows) AS rows
              , sum(s.shared_blks_hit) AS shared_blks_hit
              , sum(s.shared_blks_read) AS shared_blks_read
-             , sum(s.{{ ternary "shared_blk_read_time" "blk_read_time" (ge $postgresMajor 17) }}) / 1000 AS blk_read_time_seconds
-             , sum(s.{{ ternary "shared_blk_write_time" "blk_write_time" (ge $postgresMajor 17) }}) / 1000 AS blk_write_time_seconds
+             , sum(s.shared_blk_read_time) / 1000 AS blk_read_time_seconds
+             , sum(s.shared_blk_write_time) / 1000 AS blk_write_time_seconds
         FROM pg_stat_statements s
         JOIN pg_database d ON s.dbid = d.oid
         WHERE d.datname = current_database()

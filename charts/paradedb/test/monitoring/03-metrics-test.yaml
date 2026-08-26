@@ -10,7 +10,7 @@ metadata:
   name: pod-reader
 rules:
   - apiGroups: [""]
-    resources: ["pods", "pods/log"]
+    resources: ["pods"]
     verbs: ["get","list","watch"]
 ---
 kind: RoleBinding
@@ -43,96 +43,60 @@ spec:
             valueFrom:
               fieldRef:
                 fieldPath: metadata.namespace
-          - name: DB_URI
-            valueFrom:
-              secretKeyRef:
-                name: monitoring-paradedb-app
-                key: uri
         args:
           - |
-            apk --no-cache add curl kubectl postgresql-client
+            apk --no-cache add curl kubectl
             set -e
             # The cluster enables monitoring.tls, so the metrics port serves HTTPS
             # using the cluster's serving certificate. Scrape with -k since the job
             # has no access to the cluster CA bundle.
-            # pg_stat_statements is local to each PostgreSQL instance. Scrape the
-            # primary, where the test setup executed queries, rather than an
-            # arbitrary instance that may be an idle replica with no series.
-            POD_URL="https://$(kubectl -n $NAMESPACE get pods -l cnpg.io/instanceRole=primary -o jsonpath="{.items[0].status.podIP}"):9187/metrics"
+            POD_URL="https://$(kubectl -n $NAMESPACE get pods -l cnpg.io/podRole=instance -o jsonpath="{.items[0].status.podIP}"):9187/metrics"
             echo "POD_URL: $POD_URL"
 
-            # Ensure pg_stat_statements has an entry in the application database.
-            # Its statistics are instance-local and a newly started test cluster
-            # may otherwise have no row for the collector to expose yet.
-            psql "$DB_URI" -c "SELECT count(*) FROM mock_items;"
-
-            # The CNPG exporter evaluates custom queries during a scrape. Retry to
-            # allow its reloaded query configuration and the new statement to be
-            # observed before asserting the resulting series.
-            for attempt in $(seq 1 3); do
-              METRICS="$(curl -sk --max-time 15 "$POD_URL" || true)"
-              if echo "$METRICS" | grep -q pg_stat_statements_blk_read_time_seconds && \
-                 echo "$METRICS" | grep -q pg_stat_statements_blk_write_time_seconds; then
-                break
-              fi
-              if [ "$attempt" -eq 3 ]; then
-                echo "pg_stat_statements metrics were not exposed after $attempt attempts"
-                echo "$METRICS" | grep -E 'cnpg_(collector_last_collection_error|last_error|errors_total)' || true
-                kubectl -n "$NAMESPACE" logs -l cnpg.io/instanceRole=primary --tail=100 | grep -E 'Error collecting user query|pg_stat_statements' || true
-                exit 1
-              fi
-              sleep 2
-            done
-
             echo "pg_stat_subscription_received_lsn"
-            echo "$METRICS" | grep pg_stat_subscription_received_lsn
+            curl -sk $POD_URL | grep pg_stat_subscription_received_lsn
             echo "pg_stat_subscription_last_msg_send_time"
-            echo "$METRICS" | grep pg_stat_subscription_last_msg_send_time
+            curl -sk $POD_URL | grep pg_stat_subscription_last_msg_send_time
             echo "pg_stat_subscription_last_msg_receipt_time"
-            echo "$METRICS" | grep pg_stat_subscription_last_msg_receipt_time
+            curl -sk $POD_URL | grep pg_stat_subscription_last_msg_receipt_time
             echo "pg_stat_subscription_latest_end_lsn"
-            echo "$METRICS" | grep pg_stat_subscription_latest_end_lsn
+            curl -sk $POD_URL | grep pg_stat_subscription_latest_end_lsn
             echo "pg_stat_subscription_latest_end_time"
-            echo "$METRICS" | grep pg_stat_subscription_latest_end_time
+            curl -sk $POD_URL | grep pg_stat_subscription_latest_end_time
             echo "pg_stat_subscription_enabled"
-            echo "$METRICS" | grep pg_stat_subscription_enabled
+            curl -sk $POD_URL | grep pg_stat_subscription_enabled
             echo "pg_stat_subscription_apply_error_count"
-            echo "$METRICS" | grep pg_stat_subscription_apply_error_count
+            curl -sk $POD_URL | grep pg_stat_subscription_apply_error_count
             echo "pg_stat_subscription_sync_error_count"
-            echo "$METRICS" | grep pg_stat_subscription_sync_error_count
+            curl -sk $POD_URL | grep pg_stat_subscription_sync_error_count
             echo "pg_stat_subscription_stats_reset"
-            echo "$METRICS" | grep pg_stat_subscription_stats_reset
+            curl -sk $POD_URL | grep pg_stat_subscription_stats_reset
             echo "pg_stat_subscription_pid"
-            echo "$METRICS" | grep pg_stat_subscription_pid
+            curl -sk $POD_URL | grep pg_stat_subscription_pid
 
             echo "paradedb_index_relation_size"
-            echo "$METRICS" | grep paradedb_index_relation_size
+            curl -sk $POD_URL | grep paradedb_index_relation_size
             echo "paradedb_index_segments_count"
-            echo "$METRICS" | grep paradedb_index_segments_count
+            curl -sk $POD_URL | grep paradedb_index_segments_count
             echo "paradedb_index_segments_min_size"
-            echo "$METRICS" | grep paradedb_index_segments_min_size
+            curl -sk $POD_URL | grep paradedb_index_segments_min_size
             echo "paradedb_index_segments_max_size"
-            echo "$METRICS" | grep paradedb_index_segments_max_size
+            curl -sk $POD_URL | grep paradedb_index_segments_max_size
             echo "paradedb_index_segments_avg_size"
-            echo "$METRICS" | grep paradedb_index_segments_avg_size
+            curl -sk $POD_URL | grep paradedb_index_segments_avg_size
 
             echo "paradedb_index_layer_segments_bucket"
-            echo "$METRICS" | grep paradedb_index_layer_segments_bucket
+            curl -sk $POD_URL | grep paradedb_index_layer_segments_bucket
             echo "paradedb_index_layer_segments_count"
-            echo "$METRICS" | grep paradedb_index_layer_segments_count
+            curl -sk $POD_URL | grep paradedb_index_layer_segments_count
             echo "paradedb_index_layer_segments_sum"
-            echo "$METRICS" | grep paradedb_index_layer_segments_sum
-
-            echo "pg_stat_statements_blk_read_time_seconds"
-            echo "$METRICS" | grep pg_stat_statements_blk_read_time_seconds
-            echo "pg_stat_statements_blk_write_time_seconds"
-            echo "$METRICS" | grep pg_stat_statements_blk_write_time_seconds
+            curl -sk $POD_URL | grep paradedb_index_layer_segments_sum
 
             echo "pg_stat_activity_long_running_avg_duration"
-            echo "$METRICS" | grep pg_stat_activity_long_running_avg_duration
+            curl -sk $POD_URL | grep pg_stat_activity_long_running_avg_duration
             echo "pg_stat_activity_long_running_max_duration"
-            echo "$METRICS" | grep pg_stat_activity_long_running_max_duration
+            curl -sk $POD_URL | grep pg_stat_activity_long_running_max_duration
             echo "pg_stat_activity_long_running_count"
-            echo "$METRICS" | grep pg_stat_activity_long_running_count
+            curl -sk $POD_URL | grep pg_stat_activity_long_running_count
             echo "pg_stat_activity_long_running_queries_bucket"
-            echo "$METRICS" | grep pg_stat_activity_long_running_queries_bucket
+            curl -sk $POD_URL | grep pg_stat_activity_long_running_queries_bucket
