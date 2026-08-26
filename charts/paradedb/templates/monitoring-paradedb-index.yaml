@@ -12,21 +12,78 @@ data:
     paradedb_index:
       query: |
         SELECT current_database() as datname
-             , n.nspname AS schema
-             , c.relname AS relname
-             , pg_relation_size(c.oid) AS relation_size
-             , COUNT(info.byte_size) AS segments_count
-             , MIN(info.byte_size) AS segments_min_size
-             , MAX(info.byte_size) AS segments_max_size
-             , AVG(info.byte_size) AS segments_avg_size
-        FROM pg_class c
-        JOIN pg_namespace n ON n.oid = c.relnamespace
-        JOIN pg_index i ON i.indexrelid = c.oid
-        JOIN pg_am am ON am.oid = c.relam
-        JOIN LATERAL paradedb.index_info(c.oid) AS info ON true
-        WHERE n.nspname NOT IN ('pg_catalog', 'information_schema')
-          AND am.amname = 'bm25'
-        GROUP BY n.nspname, c.relname, c.oid;
+             , i.schemaname AS schema
+             , i.tablename
+             , i.indexname AS relname
+             , pg_relation_size(i.indexrelid) AS relation_size
+             , i.num_segments AS segments_count
+             , i.total_docs
+             , COALESCE(s.deleted_docs, 0) AS deleted_docs
+             , COALESCE(s.max_docs, 0) AS max_docs
+             , CASE
+                 WHEN COALESCE(s.max_docs, 0) = 0 THEN 0::double precision
+                 ELSE s.deleted_docs::double precision / s.max_docs
+               END AS deleted_ratio
+        FROM pdb.indexes() i
+        LEFT JOIN LATERAL (
+          SELECT SUM(num_deleted)::bigint AS deleted_docs
+               , SUM(max_doc)::bigint AS max_docs
+          FROM pdb.index_segments(i.indexrelid)
+        ) s ON true;
+      target_databases: ["*"]
+      predicate_query: "SELECT 1 FROM pg_extension WHERE extname = 'pg_search' AND extversion = '{{ .Values.version.paradedb }}';"
+      metrics:
+        - datname:
+            description: Name of the database
+            usage: LABEL
+        - schema:
+            description: Schema within the database
+            usage: LABEL
+        - tablename:
+            description: Table the index is on
+            usage: LABEL
+        - relname:
+            description: Index name
+            usage: LABEL
+        - relation_size:
+            description: Full Relation size
+            usage: GAUGE
+        - segments_count:
+            description: Segment count
+            usage: GAUGE
+        - total_docs:
+            description: Total live documents across all segments
+            usage: GAUGE
+        - deleted_docs:
+            description: Total deleted documents across all segments
+            usage: GAUGE
+        - max_docs:
+            description: Total allocated document slots across all segments
+            usage: GAUGE
+        - deleted_ratio:
+            description: Fraction of allocated document slots that are deleted
+            usage: GAUGE
+    paradedb_index_document_distribution:
+      query: |
+        WITH buckets(range_order, document_range, min_docs, max_docs) AS (
+          VALUES (1, '<= 100K docs', NULL::bigint, 100000::bigint)
+               , (2, '100K-1M docs', 100000::bigint, 1000000::bigint)
+               , (3, '1M-10M docs', 1000000::bigint, 10000000::bigint)
+               , (4, '> 10M docs', 10000000::bigint, NULL::bigint)
+        )
+        SELECT current_database() as datname
+             , i.schemaname AS schema
+             , i.indexname AS relname
+             , b.range_order::text
+             , b.document_range
+             , COUNT(s.segment_idx) AS segment_count
+        FROM pdb.indexes() i
+        CROSS JOIN buckets b
+        LEFT JOIN LATERAL pdb.index_segments(i.indexrelid) s
+          ON (b.min_docs IS NULL OR s.num_docs > b.min_docs)
+         AND (b.max_docs IS NULL OR s.num_docs <= b.max_docs)
+        GROUP BY current_database(), i.schemaname, i.indexname, b.range_order, b.document_range
+        ORDER BY i.schemaname, i.indexname, b.range_order;
       target_databases: ["*"]
       predicate_query: "SELECT 1 FROM pg_extension WHERE extname = 'pg_search' AND extversion = '{{ .Values.version.paradedb }}';"
       metrics:
@@ -39,51 +96,13 @@ data:
         - relname:
             description: Index name
             usage: LABEL
-        - relation_size:
-            description: Full Relation size
-            usage: GAUGE
-        - segments_count:
-            description: Segment count
-            usage: GAUGE
-        - segments_min_size:
-            description: Minimum segment size in bytes
-            usage: GAUGE
-        - segments_max_size:
-            description: Maximum segment size in bytes
-            usage: GAUGE
-        - segments_avg_size:
-            description: Average segment size in bytes
-            usage: GAUGE
-    paradedb_index_layer:
-      query: |
-        WITH index_layer_histogram AS (
-          SELECT t.relname
-               , t.high
-               , SUM(i.count) AS count
-          FROM paradedb.index_layer_info t
-          LEFT JOIN paradedb.index_layer_info i
-          ON i.relname = t.relname AND i.high <= t.high
-          GROUP BY t.relname, t.high, t.relname
-        )
-        SELECT current_database() as datname
-             , t.relname
-             , SUM(t.byte_size)   AS segments_sum
-             , SUM(t.count)       AS segments_count
-             , ARRAY_AGG(t.high)  AS segments
-             , ARRAY_AGG(i.count) AS segments_bucket
-        FROM paradedb.index_layer_info t
-        LEFT JOIN index_layer_histogram i ON i.relname = t.relname AND i.high = t.high
-        GROUP BY datname, t.relname;
-      target_databases: ["*"]
-      predicate_query: "SELECT 1 FROM pg_extension WHERE extname = 'pg_search' AND extversion = '{{ .Values.version.paradedb }}';"
-      metrics:
-        - datname:
-            description: Name of the database
+        - range_order:
+            description: Numeric display order for the document-count range
             usage: LABEL
-        - relname:
-            description: Index name
+        - document_range:
+            description: Number of live documents in each segment
             usage: LABEL
-        - segments:
-            description: Layer segments size distribution
-            usage: HISTOGRAM
+        - segment_count:
+            description: Number of segments in the document-count range
+            usage: GAUGE
 {{- end }}
