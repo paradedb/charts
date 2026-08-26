@@ -5400,7 +5400,7 @@
               }
             ]
           },
-          "unit": "bytes"
+          "unit": "short"
         },
         "overrides": []
       },
@@ -5432,25 +5432,13 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "max by (relname) (cnpg_paradedb_index_segments_max_size * on (pod) group_left() (label_replace(kube_customresource_primary_info{customresource_group=\"postgresql.cnpg.io\", customresource_kind=\"Cluster\", namespace=\"$namespace\"}, \"pod\", \"$1\", \"current_primary\", \"(.*)\")))",
-          "legendFormat": "max {{relname}}",
+          "expr": "max by (relname) (cnpg_paradedb_index_total_docs * on (pod) group_left() (label_replace(kube_customresource_primary_info{customresource_group=\"postgresql.cnpg.io\", customresource_kind=\"Cluster\", namespace=\"$namespace\"}, \"pod\", \"$1\", \"current_primary\", \"(.*)\")))",
+          "legendFormat": "{{relname}}",
           "range": true,
           "refId": "A"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
-          "editorMode": "code",
-          "expr": "max by (relname) (cnpg_paradedb_index_segments_avg_size * on (pod) group_left() (label_replace(kube_customresource_primary_info{customresource_group=\"postgresql.cnpg.io\", customresource_kind=\"Cluster\", namespace=\"$namespace\"}, \"pod\", \"$1\", \"current_primary\", \"(.*)\")))",
-          "hide": false,
-          "legendFormat": "avg {{relname}}",
-          "range": true,
-          "refId": "B"
         }
       ],
-      "title": "Segment size",
+      "title": "Total documents",
       "type": "timeseries"
     },
     {
@@ -5559,16 +5547,28 @@
       },
       "fieldConfig": {
         "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
           "custom": {
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
             },
-            "scaleDistribution": {
-              "type": "linear"
-            }
-          }
+            "filterable": false,
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "none"
         },
         "overrides": []
       },
@@ -5582,39 +5582,17 @@
       "maxDataPoints": 80,
       "maxPerRow": 2,
       "options": {
-        "calculate": false,
-        "cellGap": 1,
-        "color": {
-          "exponent": 0.5,
-          "fill": "dark-orange",
-          "mode": "scheme",
-          "reverse": false,
-          "scale": "exponential",
-          "scheme": "RdYlBu",
-          "steps": 64
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
         },
-        "exemplars": {
-          "color": "rgba(255,0,255,0.7)"
-        },
-        "filterValues": {
-          "le": 1e-9
-        },
-        "legend": {
-          "show": true
-        },
-        "rowsFrame": {
-          "layout": "auto"
-        },
-        "tooltip": {
-          "mode": "multi",
-          "showColorScale": false,
-          "yHistogram": false
-        },
-        "yAxis": {
-          "axisPlacement": "left",
-          "reverse": false,
-          "unit": "bytes"
-        }
+        "showHeader": true,
+        "sortBy": []
       },
       "pluginVersion": "11.5.1",
       "repeat": "paradedb_indexes",
@@ -5622,15 +5600,48 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "avg(cnpg_paradedb_index_layer_segments_bucket{namespace=\"$namespace\",relname=~\"$paradedb_indexes\"}) by (le)",
-          "format": "heatmap",
-          "legendFormat": "{{relname}}",
-          "range": true,
+          "expr": "max by (document_range, range_order) (cnpg_paradedb_index_document_distribution_segment_count{namespace=\"$namespace\",relname=~\"$paradedb_indexes\"})",
+          "format": "table",
+          "instant": true,
+          "legendFormat": "__auto",
+          "range": false,
           "refId": "A"
         }
       ],
       "title": "$paradedb_indexes segments",
-      "type": "heatmap"
+      "transformations": [
+        {
+          "id": "sortBy",
+          "options": {
+            "fields": {},
+            "sort": [
+              {
+                "field": "range_order"
+              }
+            ]
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "range_order": true
+            },
+            "includeByName": {},
+            "indexByName": {
+              "document_range": 0,
+              "Value": 1
+            },
+            "renameByName": {
+              "document_range": "Documents per segment",
+              "Value": "Segments"
+            }
+          }
+        }
+      ],
+      "type": "table",
+      "description": "Current distribution of segments by live-document count. Each row shows how many segments fall in that document-count range."
     },
     {
       "collapsed": false,
@@ -12043,14 +12054,14 @@
           "text": "All",
           "value": "$__all"
         },
-        "definition": "label_values(cnpg_paradedb_index_layer_segments_bucket{namespace=\"$namespace\"},relname)",
+        "definition": "label_values(cnpg_paradedb_index_document_distribution_segment_count{namespace=\"$namespace\"},relname)",
         "hide": 2,
         "includeAll": true,
         "name": "paradedb_indexes",
         "options": [],
         "query": {
           "qryType": 1,
-          "query": "label_values(cnpg_paradedb_index_layer_segments_bucket{namespace=\"$namespace\"},relname)",
+          "query": "label_values(cnpg_paradedb_index_document_distribution_segment_count{namespace=\"$namespace\"},relname)",
           "refId": "PrometheusVariableQueryEditor-VariableQuery"
         },
         "refresh": 2,
