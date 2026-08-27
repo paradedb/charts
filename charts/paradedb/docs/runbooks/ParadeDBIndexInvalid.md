@@ -4,12 +4,13 @@
 
 The `ParadeDBIndexInvalid` alert is triggered when PostgreSQL reports that a ParadeDB index on the cluster primary is invalid or not ready for inserts.
 
-This commonly happens when `CREATE INDEX CONCURRENTLY` fails or is cancelled. PostgreSQL leaves the incomplete index behind, but the planner will not use an invalid index. Search queries can silently fall back to a sequential scan and become much slower without returning an application error.
+This commonly happens when `CREATE INDEX CONCURRENTLY` fails or is cancelled. PostgreSQL leaves the incomplete index behind, consuming storage even though the planner will not use it. Search queries can silently fall back to a sequential scan and become much slower without returning an application error.
 
 ## Impact
 
 - An index with `indisvalid = false` is not available to the query planner.
 - An index with `indisready = false` does not receive inserts and can fall behind its table.
+- The incomplete index continues to occupy storage until it is dropped.
 - Queries that normally use the index may consume substantially more CPU and take much longer.
 
 ## Diagnosis
