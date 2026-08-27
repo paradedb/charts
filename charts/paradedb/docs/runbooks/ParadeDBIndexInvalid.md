@@ -2,7 +2,7 @@
 
 ## Description
 
-The `ParadeDBIndexInvalid` alert is triggered when PostgreSQL reports that a ParadeDB BM25 index on the cluster primary is invalid or not ready for inserts.
+The `ParadeDBIndexInvalid` alert is triggered when PostgreSQL reports that a ParadeDB index on the cluster primary is invalid or not ready for inserts.
 
 This commonly happens when `CREATE INDEX CONCURRENTLY` fails or is cancelled. PostgreSQL leaves the incomplete index behind, but the planner will not use an invalid index. Search queries can silently fall back to a sequential scan and become much slower without returning an application error.
 
@@ -28,7 +28,7 @@ JOIN pg_namespace n ON n.oid = c.relnamespace
 JOIN pg_index i ON i.indexrelid = c.oid
 JOIN pg_class t ON t.oid = i.indrelid
 JOIN pg_am am ON am.oid = c.relam
-WHERE am.amname = 'bm25'
+WHERE am.amname = 'paradedb'
   AND (NOT i.indisvalid OR NOT i.indisready)
 ORDER BY n.nspname, c.relname;
 "
@@ -44,7 +44,7 @@ PostgreSQL cannot make a failed concurrent index valid after the fact. Drop the 
 DROP INDEX CONCURRENTLY <schema>.<index_name>;
 CREATE INDEX CONCURRENTLY <index_name>
 ON <schema>.<table_name>
-USING bm25 (...)
+USING paradedb (...)
 WITH (key_field = '<key_column>');
 ```
 

@@ -79,7 +79,7 @@ data:
         JOIN pg_class t ON t.oid = i.indrelid
         JOIN pg_am am ON am.oid = c.relam
         WHERE n.nspname NOT IN ('pg_catalog', 'information_schema')
-          AND am.amname = 'bm25';
+          AND am.amname = 'paradedb';
       target_databases: ["*"]
       predicate_query: "SELECT 1 FROM pg_extension WHERE extname = 'pg_search' AND extversion = '{{ .Values.version.paradedb }}';"
       metrics:
