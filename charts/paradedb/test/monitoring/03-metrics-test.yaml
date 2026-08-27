@@ -90,6 +90,8 @@ spec:
             curl -sk $POD_URL | grep paradedb_index_health_is_valid
             echo "paradedb_index_health_is_ready"
             curl -sk $POD_URL | grep paradedb_index_health_is_ready
+            echo "paradedb_version_match"
+            curl -sk $POD_URL | grep 'cnpg_paradedb_version_match{.*} 1$'
 
             echo "paradedb_index_document_distribution_segment_count"
             curl -sk $POD_URL | grep 'paradedb_index_document_distribution_segment_count.*document_range="<= 100K docs"'
