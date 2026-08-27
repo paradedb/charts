@@ -63,6 +63,44 @@ data:
         - deleted_ratio:
             description: Fraction of allocated document slots that are deleted
             usage: GAUGE
+    # Keep health separate from pdb.indexes() and pdb.index_segments(). An invalid or
+    # incomplete index must still be observable even when ParadeDB cannot inspect it.
+    paradedb_index_health:
+      query: |
+        SELECT current_database() AS datname
+             , n.nspname AS schema
+             , t.relname AS tablename
+             , c.relname AS relname
+             , i.indisvalid::int AS is_valid
+             , i.indisready::int AS is_ready
+        FROM pg_class c
+        JOIN pg_namespace n ON n.oid = c.relnamespace
+        JOIN pg_index i ON i.indexrelid = c.oid
+        JOIN pg_class t ON t.oid = i.indrelid
+        JOIN pg_am am ON am.oid = c.relam
+        WHERE n.nspname NOT IN ('pg_catalog', 'information_schema')
+          AND am.amname = 'bm25';
+      target_databases: ["*"]
+      predicate_query: "SELECT 1 FROM pg_extension WHERE extname = 'pg_search' AND extversion = '{{ .Values.version.paradedb }}';"
+      metrics:
+        - datname:
+            description: Name of the database
+            usage: LABEL
+        - schema:
+            description: Schema within the database
+            usage: LABEL
+        - tablename:
+            description: Table the index is on
+            usage: LABEL
+        - relname:
+            description: Index name
+            usage: LABEL
+        - is_valid:
+            description: Whether the index is valid for queries
+            usage: GAUGE
+        - is_ready:
+            description: Whether the index is ready for inserts
+            usage: GAUGE
     paradedb_index_document_distribution:
       query: |
         WITH buckets(range_order, document_range, min_docs, max_docs) AS (
