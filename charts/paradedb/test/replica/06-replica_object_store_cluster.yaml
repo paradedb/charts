@@ -1,5 +1,8 @@
 type: paradedb-enterprise
 mode: replica
+version:
+  major: "18"
+  paradedb: "0.25.0"
 cluster:
   instances: 1
   storage:
