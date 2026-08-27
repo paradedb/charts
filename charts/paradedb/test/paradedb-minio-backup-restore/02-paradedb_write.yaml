@@ -25,6 +25,6 @@ spec:
                 table_name => 'mock_items_paradedb_minio_backup_restore'
               );
               CREATE INDEX search_idx_paradedb_minio_backup_restore ON mock_items_paradedb_minio_backup_restore
-              USING bm25 (id, description, category, rating, in_stock, created_at, metadata, weight_range)
+              USING paradedb (id, description, category, rating, in_stock, created_at, metadata, weight_range)
               WITH (key_field='id');
             EOSQL

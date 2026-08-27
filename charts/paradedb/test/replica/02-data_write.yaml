@@ -35,7 +35,7 @@ spec:
                table_name => 'mock_items_paradedb_enterprise'
              );
              CREATE INDEX search_idx_paradedb_enterprise ON mock_items_paradedb_enterprise
-             USING bm25 (id, description, category, rating, in_stock, created_at, metadata, weight_range)
+             USING paradedb (id, description, category, rating, in_stock, created_at, metadata, weight_range)
              WITH (key_field='id');
            EOSQL
            RESULT=$(psql "$DB_URI/paradedb" -t) <<-EOSQL
