@@ -9,6 +9,30 @@ metadata:
     {{- include "cluster.labels" . | nindent 4 }}
 data:
   custom-queries: |
+    # This query must remain catalog-only. Calling into pg_search while its SQL
+    # catalog and loaded binary disagree can cause errors.
+    paradedb_version:
+      query: |
+        SELECT current_database() AS datname
+             , extversion AS installed_version
+             , '{{ .Values.version.paradedb }}'::text AS expected_version
+             , (extversion = '{{ .Values.version.paradedb }}')::int AS "match"
+        FROM pg_extension
+        WHERE extname = 'pg_search';
+      target_databases: ["*"]
+      metrics:
+        - datname:
+            description: Name of the database
+            usage: LABEL
+        - installed_version:
+            description: Version recorded in the pg_search extension catalog
+            usage: LABEL
+        - expected_version:
+            description: ParadeDB version declared by the Helm release
+            usage: LABEL
+        - match:
+            description: Whether the pg_search extension catalog matches the declared ParadeDB version
+            usage: GAUGE
     paradedb_index:
       query: |
         SELECT current_database() as datname
