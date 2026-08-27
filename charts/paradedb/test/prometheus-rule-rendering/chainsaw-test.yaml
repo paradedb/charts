@@ -1,0 +1,67 @@
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  name: prometheus-rule-rendering
+spec:
+  steps:
+    - name: Render Prometheus alert rules
+      try:
+        - script:
+            content: |
+              set -eu
+
+              render() {
+                instances="$1"
+                shift
+                helm template "alerts-$instances" ../../ \
+                  --namespace alert-test \
+                  --set "cluster.instances=$instances" \
+                  --set cluster.monitoring.enabled=true \
+                  --set cluster.monitoring.prometheusRule.enabled=true \
+                  "$@" \
+                  --show-only templates/prometheus-rule.yaml
+              }
+
+              alert_rule() {
+                awk -v alert="$1" '
+                  $0 ~ "- alert: " alert { printing = 1 }
+                  printing && $0 ~ /- alert:/ && $0 !~ ("- alert: " alert) { exit }
+                  printing { print }
+                '
+              }
+
+              rendered="$(render 3)"
+              for rule in ../../prometheus_rules/*.yaml; do
+                alert="$(sed -n 's/.*$alert := "\([^"]*\)".*/\1/p' "$rule")"
+                if [ -z "$alert" ]; then
+                  echo "unable to find alert name in $rule"
+                  exit 1
+                fi
+                if ! printf '%s\n' "$rendered" | grep -Fq -- "- alert: $alert"; then
+                  echo "$alert from $rule was not rendered"
+                  exit 1
+                fi
+              done
+
+              printf '%s\n' "$rendered" | grep -Fq 'persistentvolumeclaim=~"alerts-3-paradedb-([1-9][0-9]*)-wal"'
+              printf '%s\n' "$rendered" | grep -Fq 'cnpg_pg_replication_in_recovery'
+
+              one_instance="$(render 1)"
+              if printf '%s\n' "$one_instance" | grep -Fq 'CNPGClusterHA'; then
+                echo "single-instance clusters must not render HA alerts"
+                exit 1
+              fi
+
+              two_instances="$(render 2)"
+              printf '%s\n' "$two_instances" | alert_rule CNPGClusterHACritical | grep -Fq ') < 1'
+              printf '%s\n' "$two_instances" | alert_rule CNPGClusterHAWarning | grep -Fq ') < 1'
+              printf '%s\n' "$rendered" | alert_rule CNPGClusterHACritical | grep -Fq ') < 1'
+              printf '%s\n' "$rendered" | alert_rule CNPGClusterHAWarning | grep -Fq ') < 2'
+
+              excluded="$(render 3 \
+                --set 'cluster.monitoring.prometheusRule.excludeRules[0]=CNPGReplicationSlotInactive' \
+                --set 'cluster.monitoring.prometheusRule.excludeRules[1]=CNPGReplicationSlotHighRetention')"
+              if printf '%s\n' "$excluded" | grep -Fq 'CNPGReplicationSlot'; then
+                echo "excluded replication slot alerts must not render"
+                exit 1
+              fi
