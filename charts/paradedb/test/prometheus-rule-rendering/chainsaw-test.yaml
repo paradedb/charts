@@ -49,6 +49,9 @@ spec:
               printf '%s\n' "$rendered" | alert_rule CNPGClusterXIDWraparoundWarning | grep -Fq 'cnpg_pg_database_mxid_age'
               printf '%s\n' "$rendered" | alert_rule CNPGClusterXIDWraparoundWarning | grep -Fq ') > 1500000000'
               printf '%s\n' "$rendered" | alert_rule CNPGClusterXIDWraparoundCritical | grep -Fq ') > 2000000000'
+              printf '%s\n' "$rendered" | alert_rule CNPGClusterPrimaryFailing | grep -Fq 'kube_customresource_primary_failing_since_time'
+              printf '%s\n' "$rendered" | alert_rule CNPGClusterPrimaryFailing | grep -Fq 'group_left(current_primary, target_primary)'
+              printf '%s\n' "$rendered" | alert_rule CNPGClusterPrimaryFailing | grep -Fq 'for: 5m'
 
               one_instance="$(render 1)"
               if printf '%s\n' "$one_instance" | grep -Fq 'CNPGClusterHA'; then
@@ -66,12 +69,17 @@ spec:
                 --set 'cluster.monitoring.prometheusRule.excludeRules[0]=CNPGReplicationSlotInactive' \
                 --set 'cluster.monitoring.prometheusRule.excludeRules[1]=CNPGReplicationSlotHighRetention' \
                 --set 'cluster.monitoring.prometheusRule.excludeRules[2]=CNPGClusterXIDWraparoundWarning' \
-                --set 'cluster.monitoring.prometheusRule.excludeRules[3]=CNPGClusterXIDWraparoundCritical')"
+                --set 'cluster.monitoring.prometheusRule.excludeRules[3]=CNPGClusterXIDWraparoundCritical' \
+                --set 'cluster.monitoring.prometheusRule.excludeRules[4]=CNPGClusterPrimaryFailing')"
               if printf '%s\n' "$excluded" | grep -Fq 'CNPGReplicationSlot'; then
                 echo "excluded replication slot alerts must not render"
                 exit 1
               fi
               if printf '%s\n' "$excluded" | grep -Fq 'CNPGClusterXIDWraparound'; then
                 echo "excluded transaction ID wraparound alerts must not render"
+                exit 1
+              fi
+              if printf '%s\n' "$excluded" | grep -Fq 'CNPGClusterPrimaryFailing'; then
+                echo "excluded primary failing alert must not render"
                 exit 1
               fi
