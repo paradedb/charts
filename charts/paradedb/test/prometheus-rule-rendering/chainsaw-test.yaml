@@ -45,6 +45,10 @@ spec:
 
               printf '%s\n' "$rendered" | grep -Fq 'persistentvolumeclaim=~"alerts-3-paradedb-([1-9][0-9]*)-wal"'
               printf '%s\n' "$rendered" | grep -Fq 'cnpg_pg_replication_in_recovery'
+              printf '%s\n' "$rendered" | alert_rule CNPGClusterXIDWraparoundWarning | grep -Fq 'cnpg_pg_database_xid_age'
+              printf '%s\n' "$rendered" | alert_rule CNPGClusterXIDWraparoundWarning | grep -Fq 'cnpg_pg_database_mxid_age'
+              printf '%s\n' "$rendered" | alert_rule CNPGClusterXIDWraparoundWarning | grep -Fq ') > 1500000000'
+              printf '%s\n' "$rendered" | alert_rule CNPGClusterXIDWraparoundCritical | grep -Fq ') > 2000000000'
 
               one_instance="$(render 1)"
               if printf '%s\n' "$one_instance" | grep -Fq 'CNPGClusterHA'; then
@@ -60,8 +64,14 @@ spec:
 
               excluded="$(render 3 \
                 --set 'cluster.monitoring.prometheusRule.excludeRules[0]=CNPGReplicationSlotInactive' \
-                --set 'cluster.monitoring.prometheusRule.excludeRules[1]=CNPGReplicationSlotHighRetention')"
+                --set 'cluster.monitoring.prometheusRule.excludeRules[1]=CNPGReplicationSlotHighRetention' \
+                --set 'cluster.monitoring.prometheusRule.excludeRules[2]=CNPGClusterXIDWraparoundWarning' \
+                --set 'cluster.monitoring.prometheusRule.excludeRules[3]=CNPGClusterXIDWraparoundCritical')"
               if printf '%s\n' "$excluded" | grep -Fq 'CNPGReplicationSlot'; then
                 echo "excluded replication slot alerts must not render"
+                exit 1
+              fi
+              if printf '%s\n' "$excluded" | grep -Fq 'CNPGClusterXIDWraparound'; then
+                echo "excluded transaction ID wraparound alerts must not render"
                 exit 1
               fi

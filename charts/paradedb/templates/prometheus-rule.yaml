@@ -15,10 +15,11 @@ spec:
       rules:
         {{- $dict := dict "excludeRules" .Values.cluster.monitoring.prometheusRule.excludeRules -}}
         {{- $_ := set $dict "value"       "{{ $value }}" -}}
+        {{- $_ := set $dict "valueHuman"  "{{ $value | humanize }}" -}}
         {{- $_ := set $dict "valuePercent" "{{ $value | humanizePercentage }}" -}}
         {{- $_ := set $dict "namespace"   .Release.Namespace -}}
         {{- $_ := set $dict "cluster"     (include "cluster.fullname" .) -}}
-        {{- $_ := set $dict "labels"      (dict "job" "{{ $labels.job }}" "node" "{{ $labels.node }}" "pod" "{{ $labels.pod }}" "subname" "{{ $labels.subname }}" "lag_type" "{{ $labels.lag_type }}" "stop_reason" "{{ $labels.stop_reason }}" "slot_name" "{{ $labels.slot_name }}" "slot_type" "{{ $labels.slot_type }}" "persistentvolumeclaim" "{{ $labels.persistentvolumeclaim }}") -}}
+        {{- $_ := set $dict "labels"      (dict "job" "{{ $labels.job }}" "node" "{{ $labels.node }}" "pod" "{{ $labels.pod }}" "subname" "{{ $labels.subname }}" "lag_type" "{{ $labels.lag_type }}" "stop_reason" "{{ $labels.stop_reason }}" "slot_name" "{{ $labels.slot_name }}" "slot_type" "{{ $labels.slot_type }}" "persistentvolumeclaim" "{{ $labels.persistentvolumeclaim }}" "datname" "{{ $labels.datname }}" "age_kind" "{{ $labels.age_kind }}") -}}
         {{- $_ := set $dict "podSelector" (printf "%s-([1-9][0-9]*)$" (include "cluster.fullname" .)) -}}
         {{- $_ := set $dict "pvcSelector" (printf "%s-([1-9][0-9]*)" (include "cluster.fullname" .)) -}}
         {{- $_ := set $dict "Values"      .Values -}}
