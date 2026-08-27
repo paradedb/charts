@@ -20,15 +20,15 @@ spec:
               }
 
               rendered="$(render)"
-              printf '%s\n' "$rendered" | grep -q 'alert: CNPGReplicationSlotInactive'
-              printf '%s\n' "$rendered" | grep -q 'alert: CNPGReplicationSlotHighRetention'
-              printf '%s\n' "$rendered" | grep -q 'persistentvolumeclaim=~"slot-alerts-paradedb-([1-9][0-9]*)-wal"'
-              printf '%s\n' "$rendered" | grep -q 'cnpg_pg_replication_in_recovery'
+              printf '%s\n' "$rendered" | grep -Fq 'alert: CNPGReplicationSlotInactive'
+              printf '%s\n' "$rendered" | grep -Fq 'alert: CNPGReplicationSlotHighRetention'
+              printf '%s\n' "$rendered" | grep -Fq 'persistentvolumeclaim=~"slot-alerts-paradedb-([1-9][0-9]*)-wal"'
+              printf '%s\n' "$rendered" | grep -Fq 'cnpg_pg_replication_in_recovery'
 
               excluded="$(render \
                 --set 'cluster.monitoring.prometheusRule.excludeRules[0]=CNPGReplicationSlotInactive' \
                 --set 'cluster.monitoring.prometheusRule.excludeRules[1]=CNPGReplicationSlotHighRetention')"
-              if printf '%s\n' "$excluded" | grep -q 'CNPGReplicationSlot'; then
+              if printf '%s\n' "$excluded" | grep -Fq 'CNPGReplicationSlot'; then
                 echo "excluded replication slot alerts must not render"
                 exit 1
               fi
