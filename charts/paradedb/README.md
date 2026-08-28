@@ -46,7 +46,7 @@ version:
   # -- PostgreSQL major version to use
   postgresql: "18"
   # -- ParadeDB version to use
-  paradedb: "0.25.0"
+  paradedb: "0.25.6"
 
 cluster:
   instances: 1
@@ -465,7 +465,7 @@ refer to the [CloudNativePG Documentation](https://cloudnative-pg.io/documentati
 | replica.self | string | `""` | Defines the name of this cluster. It is used to determine if this is a primary or a replica cluster, comparing it with primary. Leave empty by default. |
 | subscriptions | list | `[]` | Declarative logical replication subscriptions (CNPG `Subscription` resources) |
 | type | string | `"paradedb"` | Type of the CNPG database. Available types: * `paradedb` * `paradedb-enterprise` |
-| version.paradedb | string | `"0.25.0"` | ParadeDB version to use |
+| version.paradedb | string | `"0.25.6"` | ParadeDB version to use |
 | version.postgresql | string | `"18"` | PostgreSQL major version to use |
 | poolers[].name | string | `` | Name of the pooler resource |
 | poolers[].instances | number | `1` | The number of replicas we want |
