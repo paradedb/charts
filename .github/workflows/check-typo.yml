@@ -24,7 +24,5 @@ jobs:
       - name: Checkout Git Repository
         uses: actions/checkout@v4
 
-      - name: Check Typo using codespell
-        uses: codespell-project/actions-codespell@v2
-        with:
-          check_filenames: true
+      - name: Check Typo
+        uses: paradedb/actions/check-typo@a024855293e56a720daa69e6648d023dd0cb9f77
