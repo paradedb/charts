@@ -44,9 +44,9 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          # If no appVersion is provided, we use the latest ParadeDB version
+          # If no appVersion is provided, use the ParadeDB release marked Latest on GitHub
           if [ -z "${{ github.event.inputs.appVersion }}" ]; then
-            LATEST_TAG=$(gh api repos/paradedb/paradedb/tags --jq '.[0].name')
+            LATEST_TAG=$(gh api repos/paradedb/paradedb/releases/latest --jq '.tag_name')
             APP_VERSION=${LATEST_TAG#v}
           else
             APP_VERSION=${{ github.event.inputs.appVersion }}

@@ -45,13 +45,13 @@ jobs:
           username: ${{ vars.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_ACCESS_TOKEN }}
 
-      # Added by ParadeDB: Always pull the latest version of paradedb/paradedb
-      - name: Set ParadeDB Version to Latest
+      # Added by ParadeDB: Use the ParadeDB release marked Latest on GitHub
+      - name: Set ParadeDB Version to Latest Release
         working-directory: charts/paradedb/
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          LATEST_TAG=$(gh api repos/paradedb/paradedb/tags --jq '.[0].name')
+          LATEST_TAG=$(gh api repos/paradedb/paradedb/releases/latest --jq '.tag_name')
           APP_VERSION=${LATEST_TAG#v}
           sed -i "s/^[[:space:]]*paradedb: .*/  paradedb: \"$APP_VERSION\"/" values.yaml
           sed -i "s/^version: .*/version: ${{ vars.CHART_VERSION_MAJOR }}.${{ vars.CHART_VERSION_MINOR }}.${{ vars.CHART_VERSION_PATCH }}/" Chart.yaml
