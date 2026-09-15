@@ -64,24 +64,6 @@ jobs:
       - name: Setup kind
         uses: ./.github/actions/setup-kind
 
-      - name: Configure Docker Hub credentials on kind nodes
-        env:
-          DOCKERHUB_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
-          DOCKERHUB_ACCESS_TOKEN: ${{ secrets.DOCKERHUB_ACCESS_TOKEN }}
-        run: |
-          # Kubelet needs its own credentials for pod image pulls.
-          umask 077
-          config_file=$(mktemp)
-          trap 'rm -f "$config_file"' EXIT
-          jq -n '{auths: {"https://index.docker.io/v1/": {auth: ((env.DOCKERHUB_USERNAME + ":" + env.DOCKERHUB_ACCESS_TOKEN) | @base64)}}}' > "$config_file"
-          nodes=$(kind get nodes --name chart-testing)
-          test -n "$nodes"
-          for node in $nodes; do
-            docker cp "$config_file" "$node:/var/lib/kubelet/config.json"
-            docker exec "$node" systemctl restart kubelet.service
-          done
-          kubectl wait --for=condition=Ready nodes --all --timeout=60s
-
       - name: Deploy the operator
         uses: ./.github/actions/deploy-operator
 
