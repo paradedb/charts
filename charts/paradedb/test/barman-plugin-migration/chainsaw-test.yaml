@@ -16,6 +16,17 @@ spec:
             file: ./00-minio_cleanup.yaml
         - assert:
             file: ./00-minio_cleanup-assert.yaml
+      catch:
+        - describe:
+            apiVersion: batch/v1
+            kind: Job
+            name: minio-cleanup
+        - script:
+            content: |
+              kubectl -n "$NAMESPACE" describe pods -l batch.kubernetes.io/job-name=minio-cleanup
+              kubectl -n "$NAMESPACE" get events --field-selector involvedObject.kind=Pod --sort-by='.lastTimestamp'
+        - podLogs:
+            selector: batch.kubernetes.io/job-name=minio-cleanup
     - name: Install a standalone CNPG Cluster
       try:
         - script:

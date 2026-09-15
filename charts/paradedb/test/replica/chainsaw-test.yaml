@@ -21,6 +21,11 @@ spec:
         - describe:
             apiVersion: batch/v1
             kind: Job
+            name: minio-cleanup
+        - script:
+            content: |
+              kubectl -n "$NAMESPACE" describe pods -l batch.kubernetes.io/job-name=minio-cleanup
+              kubectl -n "$NAMESPACE" get events --field-selector involvedObject.kind=Pod --sort-by='.lastTimestamp'
         - podLogs:
             selector: batch.kubernetes.io/job-name=minio-cleanup
     - name: Install a source cluster with Enterprise
