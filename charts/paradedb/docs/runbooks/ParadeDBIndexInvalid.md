@@ -4,7 +4,7 @@
 
 The `ParadeDBIndexInvalid` alert is triggered when the cluster primary reports one or more invalid or not-ready ParadeDB indexes for five minutes. The notification reports their total across databases; standby copies are not counted again.
 
-This commonly happens when `CREATE INDEX CONCURRENTLY` or `REINDEX CONCURRENTLY` fails or is cancelled. PostgreSQL leaves the incomplete index behind, consuming storage even though the planner will not use it. Search queries can silently fall back to a sequential scan and become much slower without returning an application error.
+This commonly happens when `CREATE INDEX CONCURRENTLY` or `REINDEX CONCURRENTLY` fails or is cancelled. PostgreSQL leaves the incomplete index behind, consuming storage even though the planner will not use it. Queries can silently fall back to a sequential scan and become much slower without returning an application error.
 
 The catalog-only `cnpg_paradedb_invalid_indexes_count` metric reports the count per database, including zero. `cnpg_paradedb_index_health_is_valid` and `cnpg_paradedb_index_health_is_ready` identify the individual indexes. MCC Customer Overview shows the cluster total under **ParadeDB Indexes**. These metrics do not open index storage.
 
@@ -31,7 +31,7 @@ JOIN pg_namespace n ON n.oid = c.relnamespace
 JOIN pg_index i ON i.indexrelid = c.oid
 JOIN pg_class t ON t.oid = i.indrelid
 JOIN pg_am am ON am.oid = c.relam
-WHERE am.amname IN ('bm25', 'paradedb')
+WHERE am.amname IN ('paradedb', 'bm25')
   AND (NOT i.indisvalid OR NOT i.indisready)
 ORDER BY n.nspname, c.relname;
 "

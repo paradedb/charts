@@ -18,8 +18,6 @@ Which alerts go blind depends on which queries are failing. If the collector can
 
 A standby in this state has previously replayed nothing for two months without alerting, because the one rule aimed squarely at that condition had no series to evaluate.
 
-Invalid or not-ready ParadeDB indexes are excluded from storage-inspection queries and reported separately by `ParadeDBIndexInvalid`. If an older collector still calls `pdb.indexes()` and errors on an invalid `_ccnew` index, upgrade the monitoring query configuration. Suppressing every index-query error would also hide failures on valid indexes.
-
 ## Diagnosis
 
 The alert labels carry the `namespace`, `cluster` and `pod`.

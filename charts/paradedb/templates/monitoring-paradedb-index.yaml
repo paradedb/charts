@@ -45,7 +45,7 @@ data:
           JOIN pg_index i ON i.indexrelid = c.oid
           JOIN pg_class t ON t.oid = i.indrelid
           JOIN pg_am am ON am.oid = c.relam
-          WHERE am.amname IN ('bm25', 'paradedb')
+          WHERE am.amname IN ('paradedb', 'bm25')
             AND i.indisvalid AND i.indisready AND i.indislive
         )
         SELECT current_database() as datname
@@ -118,7 +118,7 @@ data:
         JOIN pg_class t ON t.oid = i.indrelid
         JOIN pg_am am ON am.oid = c.relam
         WHERE n.nspname NOT IN ('pg_catalog', 'information_schema')
-          AND am.amname IN ('bm25', 'paradedb');
+          AND am.amname IN ('paradedb', 'bm25');
       target_databases: ["*"]
       predicate_query: "SELECT 1 FROM pg_extension WHERE extname = 'pg_search';"
       metrics:
@@ -147,7 +147,7 @@ data:
         FROM pg_index i
         JOIN pg_class c ON c.oid = i.indexrelid
         JOIN pg_am am ON am.oid = c.relam
-        WHERE am.amname IN ('bm25', 'paradedb')
+        WHERE am.amname IN ('paradedb', 'bm25')
           AND (NOT i.indisvalid OR NOT i.indisready);
       target_databases: ["*"]
       predicate_query: "SELECT 1 FROM pg_extension WHERE extname = 'pg_search';"
@@ -168,7 +168,7 @@ data:
           JOIN pg_index i ON i.indexrelid = c.oid
           JOIN pg_class t ON t.oid = i.indrelid
           JOIN pg_am am ON am.oid = c.relam
-          WHERE am.amname IN ('bm25', 'paradedb')
+          WHERE am.amname IN ('paradedb', 'bm25')
             AND i.indisvalid AND i.indisready AND i.indislive
         ),
         buckets(range_order, document_range, min_docs, max_docs) AS (
