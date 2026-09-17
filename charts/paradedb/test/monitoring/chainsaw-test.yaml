@@ -46,8 +46,11 @@ spec:
             selector: batch.kubernetes.io/job-name=logical-replication
         - podLogs:
             selector: batch.kubernetes.io/job-name=paradedb
-        - podLogs:
-            selector: batch.kubernetes.io/job-name=metrics-test
+        - script:
+            content: |
+              kubectl logs -n "$NAMESPACE" -l batch.kubernetes.io/job-name=metrics-test --all-containers --prefix --tail=-1
+              kubectl logs -n "$NAMESPACE" -l batch.kubernetes.io/job-name=metrics-test --all-containers --prefix --tail=-1 --previous || true
+              kubectl logs -n "$NAMESPACE" -l cnpg.io/cluster=monitoring-paradedb -c postgres --prefix --tail=200
     - name: Cleanup
       try:
         - script:
