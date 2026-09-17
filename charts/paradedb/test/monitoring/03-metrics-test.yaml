@@ -119,9 +119,7 @@ spec:
 
             # An invalid index must remain visible in catalog health/count metrics
             # while valid-index details still collect without errors.
-            echo "Checking leftover index count before the active-build test"
             scrape > /tmp/index-metrics.txt
-            grep -E '^cnpg_(paradedb_index|paradedb_invalid|errors_total)' /tmp/index-metrics.txt || true
             grep -E '^cnpg_paradedb_invalid_indexes_count\{.*\} 1$' /tmp/index-metrics.txt
             grep -E '^cnpg_paradedb_index_health_is_valid\{.*relname="broken_search_idx".*\} 0$' /tmp/index-metrics.txt
             grep -E '^cnpg_paradedb_index_total_docs\{.*relname="search_idx"' /tmp/index-metrics.txt
