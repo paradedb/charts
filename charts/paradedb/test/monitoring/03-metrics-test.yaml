@@ -154,8 +154,9 @@ spec:
             [ "$locked" = true ]
             PGAPPNAME=monitoring-build PGOPTIONS='-c statement_timeout=120000' psql "$DB_URI" -v ON_ERROR_STOP=1 -c "CREATE INDEX CONCURRENTLY active_search_idx ON active_items USING paradedb (id, description) WITH (key_field='id');" &
             builder=$!
+            # CNPG caches query results for 30 seconds; allow a full refresh.
             observed=false
-            for attempt in $(seq 1 20); do
+            for attempt in $(seq 1 60); do
               scrape > /tmp/active-metrics.txt
               if grep -E '^cnpg_paradedb_index_health_is_valid\{.*relname="active_search_idx".*\} 0$' /tmp/active-metrics.txt &&
                  grep -E '^cnpg_paradedb_invalid_indexes_count\{.*\} 1$' /tmp/active-metrics.txt &&
@@ -176,8 +177,9 @@ spec:
               echo "expected the concurrent build to be cancelled"
               exit 1
             fi
+            # CNPG caches query results for 30 seconds; allow a full refresh.
             observed=false
-            for attempt in $(seq 1 20); do
+            for attempt in $(seq 1 60); do
               scrape > /tmp/cancelled-metrics.txt
               if grep -E '^cnpg_paradedb_invalid_indexes_count\{.*\} 2$' /tmp/cancelled-metrics.txt; then
                 observed=true
