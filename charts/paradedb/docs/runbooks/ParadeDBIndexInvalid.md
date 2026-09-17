@@ -2,9 +2,11 @@
 
 ## Description
 
-The `ParadeDBIndexInvalid` alert is triggered when PostgreSQL reports that a ParadeDB index on the cluster primary is invalid or not ready for inserts.
+The `ParadeDBIndexInvalid` alert is triggered when the cluster primary reports one or more invalid or not-ready ParadeDB indexes for five minutes. The notification reports their total across databases; standby copies are not counted again.
 
-This commonly happens when `CREATE INDEX CONCURRENTLY` fails or is cancelled. PostgreSQL leaves the incomplete index behind, consuming storage even though the planner will not use it. Search queries can silently fall back to a sequential scan and become much slower without returning an application error.
+This commonly happens when `CREATE INDEX CONCURRENTLY` or `REINDEX CONCURRENTLY` fails or is cancelled. PostgreSQL leaves the incomplete index behind, consuming storage even though the planner will not use it. Search queries can silently fall back to a sequential scan and become much slower without returning an application error.
+
+The catalog-only `cnpg_paradedb_invalid_indexes_count` metric reports the count per database, including zero. `cnpg_paradedb_index_health_is_valid` and `cnpg_paradedb_index_health_is_ready` identify the individual indexes. MCC Customer Overview shows the cluster total under **ParadeDB Indexes**. These metrics do not open index storage.
 
 ## Impact
 
@@ -29,7 +31,7 @@ JOIN pg_namespace n ON n.oid = c.relnamespace
 JOIN pg_index i ON i.indexrelid = c.oid
 JOIN pg_class t ON t.oid = i.indrelid
 JOIN pg_am am ON am.oid = c.relam
-WHERE am.amname = 'paradedb'
+WHERE am.amname IN ('bm25', 'paradedb')
   AND (NOT i.indisvalid OR NOT i.indisready)
 ORDER BY n.nspname, c.relname;
 "
@@ -39,7 +41,9 @@ Check PostgreSQL logs and recent deployment or maintenance activity to determine
 
 ## Mitigation
 
-PostgreSQL cannot make a failed concurrent index valid after the fact. Drop the invalid index and recreate it:
+For a failed concurrent reindex, first check whether the original or replacement index is already valid. An invalid `_ccnew` leftover may only need removal; do not drop the valid index or automatically start another rebuild.
+
+If the intended index itself is missing or unusable, recover its exact definition and plan a rebuild. For example:
 
 ```sql
 DROP INDEX CONCURRENTLY <schema>.<index_name>;

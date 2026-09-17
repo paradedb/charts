@@ -33,26 +33,41 @@ data:
         - match:
             description: Whether the pg_search extension catalog matches the declared ParadeDB version
             usage: GAUGE
+    # Materialize the catalog filter before opening index storage. pdb.indexes()
+    # inspects invalid concurrent-build leftovers before callers can filter them.
     paradedb_index:
       query: |
+        WITH valid_indexes AS MATERIALIZED (
+          SELECT n.nspname AS schemaname, t.relname AS tablename,
+                 c.relname AS indexname, c.oid AS indexrelid
+          FROM pg_class c
+          JOIN pg_namespace n ON n.oid = c.relnamespace
+          JOIN pg_index i ON i.indexrelid = c.oid
+          JOIN pg_class t ON t.oid = i.indrelid
+          JOIN pg_am am ON am.oid = c.relam
+          WHERE am.amname IN ('bm25', 'paradedb')
+            AND i.indisvalid AND i.indisready AND i.indislive
+        )
         SELECT current_database() as datname
              , i.schemaname AS schema
              , i.tablename
              , i.indexname AS relname
              , pg_relation_size(i.indexrelid) AS relation_size
-             , i.num_segments AS segments_count
-             , i.total_docs
+             , COALESCE(s.segments_count, 0) AS segments_count
+             , COALESCE(s.total_docs, 0) AS total_docs
              , COALESCE(s.deleted_docs, 0) AS deleted_docs
              , COALESCE(s.max_docs, 0) AS max_docs
              , CASE
                  WHEN COALESCE(s.max_docs, 0) = 0 THEN 0::double precision
                  ELSE s.deleted_docs::double precision / s.max_docs
                END AS deleted_ratio
-        FROM pdb.indexes() i
+        FROM valid_indexes i
         LEFT JOIN LATERAL (
-          SELECT SUM(num_deleted)::bigint AS deleted_docs
+          SELECT COUNT(*) AS segments_count
+               , SUM(num_docs)::bigint AS total_docs
+               , SUM(num_deleted)::bigint AS deleted_docs
                , SUM(max_doc)::bigint AS max_docs
-          FROM pdb.index_segments(i.indexrelid)
+          FROM pdb.index_segments(i.indexrelid::regclass)
         ) s ON true;
       target_databases: ["*"]
       predicate_query: "SELECT 1 FROM pg_extension WHERE extname = 'pg_search' AND extversion = '{{ .Values.version.paradedb }}';"
@@ -103,9 +118,9 @@ data:
         JOIN pg_class t ON t.oid = i.indrelid
         JOIN pg_am am ON am.oid = c.relam
         WHERE n.nspname NOT IN ('pg_catalog', 'information_schema')
-          AND am.amname = 'paradedb';
+          AND am.amname IN ('bm25', 'paradedb');
       target_databases: ["*"]
-      predicate_query: "SELECT 1 FROM pg_extension WHERE extname = 'pg_search' AND extversion = '{{ .Values.version.paradedb }}';"
+      predicate_query: "SELECT 1 FROM pg_extension WHERE extname = 'pg_search';"
       metrics:
         - datname:
             description: Name of the database
@@ -125,9 +140,38 @@ data:
         - is_ready:
             description: Whether the index is ready for inserts
             usage: GAUGE
+    # Always emit a count, including zero when no ParadeDB indexes exist.
+    paradedb_invalid_indexes:
+      query: |
+        SELECT current_database() AS datname, COUNT(*) AS count
+        FROM pg_index i
+        JOIN pg_class c ON c.oid = i.indexrelid
+        JOIN pg_am am ON am.oid = c.relam
+        WHERE am.amname IN ('bm25', 'paradedb')
+          AND (NOT i.indisvalid OR NOT i.indisready);
+      target_databases: ["*"]
+      predicate_query: "SELECT 1 FROM pg_extension WHERE extname = 'pg_search';"
+      metrics:
+        - datname:
+            description: Name of the database
+            usage: LABEL
+        - count:
+            description: Number of ParadeDB indexes that are invalid or not ready for inserts
+            usage: GAUGE
     paradedb_index_document_distribution:
       query: |
-        WITH buckets(range_order, document_range, min_docs, max_docs) AS (
+        WITH valid_indexes AS MATERIALIZED (
+          SELECT n.nspname AS schemaname, t.relname AS tablename,
+                 c.relname AS indexname, c.oid AS indexrelid
+          FROM pg_class c
+          JOIN pg_namespace n ON n.oid = c.relnamespace
+          JOIN pg_index i ON i.indexrelid = c.oid
+          JOIN pg_class t ON t.oid = i.indrelid
+          JOIN pg_am am ON am.oid = c.relam
+          WHERE am.amname IN ('bm25', 'paradedb')
+            AND i.indisvalid AND i.indisready AND i.indislive
+        ),
+        buckets(range_order, document_range, min_docs, max_docs) AS (
           VALUES (1, '<= 100K docs', NULL::bigint, 100000::bigint)
                , (2, '100K-1M docs', 100000::bigint, 1000000::bigint)
                , (3, '1M-10M docs', 1000000::bigint, 10000000::bigint)
@@ -139,9 +183,9 @@ data:
              , b.range_order::text
              , b.document_range
              , COUNT(s.segment_idx) AS segment_count
-        FROM pdb.indexes() i
+        FROM valid_indexes i
         CROSS JOIN buckets b
-        LEFT JOIN LATERAL pdb.index_segments(i.indexrelid) s
+        LEFT JOIN LATERAL pdb.index_segments(i.indexrelid::regclass) s
           ON (b.min_docs IS NULL OR s.num_docs > b.min_docs)
          AND (b.max_docs IS NULL OR s.num_docs <= b.max_docs)
         GROUP BY current_database(), i.schemaname, i.indexname, b.range_order, b.document_range

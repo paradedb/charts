@@ -57,6 +57,16 @@ spec:
               printf '%s\n' "$rendered" | alert_rule CNPGPoolerClientsWaiting | grep -Fq 'cnpg_pgbouncer_pools_cl_waiting'
               printf '%s\n' "$rendered" | alert_rule CNPGPoolerClientsWaiting | grep -Fq 'database!="pgbouncer"'
 
+              printf '%s\n' "$rendered" | alert_rule ParadeDBIndexInvalid | grep -Fq 'cnpg_paradedb_invalid_indexes_count'
+              printf '%s\n' "$rendered" | alert_rule ParadeDBIndexInvalid | grep -Fq 'severity: warning'
+              printf '%s\n' "$rendered" | alert_rule ParadeDBIndexInvalid | grep -Fq 'for: 5m'
+              printf '%s\n' "$rendered" | alert_rule CNPGInstanceMetricsFailing | grep -Fq 'cnpg_errors_total'
+              invalid_excluded="$(render 3 --set 'cluster.monitoring.prometheusRule.excludeRules[0]=ParadeDBIndexInvalid')"
+              if printf '%s\n' "$invalid_excluded" | grep -Fq -- '- alert: ParadeDBIndexInvalid'; then
+                echo "excluded invalid index alert must not render"
+                exit 1
+              fi
+
               one_instance="$(render 1)"
               if printf '%s\n' "$one_instance" | grep -Fq 'CNPGClusterHA'; then
                 echo "single-instance clusters must not render HA alerts"

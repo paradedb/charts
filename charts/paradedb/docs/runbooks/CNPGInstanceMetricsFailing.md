@@ -18,14 +18,16 @@ Which alerts go blind depends on which queries are failing. If the collector can
 
 A standby in this state has previously replayed nothing for two months without alerting, because the one rule aimed squarely at that condition had no series to evaluate.
 
+Invalid or not-ready ParadeDB indexes are excluded from storage-inspection queries and reported separately by `ParadeDBIndexInvalid`. If an older collector still calls `pdb.indexes()` and errors on an invalid `_ccnew` index, upgrade the monitoring query configuration. Suppressing every index-query error would also hide failures on valid indexes.
+
 ## Diagnosis
 
 The alert labels carry the `namespace`, `cluster` and `pod`.
 
-- Confirm the collector is up but erroring. `cnpg_collector_up` reads 1 while one of the two error flags reads 1, which is the whole signature. The flags cover different work: `cnpg_collector_last_collection_error` is the collector's own, `cnpg_last_error` is the SQL it runs against the databases. Failing queries set only the second one, so check both:
+- Confirm the collector is up but erroring. `cnpg_collector_up` reads 1 while the current collection reports an error, which is the whole signature. `cnpg_collector_last_collection_error` covers collector failures; `cnpg_errors_total > 0` covers SQL failures in the latest collection. Despite its name, `cnpg_errors_total` resets every collection; do not apply `rate()` or `increase()`. `cnpg_last_error` can remain set after recovery, so it is not used by the alert:
 
 ```bash
-kubectl exec -n <namespace> -it pod/<instance-pod-name> -- curl -sS --max-time 5 http://localhost:9187/metrics | grep -E "cnpg_collector_up|cnpg_collector_last_collection_error|cnpg_last_error"
+kubectl exec -n <namespace> -it pod/<instance-pod-name> -- curl -sS --max-time 5 http://localhost:9187/metrics | grep -E "cnpg_collector_up|cnpg_collector_last_collection_error|cnpg_errors_total"
 ```
 
 - Find which query is failing. Every failure is published as a `cnpg_errors_total` series whose `errorUserQueries` label names the query, the database it ran against and the error:
@@ -92,7 +94,7 @@ kubectl exec -n <namespace> -it pod/<instance-pod-name> -- psql -c "SELECT pg_te
 The alert resolves once a collection completes without error. Confirm the missing series are back:
 
 ```bash
-kubectl exec -n <namespace> -it pod/<instance-pod-name> -- curl -sS --max-time 5 http://localhost:9187/metrics | grep -E "cnpg_collector_last_collection_error|cnpg_last_error|cnpg_pg_replication_lag"
+kubectl exec -n <namespace> -it pod/<instance-pod-name> -- curl -sS --max-time 5 http://localhost:9187/metrics | grep -E "cnpg_collector_last_collection_error|cnpg_errors_total|cnpg_pg_replication_lag"
 ```
 
 Afterwards, audit whether any replication or HA alert should have fired while the series were missing, and for how long they had been missing before this alert existed. Escalate if the collection error persists after the database name is correct, if it appears across several instances at once, which suggests a bad instrumentation rollout rather than one misconfigured cluster, or if `pg_stat_replication` on the primary shows a standby that has not been replaying.

@@ -11,9 +11,15 @@ annotations:
     The alerts that read the missing series have no samples to evaluate and cannot fire. Their silence means nothing for this instance while this is active.
 
     The usual cause is the collector being unable to reach the cluster's application database, which fails every default per-database query at once while the exporter itself stays healthy.
+    Invalid or not-ready ParadeDB indexes are counted separately by ParadeDBIndexInvalid;
+    index detail queries must exclude them before opening index storage.
   runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGInstanceMetricsFailing.md
 expr: |
-  cnpg_collector_last_collection_error{namespace="{{ .namespace }}",pod=~"{{ .podSelector }}"} == 1
+  max by (namespace, pod) (
+    (cnpg_collector_last_collection_error{namespace="{{ .namespace }}",pod=~"{{ .podSelector }}"} == 1)
+    or
+    (cnpg_errors_total{namespace="{{ .namespace }}",pod=~"{{ .podSelector }}"} > 0)
+  )
 for: 15m
 labels:
   severity: critical
