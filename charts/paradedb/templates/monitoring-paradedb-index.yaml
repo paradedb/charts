@@ -148,7 +148,12 @@ data:
         JOIN pg_class c ON c.oid = i.indexrelid
         JOIN pg_am am ON am.oid = c.relam
         WHERE am.amname IN ('paradedb', 'bm25')
-          AND (NOT i.indisvalid OR NOT i.indisready);
+          AND (NOT i.indisvalid OR NOT i.indisready)
+          AND NOT EXISTS (
+            SELECT 1 FROM pg_stat_progress_create_index p
+            WHERE p.datname = current_database()
+              AND p.index_relid = i.indexrelid
+          );
       target_databases: ["*"]
       predicate_query: "SELECT 1 FROM pg_extension WHERE extname = 'pg_search';"
       metrics:
@@ -156,7 +161,7 @@ data:
             description: Name of the database
             usage: LABEL
         - count:
-            description: Number of ParadeDB indexes that are invalid or not ready for inserts
+            description: Number of ParadeDB indexes that are invalid or not ready for inserts, excluding active builds
             usage: GAUGE
     paradedb_index_document_distribution:
       query: |

@@ -39,13 +39,18 @@ spec:
         image: alpine:3.19
         command: ['sh', '-c']
         env:
+          - name: DB_URI
+            valueFrom:
+              secretKeyRef:
+                name: monitoring-paradedb-app
+                key: uri
           - name: NAMESPACE
             valueFrom:
               fieldRef:
                 fieldPath: metadata.namespace
         args:
           - |
-            apk --no-cache add curl kubectl
+            apk --no-cache add curl kubectl postgresql-client
             set -e
             # The cluster enables monitoring.tls, so the metrics port serves HTTPS
             # using the cluster's serving certificate. Scrape with -k since the job
@@ -122,3 +127,55 @@ spec:
               echo "index metrics failed with an invalid index present"
               exit 1
             fi
+
+            # Keep a second concurrent build waiting on a writer. It must remain in
+            # catalog health metrics without increasing the leftover-index count.
+            psql "$DB_URI" -v ON_ERROR_STOP=1 -c "CREATE TABLE active_items (id bigint PRIMARY KEY, description text);"
+            cleanup() {
+              psql "$DB_URI" -c "SELECT pg_cancel_backend(pid) FROM pg_stat_activity WHERE application_name IN ('monitoring-build', 'monitoring-writer') AND pid <> pg_backend_pid();"
+            }
+            trap cleanup EXIT
+            PGAPPNAME=monitoring-writer PGOPTIONS='-c statement_timeout=120000' psql "$DB_URI" -v ON_ERROR_STOP=1 -c "BEGIN; LOCK TABLE active_items IN ROW EXCLUSIVE MODE; SELECT pg_sleep(120); COMMIT;" &
+            writer=$!
+            locked=false
+            for attempt in $(seq 1 20); do
+              if [ "$(psql "$DB_URI" -Atc "SELECT count(*) FROM pg_locks WHERE relation = 'active_items'::regclass AND mode = 'RowExclusiveLock' AND granted;")" = 1 ]; then
+                locked=true
+                break
+              fi
+              sleep 1
+            done
+            [ "$locked" = true ]
+            PGAPPNAME=monitoring-build PGOPTIONS='-c statement_timeout=120000' psql "$DB_URI" -v ON_ERROR_STOP=1 -c "CREATE INDEX CONCURRENTLY active_search_idx ON active_items USING paradedb (id, description) WITH (key_field='id');" &
+            builder=$!
+            observed=false
+            for attempt in $(seq 1 20); do
+              curl -fsk "$POD_URL" > /tmp/active-metrics.txt
+              if grep -E '^cnpg_paradedb_index_health_is_valid\{.*relname="active_search_idx".*\} 0$' /tmp/active-metrics.txt &&
+                 grep -E '^cnpg_paradedb_invalid_indexes_count\{.*\} 1$' /tmp/active-metrics.txt &&
+                 [ "$(psql "$DB_URI" -Atc "SELECT count(*) FROM pg_stat_progress_create_index WHERE datname = current_database() AND index_relid = to_regclass('active_search_idx');")" = 1 ]; then
+                observed=true
+                break
+              fi
+              sleep 1
+            done
+            [ "$observed" = true ]
+            # Once cancelled, the same index must be counted as a leftover.
+            psql "$DB_URI" -v ON_ERROR_STOP=1 -c "SELECT pg_cancel_backend(pid) FROM pg_stat_activity WHERE application_name = 'monitoring-build';"
+            if wait "$builder"; then
+              echo "expected the concurrent build to be cancelled"
+              exit 1
+            fi
+            observed=false
+            for attempt in $(seq 1 20); do
+              curl -fsk "$POD_URL" > /tmp/cancelled-metrics.txt
+              if grep -E '^cnpg_paradedb_invalid_indexes_count\{.*\} 2$' /tmp/cancelled-metrics.txt; then
+                observed=true
+                break
+              fi
+              sleep 1
+            done
+            [ "$observed" = true ]
+            cleanup
+            wait "$writer" || true
+            trap - EXIT
