@@ -30,10 +30,11 @@ kind: Job
 metadata:
   name: metrics-test
 spec:
+  backoffLimit: 0
   template:
     spec:
       serviceAccountName: pod-reader
-      restartPolicy: OnFailure
+      restartPolicy: Never
       containers:
       - name: metrics-test
         image: alpine:3.19
