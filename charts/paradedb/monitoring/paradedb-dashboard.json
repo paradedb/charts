@@ -55,7 +55,7 @@
       },
       "id": 676,
       "options": {
-        "alertInstanceLabelFilter": "{namespace=~\"$namespace\"}",
+        "alertInstanceLabelFilter": "{namespace=\"$namespace\",cnpg_cluster=\"$cluster\"}",
         "alertName": "",
         "dashboardAlerts": false,
         "folder": "",
@@ -68,14 +68,15 @@
           "error": true,
           "firing": true,
           "noData": false,
-          "normal": true,
+          "normal": false,
           "pending": true
         },
         "viewMode": "list"
       },
       "pluginVersion": "11.5.1",
       "title": "Alerts",
-      "type": "alertlist"
+      "type": "alertlist",
+      "description": "Grafana alerts matching the selected cluster and namespace filters."
     },
     {
       "fieldConfig": {
@@ -413,7 +414,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "Low disk space or low inode count will result in data loss.",
+      "description": "Highest reported data-volume byte or inode utilization. Exhaustion can prevent writes and interrupt database availability.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -551,7 +552,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "",
+      "description": "Most recent PostgreSQL server start among selected instances; this can also reflect a restart or a new replica.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -611,11 +612,11 @@
           "instant": true,
           "interval": "",
           "intervalFactor": 1,
-          "legendFormat": "",
+          "legendFormat": "Latest instance start",
           "refId": "A"
         }
       ],
-      "title": "Last failover",
+      "title": "Latest instance start",
       "type": "stat"
     },
     {
@@ -675,7 +676,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "sum(rate(cnpg_pg_stat_database_xact_commit{namespace=~\"$namespace\",pod=~\"$instances\"}[$__interval])) + sum(rate(cnpg_pg_stat_database_xact_rollback{namespace=~\"$namespace\",pod=~\"$instances\"}[$__interval]))",
+          "expr": "sum(rate(cnpg_pg_stat_database_xact_commit{ namespace=\"$namespace\",pod=~\"$instances\"}[$__rate_interval])) + sum(rate(cnpg_pg_stat_database_xact_rollback{ namespace=\"$namespace\",pod=~\"$instances\"}[$__rate_interval]))",
           "interval": "",
           "legendFormat": "TPS",
           "range": true,
@@ -683,14 +684,15 @@
         }
       ],
       "title": "TPS",
-      "type": "stat"
+      "type": "stat",
+      "description": "Committed and rolled-back transactions per second, summed across selected instances and databases."
     },
     {
       "datasource": {
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "CPU Utilisation from Requests",
+      "description": "Usage as a fraction of configured resource requests, not node capacity or resource limits.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -770,7 +772,7 @@
           "refId": "A"
         }
       ],
-      "title": "CPU Utilisation",
+      "title": "CPU / requests",
       "type": "gauge"
     },
     {
@@ -778,7 +780,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "Memory Utilisation from Requests",
+      "description": "Usage as a fraction of configured resource requests, not node capacity or resource limits.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -858,7 +860,7 @@
           "refId": "A"
         }
       ],
-      "title": "Memory Utilisation",
+      "title": "Memory / requests",
       "type": "gauge"
     },
     {
@@ -965,7 +967,8 @@
         }
       ],
       "title": "Volume Space Usage",
-      "type": "gauge"
+      "type": "gauge",
+      "description": "Highest used-capacity fraction among selected data, WAL, and tablespace volumes; each category shows its most-used volume."
     },
     {
       "datasource": {
@@ -1337,7 +1340,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "",
+      "description": "PostgreSQL version reported by each selected instance.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1873,7 +1876,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "The operator reconcile errors don't distinguish between database cluster or namespaces.",
+      "description": "Controllers with reconciliation errors observed in the last 10 minutes. These errors cover the whole operator, not just the selected database cluster. If several controllers have errors, this compact card names only one of them. Missing telemetry is not treated as healthy.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1947,7 +1950,8 @@
                 "value": null
               }
             ]
-          }
+          },
+          "noValue": "No data"
         },
         "overrides": [
           {
@@ -1958,7 +1962,7 @@
             "properties": [
               {
                 "id": "displayName",
-                "value": "Reconcile errors"
+                "value": "Errors (10m)"
               }
             ]
           }
@@ -1996,11 +2000,12 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "clamp_max(max(controller_runtime_reconcile_total{namespace=~\"$operatorNamespace\", result=\"error\", controller=\"backup\"}), 1)",
+          "expr": "(max(increase(controller_runtime_reconcile_total{ namespace=\"$operatorNamespace\", result=\"error\", controller=\"backup\"}[10m])) > bool 0) or (0 * max(increase(controller_runtime_reconcile_total{ namespace=\"$operatorNamespace\", controller=\"backup\"}[10m])))",
           "hide": true,
           "legendFormat": "__auto",
-          "range": true,
-          "refId": "RECONCILE_ERRORS_BACKUP"
+          "range": false,
+          "refId": "RECONCILE_ERRORS_BACKUP",
+          "instant": true
         },
         {
           "datasource": {
@@ -2008,11 +2013,12 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "clamp_max(max(controller_runtime_reconcile_total{namespace=~\"$operatorNamespace\", result=\"error\", controller=\"cluster\"}), 1)",
+          "expr": "(max(increase(controller_runtime_reconcile_total{ namespace=\"$operatorNamespace\", result=\"error\", controller=\"cluster\"}[10m])) > bool 0) or (0 * max(increase(controller_runtime_reconcile_total{ namespace=\"$operatorNamespace\", controller=\"cluster\"}[10m])))",
           "hide": true,
           "legendFormat": "__auto",
-          "range": true,
-          "refId": "RECONCILE_ERRORS_CLUSTER"
+          "range": false,
+          "refId": "RECONCILE_ERRORS_CLUSTER",
+          "instant": true
         },
         {
           "datasource": {
@@ -2020,11 +2026,12 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "clamp_max(max(controller_runtime_reconcile_total{namespace=~\"$operatorNamespace\", result=\"error\", controller=\"pooler\"}), 1)",
+          "expr": "(max(increase(controller_runtime_reconcile_total{ namespace=\"$operatorNamespace\", result=\"error\", controller=\"pooler\"}[10m])) > bool 0) or (0 * max(increase(controller_runtime_reconcile_total{ namespace=\"$operatorNamespace\", controller=\"pooler\"}[10m])))",
           "hide": true,
           "legendFormat": "__auto",
-          "range": true,
-          "refId": "RECONCILE_ERRORS_POOLER"
+          "range": false,
+          "refId": "RECONCILE_ERRORS_POOLER",
+          "instant": true
         },
         {
           "datasource": {
@@ -2032,16 +2039,17 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "clamp_max(max(controller_runtime_reconcile_total{namespace=~\"$operatorNamespace\", result=\"error\", controller=~\"scheduledbackup|scheduled-backup\"}), 1)",
+          "expr": "(max(increase(controller_runtime_reconcile_total{ namespace=\"$operatorNamespace\", result=\"error\", controller=~\"scheduledbackup|scheduled-backup\"}[10m])) > bool 0) or (0 * max(increase(controller_runtime_reconcile_total{ namespace=\"$operatorNamespace\", controller=~\"scheduledbackup|scheduled-backup\"}[10m])))",
           "hide": true,
           "legendFormat": "__auto",
-          "range": true,
-          "refId": "RECONCILE_ERRORS_SCHEDULED_BACKUP"
+          "range": false,
+          "refId": "RECONCILE_ERRORS_SCHEDULED_BACKUP",
+          "instant": true
         },
         {
           "datasource": {
             "type": "__expr__",
-            "uid": "${DS_EXPRESSION}"
+            "uid": "__expr__"
           },
           "expression": "$RECONCILE_ERRORS_BACKUP + $RECONCILE_ERRORS_CLUSTER * 10 + $RECONCILE_ERRORS_POOLER * 100 + $RECONCILE_ERRORS_SCHEDULED_BACKUP * 1000",
           "hide": false,
@@ -2057,7 +2065,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "",
+      "description": "Total CPU cores used by containers in the selected PostgreSQL instances.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -2074,7 +2082,7 @@
               }
             ]
           },
-          "unit": "none"
+          "unit": "suffix:cores"
         },
         "overrides": []
       },
@@ -2196,7 +2204,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "",
+      "description": "Database sizes reported by selected instances. Replicas hold separate copies of the same database.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -2369,7 +2377,8 @@
         }
       ],
       "title": "First Recoverability Point",
-      "type": "stat"
+      "type": "stat",
+      "description": "Latest reported first recoverability point among selected instances. Recovery before this timestamp is not represented by this value."
     },
     {
       "datasource": {
@@ -2805,14 +2814,15 @@
         }
       ],
       "title": "Replication Lag",
-      "type": "stat"
+      "type": "stat",
+      "description": "Largest reported physical replication replay lag among selected instances, in seconds."
     },
     {
       "datasource": {
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "Data sent but not written to the standby's disk",
+      "description": "Largest reported time for a standby to acknowledge writing recent WAL, in seconds.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -3135,7 +3145,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "Data flushed, but not replayed into the standby database",
+      "description": "Largest reported time for a standby to acknowledge replaying recent WAL, in seconds.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -3213,7 +3223,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "Data written but not flushed to the standby's disk",
+      "description": "Largest reported time for a standby to acknowledge flushing recent WAL, in seconds.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -3291,7 +3301,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "Evaluation of an SLO objective for logical replication LSN distance to stay below 500MB 99.9% of the time every 7 day rolling period.",
+      "description": "Seven-day rolling fraction of one-minute observations on the primary where both the reported LSN distance is below 500 MiB and message receipt age is below 120 seconds. Target: 99.9%. Missing observations are excluded; this is not a telemetry-availability SLO. Shows the lowest compliance across database/subscription pairs.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -3317,16 +3327,14 @@
                 "value": null
               },
               {
-                "color": "orange",
-                "value": 0.999
-              },
-              {
                 "color": "green",
-                "value": 0.9995
+                "value": 0.999
               }
             ]
           },
-          "unit": "percentunit"
+          "unit": "percentunit",
+          "min": 0,
+          "max": 1
         },
         "overrides": []
       },
@@ -3336,11 +3344,10 @@
         "x": 20,
         "y": 10
       },
-      "hideTimeOverride": true,
       "id": 820,
       "options": {
         "colorMode": "value",
-        "graphMode": "area",
+        "graphMode": "none",
         "justifyMode": "auto",
         "orientation": "auto",
         "percentChangeColorMode": "standard",
@@ -3352,21 +3359,31 @@
           "values": false
         },
         "showPercentChange": false,
-        "textMode": "value_and_name",
-        "wideLayout": false
+        "textMode": "auto",
+        "wideLayout": true
       },
       "pluginVersion": "11.5.1",
       "targets": [
         {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "min(avg by (subname) (avg_over_time(((abs(cnpg_pg_stat_subscription_buffered_lag_bytes{namespace=\"$namespace\",worker_type=\"apply\"})) < BOOL 500*1024*1024)[$__range:])) * avg by (subname) (avg_over_time((cnpg_pg_stat_subscription_receipt_lag_seconds{namespace=\"$namespace\",worker_type=\"apply\"} < BOOL 120)[$__range:])))",
-          "legendFormat": "Logical Replication SLO 99.9% < 500MB",
-          "range": true,
-          "refId": "SLO"
+          "exemplar": false,
+          "expr": "min(avg_over_time((\nmin by (datname, subname) (\n  ((max by (pod, datname, subname) (abs(cnpg_pg_stat_subscription_buffered_lag_bytes{ namespace=\"$namespace\", job=\"$namespace/$cluster\", worker_type=\"apply\"})) < bool 524288000)\n  * on (pod, datname, subname) (max by (pod, datname, subname) (clamp_min(cnpg_pg_stat_subscription_receipt_lag_seconds{ namespace=\"$namespace\", job=\"$namespace/$cluster\", worker_type=\"apply\"}, 0)) < bool 120))\n  and on (pod) max by (pod) (label_replace(kube_customresource_primary_info{customresource_group=\"postgresql.cnpg.io\", customresource_kind=\"Cluster\",  namespace=\"$namespace\", cluster=\"$cluster\"} == 1, \"pod\", \"$1\", \"current_primary\", \"(.*)\"))\n)\n)[7d:1m]))",
+          "fullMetaSearch": false,
+          "hide": false,
+          "includeNullMetadata": true,
+          "instant": true,
+          "legendFormat": "__auto",
+          "range": false,
+          "refId": "A",
+          "useBackend": false
         }
       ],
-      "timeFrom": "7d",
-      "title": "",
+      "title": "Logical Replication SLO (7d, 99.9%)",
       "type": "stat"
     },
     {
@@ -3861,14 +3878,15 @@
         }
       ],
       "title": "",
-      "type": "stat"
+      "type": "stat",
+      "description": "PostgreSQL container readiness across the selected instances. The minimum is zero if any matching container is not ready."
     },
     {
       "datasource": {
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "",
+      "description": "Instance role and WAL receiver status inferred from recovery state and the presence of a WAL receiver.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -3958,7 +3976,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "",
+      "description": "Number of connected physical replication senders reported by each selected instance.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -4199,14 +4217,15 @@
         }
       ],
       "title": "",
-      "type": "timeseries"
+      "type": "timeseries",
+      "description": "PostgreSQL backend connections by instance, including active and idle sessions."
     },
     {
       "datasource": {
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "",
+      "description": "PostgreSQL backend connections as a percentage of each instance's max_connections setting.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -4363,14 +4382,15 @@
         }
       ],
       "title": "",
-      "type": "bargauge"
+      "type": "bargauge",
+      "description": "Largest database transaction-ID age on each instance. This is an XID count, not elapsed time."
     },
     {
       "datasource": {
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "",
+      "description": "PostgreSQL server start time for each selected instance, including restarts and newly created replicas.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -4444,7 +4464,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "",
+      "description": "PostgreSQL version reported by each selected instance.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -4531,7 +4551,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "",
+      "description": "Current primary apply subscriptions, grouped by database and subscription name. Seven-day rolling fraction of one-minute observations on the primary where both the reported LSN distance is below 500 MiB and message receipt age is below 120 seconds. Target: 99.9%. Missing observations are excluded; this is not a telemetry-availability SLO.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -4542,6 +4562,7 @@
             "cellOptions": {
               "type": "auto"
             },
+            "filterable": false,
             "inspect": false
           },
           "mappings": [],
@@ -4549,7 +4570,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "red",
+                "color": "green",
                 "value": null
               }
             ]
@@ -4560,24 +4581,12 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "Value #MESSAGE_RECEIPT_AGE (lastNotNull)"
+              "options": "Last Message Receipt Age"
             },
             "properties": [
               {
                 "id": "unit",
                 "value": "s"
-              },
-              {
-                "id": "custom.cellOptions",
-                "value": {
-                  "type": "color-background"
-                }
-              },
-              {
-                "id": "custom.cellOptions",
-                "value": {
-                  "type": "color-background"
-                }
               },
               {
                 "id": "thresholds",
@@ -4604,6 +4613,12 @@
                 }
               },
               {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background"
+                }
+              },
+              {
                 "id": "custom.width",
                 "value": 210
               }
@@ -4612,7 +4627,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "Value #LSN_DISTANCE (lastNotNull)"
+              "options": "LSN Distance"
             },
             "properties": [
               {
@@ -4622,6 +4637,7 @@
               {
                 "id": "custom.cellOptions",
                 "value": {
+                  "mode": "gradient",
                   "type": "color-background"
                 }
               },
@@ -4655,25 +4671,23 @@
               },
               {
                 "id": "custom.width",
-                "value": 119
+                "value": 120
               }
             ]
           },
           {
             "matcher": {
               "id": "byName",
-              "options": "Value #SLO (lastNotNull)"
+              "options": "SLO (7d)"
             },
             "properties": [
               {
-                "id": "unit",
-                "value": "percentunit"
+                "id": "custom.width",
+                "value": 70
               },
               {
-                "id": "custom.cellOptions",
-                "value": {
-                  "type": "color-background"
-                }
+                "id": "unit",
+                "value": "percentunit"
               },
               {
                 "id": "thresholds",
@@ -4685,23 +4699,17 @@
                       "value": null
                     },
                     {
-                      "color": "orange",
-                      "value": 0.995
-                    },
-                    {
-                      "color": "#EAB839",
-                      "value": 0.999
-                    },
-                    {
                       "color": "green",
-                      "value": 0.9995
+                      "value": 0.999
                     }
                   ]
                 }
               },
               {
-                "id": "custom.width",
-                "value": 70
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background"
+                }
               }
             ]
           }
@@ -4724,17 +4732,24 @@
           ],
           "show": false
         },
-        "showHeader": true
+        "frameIndex": 0,
+        "showHeader": true,
+        "sortBy": []
       },
       "pluginVersion": "11.5.1",
       "targets": [
         {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "clamp_min(cnpg_pg_stat_subscription_receipt_lag_seconds{namespace=\"$namespace\",job=\"$namespace/$cluster\",worker_type=\"apply\"},0)",
+          "expr": "max by (datname, subname) (max by (pod, datname, subname) (clamp_min(cnpg_pg_stat_subscription_receipt_lag_seconds{ namespace=\"$namespace\", job=\"$namespace/$cluster\", worker_type=\"apply\"}, 0)) and on (pod) max by (pod) (label_replace(kube_customresource_primary_info{customresource_group=\"postgresql.cnpg.io\", customresource_kind=\"Cluster\",  namespace=\"$namespace\", cluster=\"$cluster\"} == 1, \"pod\", \"$1\", \"current_primary\", \"(.*)\")))",
           "format": "table",
+          "hide": false,
           "instant": true,
-          "legendFormat": "__auto",
+          "legendFormat": "{{datname}} / {{subname}}",
           "range": false,
           "refId": "MESSAGE_RECEIPT_AGE"
         },
@@ -4745,11 +4760,11 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "cnpg_pg_stat_subscription_buffered_lag_bytes{namespace=\"$namespace\",job=\"$namespace/$cluster\",worker_type=\"apply\"}",
+          "expr": "max by (datname, subname) (max by (pod, datname, subname) (abs(cnpg_pg_stat_subscription_buffered_lag_bytes{ namespace=\"$namespace\", job=\"$namespace/$cluster\", worker_type=\"apply\"})) and on (pod) max by (pod) (label_replace(kube_customresource_primary_info{customresource_group=\"postgresql.cnpg.io\", customresource_kind=\"Cluster\",  namespace=\"$namespace\", cluster=\"$cluster\"} == 1, \"pod\", \"$1\", \"current_primary\", \"(.*)\")))",
           "format": "table",
           "hide": false,
           "instant": true,
-          "legendFormat": "__auto",
+          "legendFormat": "{{datname}} / {{subname}}",
           "range": false,
           "refId": "LSN_DISTANCE"
         },
@@ -4760,7 +4775,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "avg by (subname) \n(\n    avg by (subname, pod) (\n        last_over_time(\n            avg_over_time(\n                (cnpg_pg_stat_subscription_buffered_lag_bytes{namespace=\"$namespace\",job=\"$namespace/$cluster\",worker_type=\"apply\"} < bool 500 * 1024 * 1024)[$__range:]\n            )[$__interval:]\n        )\n    )\n    *\n    avg by (subname, pod) (\n        last_over_time(\n            avg_over_time(\n                (cnpg_pg_stat_subscription_receipt_lag_seconds{namespace=\"$namespace\",job=\"$namespace/$cluster\",worker_type=\"apply\"} < bool 120)[$__range:]\n            )[$__interval:]\n        )\n    )\n    * \n    on (pod) group_left() (label_replace(kube_customresource_primary_info{customresource_group=\"postgresql.cnpg.io\", customresource_kind=\"Cluster\", namespace=\"$namespace\",cluster=\"$cluster\"}, \"pod\", \"$1\", \"current_primary\", \"(.*)\"))\n)[7d:]",
+          "expr": "avg_over_time((\nmin by (datname, subname) (\n  ((max by (pod, datname, subname) (abs(cnpg_pg_stat_subscription_buffered_lag_bytes{ namespace=\"$namespace\", job=\"$namespace/$cluster\", worker_type=\"apply\"})) < bool 524288000)\n  * on (pod, datname, subname) (max by (pod, datname, subname) (clamp_min(cnpg_pg_stat_subscription_receipt_lag_seconds{ namespace=\"$namespace\", job=\"$namespace/$cluster\", worker_type=\"apply\"}, 0)) < bool 120))\n  and on (pod) max by (pod) (label_replace(kube_customresource_primary_info{customresource_group=\"postgresql.cnpg.io\", customresource_kind=\"Cluster\",  namespace=\"$namespace\", cluster=\"$cluster\"} == 1, \"pod\", \"$1\", \"current_primary\", \"(.*)\"))\n)\n)[7d:1m])",
           "format": "table",
           "hide": false,
           "instant": true,
@@ -4769,40 +4784,21 @@
           "refId": "SLO"
         }
       ],
-      "timeFrom": "7d",
       "title": "Subscriptions",
       "transformations": [
         {
           "id": "groupBy",
           "options": {
             "fields": {
-              "Value #A": {
-                "aggregations": [
-                  "lastNotNull"
-                ],
-                "operation": "aggregate"
-              },
-              "Value #B": {
-                "aggregations": [
-                  "lastNotNull"
-                ],
-                "operation": "aggregate"
-              },
-              "Value #C": {
-                "aggregations": [
-                  "lastNotNull"
-                ],
-                "operation": "aggregate"
-              },
               "Value #LSN_DISTANCE": {
                 "aggregations": [
-                  "lastNotNull"
+                  "last"
                 ],
                 "operation": "aggregate"
               },
               "Value #MESSAGE_RECEIPT_AGE": {
                 "aggregations": [
-                  "lastNotNull"
+                  "last"
                 ],
                 "operation": "aggregate"
               },
@@ -4811,6 +4807,13 @@
                   "lastNotNull"
                 ],
                 "operation": "aggregate"
+              },
+              "datname": {
+                "aggregations": [],
+                "operation": "groupby"
+              },
+              "subid": {
+                "aggregations": []
               },
               "subname": {
                 "aggregations": [],
@@ -4827,18 +4830,35 @@
           "id": "organize",
           "options": {
             "excludeByName": {
-              "Time": true
+              "Time": true,
+              "Value #LSN_DISTANCE": false,
+              "container": true,
+              "customer": true,
+              "datname": false,
+              "endpoint": true,
+              "instance": true,
+              "job": true,
+              "namespace": true,
+              "pod": true,
+              "prometheus": true,
+              "subid": true,
+              "subname": false,
+              "worker_type": true
             },
             "includeByName": {},
-            "indexByName": {},
+            "indexByName": {
+              "datname": 0,
+              "subname": 1,
+              "Value #MESSAGE_RECEIPT_AGE (last)": 2,
+              "Value #LSN_DISTANCE (last)": 3,
+              "Value #SLO (lastNotNull)": 4
+            },
             "renameByName": {
-              "Value #LSN_DISTANCE": "LSN Distance",
-              "Value #LSN_DISTANCE (lastNotNull)": "LSN Distance",
-              "Value #MESSAGE_RECEIPT_AGE": "Last Message Receipt Age",
-              "Value #MESSAGE_RECEIPT_AGE (lastNotNull)": "Last Message Receipt Age",
-              "Value #SLO": "SLO",
-              "Value #SLO (lastNotNull)": "SLO",
-              "subname": "Subscription"
+              "Value #LSN_DISTANCE (last)": "LSN Distance",
+              "Value #MESSAGE_RECEIPT_AGE (last)": "Last Message Receipt Age",
+              "Value #SLO (lastNotNull)": "SLO (7d)",
+              "subname": "Subscription",
+              "datname": "Database"
             }
           }
         }
@@ -5032,7 +5052,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "",
+      "description": "Largest reported message receipt age for each apply subscription over the query rate interval.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -5131,7 +5151,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "Evaluation of an SLO objective for logical replication LSN distance to stay below 500MB 99.9% of the time every 7 day rolling period.",
+      "description": "Seven-day rolling fraction of one-minute observations on the primary where both the reported LSN distance is below 500 MiB and message receipt age is below 120 seconds. Target: 99.9%. Missing observations are excluded; this is not a telemetry-availability SLO.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -5146,7 +5166,7 @@
             "barAlignment": 0,
             "barWidthFactor": 0.6,
             "drawStyle": "line",
-            "fillOpacity": 30,
+            "fillOpacity": 12,
             "gradientMode": "opacity",
             "hideFrom": {
               "legend": false,
@@ -5154,13 +5174,13 @@
               "viz": false
             },
             "insertNulls": false,
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
             "pointSize": 5,
             "scaleDistribution": {
               "type": "linear"
             },
-            "showPoints": "auto",
+            "showPoints": "never",
             "spanNulls": false,
             "stacking": {
               "group": "A",
@@ -5170,18 +5190,7 @@
               "mode": "off"
             }
           },
-          "mappings": [
-            {
-              "options": {
-                "match": "null+nan",
-                "result": {
-                  "color": "text",
-                  "index": 0
-                }
-              },
-              "type": "special"
-            }
-          ],
+          "mappings": [],
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -5190,16 +5199,14 @@
                 "value": null
               },
               {
-                "color": "orange",
-                "value": 0.999
-              },
-              {
                 "color": "green",
-                "value": 0.9995
+                "value": 0.999
               }
             ]
           },
-          "unit": "percentunit"
+          "unit": "percentunit",
+          "min": 0,
+          "max": 1
         },
         "overrides": []
       },
@@ -5219,22 +5226,28 @@
         },
         "tooltip": {
           "hideZeros": false,
-          "mode": "single",
+          "mode": "multi",
           "sort": "none"
         }
       },
       "pluginVersion": "11.5.1",
       "targets": [
         {
+          "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "avg by (subname) (avg_over_time(((abs(cnpg_pg_stat_subscription_buffered_lag_bytes{namespace=\"$namespace\",worker_type=\"apply\"})) < BOOL 500*1024*1024)[$__range:])) * avg by (subname) (avg_over_time((cnpg_pg_stat_subscription_receipt_lag_seconds{namespace=\"$namespace\",worker_type=\"apply\"} < BOOL 120)[$__range:]))",
-          "legendFormat": "{{subname}}",
+          "exemplar": false,
+          "expr": "avg_over_time((\nmin by (datname, subname) (\n  ((max by (pod, datname, subname) (abs(cnpg_pg_stat_subscription_buffered_lag_bytes{ namespace=\"$namespace\", job=\"$namespace/$cluster\", worker_type=\"apply\"})) < bool 524288000)\n  * on (pod, datname, subname) (max by (pod, datname, subname) (clamp_min(cnpg_pg_stat_subscription_receipt_lag_seconds{ namespace=\"$namespace\", job=\"$namespace/$cluster\", worker_type=\"apply\"}, 0)) < bool 120))\n  and on (pod) max by (pod) (label_replace(kube_customresource_primary_info{customresource_group=\"postgresql.cnpg.io\", customresource_kind=\"Cluster\",  namespace=\"$namespace\", cluster=\"$cluster\"} == 1, \"pod\", \"$1\", \"current_primary\", \"(.*)\"))\n)\n)[7d:1m])",
+          "fullMetaSearch": false,
+          "hide": false,
+          "includeNullMetadata": true,
+          "instant": false,
+          "legendFormat": "{{datname}} / {{subname}}",
           "range": true,
-          "refId": "SLO"
+          "refId": "SLO",
+          "useBackend": false
         }
       ],
-      "timeFrom": "7d",
-      "title": "Logical Replication SLO 99.9% < 500MB",
+      "title": "Logical Replication SLO (7d, 99.9%)",
       "type": "timeseries"
     },
     {
@@ -5247,8 +5260,79 @@
       },
       "id": 806,
       "panels": [],
-      "title": "ParadeDB",
+      "title": "ParadeDB Indexes",
       "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "decimals": 0,
+          "min": 0,
+          "unit": "short",
+          "noValue": "No data",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 24,
+        "x": 0,
+        "y": 48
+      },
+      "id": 839,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "value",
+        "wideLayout": true
+      },
+      "pluginVersion": "11.5.1",
+      "targets": [
+        {
+          "editorMode": "code",
+          "expr": "sum(max by (namespace, pod, datname) (cnpg_paradedb_invalid_indexes_count{namespace=\"$namespace\",job=\"$namespace/$cluster\"}) * on (namespace, pod) group_left() max by (namespace, pod) (label_replace(kube_customresource_primary_info{namespace=\"$namespace\",cluster=\"$cluster\",customresource_group=\"postgresql.cnpg.io\",customresource_kind=\"Cluster\"} == 1, \"pod\", \"$1\", \"current_primary\", \"(.*)\")))",
+          "format": "time_series",
+          "instant": true,
+          "range": false,
+          "legendFormat": "Invalid indexes",
+          "refId": "A"
+        }
+      ],
+      "title": "Invalid Indexes",
+      "type": "stat",
+      "description": "Number of ParadeDB indexes that are invalid or not ready for inserts, summed across databases on the selected CNPG cluster leader. Active local builds are excluded. On a physical replica, this reflects replayed catalog state and can include intermediate build states until WAL replay catches up; the writable-primary alert excludes instances in recovery. No data means the catalog count is unavailable."
     },
     {
       "datasource": {
@@ -5269,9 +5353,7 @@
             "filterable": false,
             "inspect": false
           },
-          "mappings": [
-
-          ],
+          "mappings": [],
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -5314,7 +5396,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 48
+        "y": 52
       },
       "id": 807,
       "options": {
@@ -5328,15 +5410,13 @@
           "show": false
         },
         "showHeader": true,
-        "sortBy": [
-
-        ]
+        "sortBy": []
       },
       "pluginVersion": "11.5.1",
       "targets": [
         {
           "editorMode": "code",
-          "expr": "max by (schema, tablename, relname) (cnpg_paradedb_index_total_docs{namespace=\"$namespace\"} * on (pod) group_left() (label_replace(kube_customresource_primary_info{customresource_group=\"postgresql.cnpg.io\", customresource_kind=\"Cluster\", namespace=\"$namespace\"}, \"pod\", \"$1\", \"current_primary\", \"(.*)\")))",
+          "expr": "max by (schema, tablename, relname) (cnpg_paradedb_index_total_docs{namespace=\"$namespace\",job=\"$namespace/$cluster\"} * on (pod) group_left() (label_replace(kube_customresource_primary_info{customresource_group=\"postgresql.cnpg.io\", customresource_kind=\"Cluster\", namespace=\"$namespace\",cluster=\"$cluster\"}, \"pod\", \"$1\", \"current_primary\", \"(.*)\")))",
           "format": "table",
           "instant": true,
           "legendFormat": "__auto",
@@ -5345,7 +5425,7 @@
         },
         {
           "editorMode": "code",
-          "expr": "max by (schema, tablename, relname) (cnpg_paradedb_index_segments_count{namespace=\"$namespace\"} * on (pod) group_left() (label_replace(kube_customresource_primary_info{customresource_group=\"postgresql.cnpg.io\", customresource_kind=\"Cluster\", namespace=\"$namespace\"}, \"pod\", \"$1\", \"current_primary\", \"(.*)\")))",
+          "expr": "max by (schema, tablename, relname) (cnpg_paradedb_index_segments_count{namespace=\"$namespace\",job=\"$namespace/$cluster\"} * on (pod) group_left() (label_replace(kube_customresource_primary_info{customresource_group=\"postgresql.cnpg.io\", customresource_kind=\"Cluster\", namespace=\"$namespace\",cluster=\"$cluster\"}, \"pod\", \"$1\", \"current_primary\", \"(.*)\")))",
           "format": "table",
           "instant": true,
           "legendFormat": "__auto",
@@ -5354,7 +5434,7 @@
         },
         {
           "editorMode": "code",
-          "expr": "max by (schema, tablename, relname) (cnpg_paradedb_index_deleted_docs{namespace=\"$namespace\"} * on (pod) group_left() (label_replace(kube_customresource_primary_info{customresource_group=\"postgresql.cnpg.io\", customresource_kind=\"Cluster\", namespace=\"$namespace\"}, \"pod\", \"$1\", \"current_primary\", \"(.*)\")))",
+          "expr": "max by (schema, tablename, relname) (cnpg_paradedb_index_deleted_docs{namespace=\"$namespace\",job=\"$namespace/$cluster\"} * on (pod) group_left() (label_replace(kube_customresource_primary_info{customresource_group=\"postgresql.cnpg.io\", customresource_kind=\"Cluster\", namespace=\"$namespace\",cluster=\"$cluster\"}, \"pod\", \"$1\", \"current_primary\", \"(.*)\")))",
           "format": "table",
           "instant": true,
           "legendFormat": "__auto",
@@ -5363,7 +5443,7 @@
         },
         {
           "editorMode": "code",
-          "expr": "max by (schema, tablename, relname) (cnpg_paradedb_index_deleted_ratio{namespace=\"$namespace\"} * on (pod) group_left() (label_replace(kube_customresource_primary_info{customresource_group=\"postgresql.cnpg.io\", customresource_kind=\"Cluster\", namespace=\"$namespace\"}, \"pod\", \"$1\", \"current_primary\", \"(.*)\")))",
+          "expr": "max by (schema, tablename, relname) (cnpg_paradedb_index_deleted_ratio{namespace=\"$namespace\",job=\"$namespace/$cluster\"} * on (pod) group_left() (label_replace(kube_customresource_primary_info{customresource_group=\"postgresql.cnpg.io\", customresource_kind=\"Cluster\", namespace=\"$namespace\",cluster=\"$cluster\"}, \"pod\", \"$1\", \"current_primary\", \"(.*)\")))",
           "format": "table",
           "instant": true,
           "legendFormat": "__auto",
@@ -5372,7 +5452,7 @@
         },
         {
           "editorMode": "code",
-          "expr": "max by (schema, tablename, relname) (cnpg_paradedb_index_relation_size{namespace=\"$namespace\"} * on (pod) group_left() (label_replace(kube_customresource_primary_info{customresource_group=\"postgresql.cnpg.io\", customresource_kind=\"Cluster\", namespace=\"$namespace\"}, \"pod\", \"$1\", \"current_primary\", \"(.*)\")))",
+          "expr": "max by (schema, tablename, relname) (cnpg_paradedb_index_relation_size{namespace=\"$namespace\",job=\"$namespace/$cluster\"} * on (pod) group_left() (label_replace(kube_customresource_primary_info{customresource_group=\"postgresql.cnpg.io\", customresource_kind=\"Cluster\", namespace=\"$namespace\",cluster=\"$cluster\"}, \"pod\", \"$1\", \"current_primary\", \"(.*)\")))",
           "format": "table",
           "instant": true,
           "legendFormat": "__auto",
@@ -5384,8 +5464,7 @@
       "transformations": [
         {
           "id": "merge",
-          "options": {
-          }
+          "options": {}
         },
         {
           "id": "organize",
@@ -5404,8 +5483,7 @@
               "prometheus": true,
               "service": true
             },
-            "includeByName": {
-            },
+            "includeByName": {},
             "indexByName": {
               "schema": 0,
               "tablename": 1,
@@ -5431,7 +5509,6 @@
       ],
       "type": "table"
     },
-
     {
       "datasource": {
         "type": "prometheus",
@@ -5497,7 +5574,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 56
+        "y": 60
       },
       "id": 835,
       "options": {
@@ -5521,7 +5598,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "max by (relname) (cnpg_paradedb_index_relation_size * on (pod) group_left() (label_replace(kube_customresource_primary_info{customresource_group=\"postgresql.cnpg.io\", customresource_kind=\"Cluster\", namespace=\"$namespace\"}, \"pod\", \"$1\", \"current_primary\", \"(.*)\")))",
+          "expr": "max by (relname) (cnpg_paradedb_index_relation_size * on (pod) group_left() (label_replace(kube_customresource_primary_info{customresource_group=\"postgresql.cnpg.io\", customresource_kind=\"Cluster\", namespace=\"$namespace\",cluster=\"$cluster\"}, \"pod\", \"$1\", \"current_primary\", \"(.*)\")))",
           "legendFormat": "{{relname}}",
           "range": true,
           "refId": "A"
@@ -5529,7 +5606,7 @@
       ],
       "title": "Relation size",
       "type": "timeseries",
-      "description": "On-disk size of each ParadeDB index, read from the current primary."
+      "description": "Reported index relation size on the current primary, grouped by index name."
     },
     {
       "datasource": {
@@ -5567,7 +5644,7 @@
         "h": 5,
         "w": 24,
         "x": 0,
-        "y": 64
+        "y": 68
       },
       "id": 809,
       "maxDataPoints": 80,
@@ -5591,7 +5668,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "max by (document_range, range_order) (cnpg_paradedb_index_document_distribution_segment_count{namespace=\"$namespace\",relname=~\"$paradedb_indexes\"})",
+          "expr": "max by (document_range, range_order) (cnpg_paradedb_index_document_distribution_segment_count{namespace=\"$namespace\",job=\"$namespace/$cluster\",relname=~\"$paradedb_indexes\"})",
           "format": "table",
           "instant": true,
           "legendFormat": "__auto",
@@ -5640,7 +5717,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 69
+        "y": 73
       },
       "id": 41,
       "panels": [],
@@ -5656,7 +5733,7 @@
         "h": 1,
         "w": 3,
         "x": 0,
-        "y": 70
+        "y": 74
       },
       "id": 187,
       "options": {
@@ -5682,7 +5759,7 @@
         "h": 1,
         "w": 3,
         "x": 3,
-        "y": 70
+        "y": 74
       },
       "id": 183,
       "options": {
@@ -5707,7 +5784,7 @@
         "h": 1,
         "w": 3,
         "x": 6,
-        "y": 70
+        "y": 74
       },
       "id": 184,
       "options": {
@@ -5732,7 +5809,7 @@
         "h": 1,
         "w": 3,
         "x": 9,
-        "y": 70
+        "y": 74
       },
       "id": 185,
       "options": {
@@ -5757,7 +5834,7 @@
         "h": 1,
         "w": 3,
         "x": 12,
-        "y": 70
+        "y": 74
       },
       "id": 186,
       "options": {
@@ -5782,7 +5859,7 @@
         "h": 1,
         "w": 3,
         "x": 15,
-        "y": 70
+        "y": 74
       },
       "id": 188,
       "options": {
@@ -5807,7 +5884,7 @@
         "h": 1,
         "w": 3,
         "x": 18,
-        "y": 70
+        "y": 74
       },
       "id": 189,
       "options": {
@@ -5832,7 +5909,7 @@
         "h": 1,
         "w": 3,
         "x": 21,
-        "y": 70
+        "y": 74
       },
       "id": 190,
       "options": {
@@ -5857,7 +5934,7 @@
         "h": 3,
         "w": 3,
         "x": 0,
-        "y": 71
+        "y": 75
       },
       "id": 86,
       "options": {
@@ -5903,7 +5980,7 @@
         "h": 3,
         "w": 3,
         "x": 3,
-        "y": 71
+        "y": 75
       },
       "id": 30,
       "options": {
@@ -5941,14 +6018,15 @@
         }
       ],
       "title": "",
-      "type": "stat"
+      "type": "stat",
+      "description": "Configured max_connections value for each selected instance."
     },
     {
       "datasource": {
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "",
+      "description": "Configured shared_buffers size, converted from PostgreSQL blocks to bytes using block_size.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -5973,7 +6051,7 @@
         "h": 3,
         "w": 3,
         "x": 6,
-        "y": 71
+        "y": 75
       },
       "id": 24,
       "options": {
@@ -6018,7 +6096,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "",
+      "description": "Planner estimate of effective cache size, converted from blocks to bytes. This setting does not allocate memory.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -6043,7 +6121,7 @@
         "h": 3,
         "w": 3,
         "x": 9,
-        "y": 71
+        "y": 75
       },
       "id": 57,
       "options": {
@@ -6088,7 +6166,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "",
+      "description": "Configured work_mem per sort or hash operation, converted from kilobytes to bytes. Multiple operations and sessions can each use this budget.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -6113,7 +6191,7 @@
         "h": 3,
         "w": 3,
         "x": 12,
-        "y": 71
+        "y": 75
       },
       "id": 26,
       "options": {
@@ -6182,7 +6260,7 @@
         "h": 3,
         "w": 3,
         "x": 15,
-        "y": 71
+        "y": 75
       },
       "id": 47,
       "options": {
@@ -6211,8 +6289,9 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
+          "editorMode": "code",
           "exemplar": true,
-          "expr": "max by (pod) (cnpg_pg_settings_setting{name=\"maintenance_work_mem\",namespace=~\"$namespace\",pod=~\"$instances\"} * 1024)",
+          "expr": "cnpg_pg_settings_setting{name=\"maintenance_work_mem\",namespace=~\"$namespace\",pod=~\"$instances\"} * 1024",
           "instant": true,
           "interval": "",
           "legendFormat": "{{pod}}",
@@ -6220,7 +6299,8 @@
         }
       ],
       "title": "",
-      "type": "stat"
+      "type": "stat",
+      "description": "Configured maintenance_work_mem budget for maintenance operations, converted from kilobytes to bytes."
     },
     {
       "datasource": {
@@ -6251,7 +6331,7 @@
         "h": 3,
         "w": 3,
         "x": 18,
-        "y": 71
+        "y": 75
       },
       "id": 48,
       "options": {
@@ -6289,7 +6369,8 @@
         }
       ],
       "title": "",
-      "type": "stat"
+      "type": "stat",
+      "description": "Planner cost estimate for a nonsequential disk-page fetch, relative to other planner cost settings."
     },
     {
       "datasource": {
@@ -6320,7 +6401,7 @@
         "h": 3,
         "w": 3,
         "x": 21,
-        "y": 71
+        "y": 75
       },
       "id": 56,
       "options": {
@@ -6358,7 +6439,8 @@
         }
       ],
       "title": "",
-      "type": "stat"
+      "type": "stat",
+      "description": "Planner cost estimate for a sequential disk-page fetch, relative to other planner cost settings."
     },
     {
       "datasource": {
@@ -6395,7 +6477,7 @@
         "h": 9,
         "w": 24,
         "x": 0,
-        "y": 74
+        "y": 78
       },
       "id": 150,
       "options": {
@@ -6480,7 +6562,8 @@
           }
         }
       ],
-      "type": "table"
+      "type": "table",
+      "description": "Numeric and Boolean PostgreSQL settings reported by each instance. Raw values retain their PostgreSQL setting units."
     },
     {
       "collapsed": false,
@@ -6488,7 +6571,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 83
+        "y": 87
       },
       "id": 10,
       "panels": [],
@@ -6514,8 +6597,8 @@
             "barAlignment": 0,
             "barWidthFactor": 0.6,
             "drawStyle": "line",
-            "fillOpacity": 30,
-            "gradientMode": "opacity",
+            "fillOpacity": 100,
+            "gradientMode": "none",
             "hideFrom": {
               "legend": false,
               "tooltip": false,
@@ -6553,7 +6636,7 @@
               }
             ]
           },
-          "unit": "short"
+          "unit": "suffix:cores"
         },
         "overrides": []
       },
@@ -6561,7 +6644,7 @@
         "h": 7,
         "w": 12,
         "x": 0,
-        "y": 84
+        "y": 88
       },
       "id": 273,
       "options": {
@@ -6595,7 +6678,8 @@
         }
       ],
       "title": "CPU Usage",
-      "type": "timeseries"
+      "type": "timeseries",
+      "description": "CPU cores used by containers in each selected PostgreSQL instance."
     },
     {
       "datasource": {
@@ -6744,7 +6828,7 @@
         "h": 7,
         "w": 12,
         "x": 12,
-        "y": 84
+        "y": 88
       },
       "id": 275,
       "options": {
@@ -6778,14 +6862,15 @@
         }
       ],
       "title": "Memory Usage (container memory working set)",
-      "type": "timeseries"
+      "type": "timeseries",
+      "description": "Container memory working set for each selected instance. It can include active file cache."
     },
     {
       "datasource": {
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "",
+      "description": "Backend connection counts by session state and instance. Total includes every reported state.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -6840,7 +6925,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 91
+        "y": 95
       },
       "id": 39,
       "options": {
@@ -6940,7 +7025,8 @@
                 "value": 80
               }
             ]
-          }
+          },
+          "unit": "ops"
         },
         "overrides": []
       },
@@ -6948,7 +7034,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 99
+        "y": 103
       },
       "id": 50,
       "options": {
@@ -6992,15 +7078,16 @@
           "refId": "B"
         }
       ],
-      "title": "Transactions [5m]",
-      "type": "timeseries"
+      "title": "Transaction rate",
+      "type": "timeseries",
+      "description": "Per-second rate over a 5-minute window."
     },
     {
       "datasource": {
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "",
+      "description": "Longest currently open transaction on each selected instance, in seconds.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -7060,7 +7147,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 99
+        "y": 103
       },
       "id": 4,
       "options": {
@@ -7098,7 +7185,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "",
+      "description": "Per-second rate over a 5-minute window.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -7149,7 +7236,8 @@
                 "value": 80
               }
             ]
-          }
+          },
+          "unit": "ops"
         },
         "overrides": []
       },
@@ -7157,7 +7245,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 107
+        "y": 111
       },
       "id": 55,
       "options": {
@@ -7189,7 +7277,7 @@
           "refId": "B"
         }
       ],
-      "title": "Deadlocks [5m]",
+      "title": "Deadlock rate",
       "type": "timeseries"
     },
     {
@@ -7197,7 +7285,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "",
+      "description": "Number of PostgreSQL backends waiting on a lock, by instance.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -7256,7 +7344,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 107
+        "y": 111
       },
       "id": 54,
       "options": {
@@ -7295,7 +7383,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 115
+        "y": 119
       },
       "id": 822,
       "panels": [],
@@ -7307,84 +7395,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "Number of queries running for longer than 30s",
-      "fieldConfig": {
-        "defaults": {
-          "custom": {
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "scaleDistribution": {
-              "type": "linear"
-            }
-          }
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 116
-      },
-      "id": 825,
-      "maxDataPoints": 80,
-      "options": {
-        "calculate": false,
-        "cellGap": 1,
-        "color": {
-          "exponent": 0.5,
-          "fill": "dark-orange",
-          "mode": "scheme",
-          "reverse": false,
-          "scale": "exponential",
-          "scheme": "RdYlBu",
-          "steps": 64
-        },
-        "exemplars": {
-          "color": "rgba(255,0,255,0.7)"
-        },
-        "filterValues": {
-          "le": 1e-9
-        },
-        "legend": {
-          "show": true
-        },
-        "rowsFrame": {
-          "layout": "auto"
-        },
-        "tooltip": {
-          "mode": "single",
-          "showColorScale": false,
-          "yHistogram": false
-        },
-        "yAxis": {
-          "axisPlacement": "left",
-          "reverse": false
-        }
-      },
-      "pluginVersion": "11.5.1",
-      "targets": [
-        {
-          "editorMode": "code",
-          "expr": "avg(cnpg_pg_stat_activity_long_running_queries_bucket{namespace=\"$namespace\"}) by (le)",
-          "format": "heatmap",
-          "legendFormat": "Count",
-          "range": true,
-          "refId": "A"
-        }
-      ],
-      "title": "Long running queries",
-      "type": "heatmap"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
-      },
-      "description": "Number of queries running for longer than 30s",
+      "description": "Total active client queries running for at least 30 seconds across all databases on the current primary.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -7399,8 +7410,8 @@
             "barAlignment": 0,
             "barWidthFactor": 0.6,
             "drawStyle": "line",
-            "fillOpacity": 30,
-            "gradientMode": "opacity",
+            "fillOpacity": 100,
+            "gradientMode": "none",
             "hideFrom": {
               "legend": false,
               "tooltip": false,
@@ -7413,7 +7424,7 @@
             "scaleDistribution": {
               "type": "linear"
             },
-            "showPoints": "auto",
+            "showPoints": "never",
             "spanNulls": false,
             "stacking": {
               "group": "A",
@@ -7428,22 +7439,26 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": null
               },
               {
                 "color": "red",
                 "value": 80
               }
             ]
-          }
+          },
+          "unit": "short",
+          "decimals": 0,
+          "min": 0
         },
         "overrides": []
       },
       "gridPos": {
         "h": 8,
-        "w": 6,
-        "x": 12,
-        "y": 116
+        "w": 12,
+        "x": 0,
+        "y": 120
       },
       "id": 823,
       "options": {
@@ -7463,13 +7478,16 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "max(cnpg_pg_stat_activity_long_running_count * on (pod) group_left() (label_replace(kube_customresource_primary_info{customresource_group=\"postgresql.cnpg.io\", customresource_kind=\"Cluster\", namespace=\"$namespace\"}, \"pod\", \"$1\", \"current_primary\", \"(.*)\")))",
+          "exemplar": false,
+          "expr": "sum(max by (datname) (cnpg_pg_stat_activity_long_running_count{job=\"$namespace/$cluster\"} * on (pod) group_left() (label_replace(kube_customresource_primary_info{customresource_group=\"postgresql.cnpg.io\", customresource_kind=\"Cluster\",  namespace=\"$namespace\",cluster=\"$cluster\"}, \"pod\", \"$1\", \"current_primary\", \"(.*)\"))))",
+          "format": "time_series",
+          "instant": false,
           "legendFormat": "Count",
           "range": true,
           "refId": "A"
         }
       ],
-      "title": "Long running queries",
+      "title": "Long-running query count",
       "type": "timeseries"
     },
     {
@@ -7477,7 +7495,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "Age of queries running for longer than 30s",
+      "description": "Maximum and query-weighted average elapsed runtime of active client queries running for at least 30 seconds across all databases on the current primary. These are ongoing runtimes, not completed-query latencies.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -7492,8 +7510,8 @@
             "barAlignment": 0,
             "barWidthFactor": 0.6,
             "drawStyle": "line",
-            "fillOpacity": 30,
-            "gradientMode": "opacity",
+            "fillOpacity": 0,
+            "gradientMode": "none",
             "hideFrom": {
               "legend": false,
               "tooltip": false,
@@ -7501,12 +7519,12 @@
             },
             "insertNulls": false,
             "lineInterpolation": "linear",
-            "lineWidth": 1,
+            "lineWidth": 2,
             "pointSize": 5,
             "scaleDistribution": {
               "type": "linear"
             },
-            "showPoints": "auto",
+            "showPoints": "never",
             "spanNulls": false,
             "stacking": {
               "group": "A",
@@ -7521,7 +7539,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": null
               },
               {
                 "color": "red",
@@ -7535,9 +7554,9 @@
       },
       "gridPos": {
         "h": 8,
-        "w": 6,
-        "x": 18,
-        "y": 116
+        "w": 12,
+        "x": 12,
+        "y": 120
       },
       "id": 824,
       "options": {
@@ -7556,27 +7575,30 @@
       "pluginVersion": "11.5.1",
       "targets": [
         {
-          "editorMode": "code",
-          "expr": "max(cnpg_pg_stat_activity_long_running_max_duration * on (pod) group_left() (label_replace(kube_customresource_primary_info{customresource_group=\"postgresql.cnpg.io\", customresource_kind=\"Cluster\", namespace=\"$namespace\"}, \"pod\", \"$1\", \"current_primary\", \"(.*)\")))",
-          "legendFormat": "Maximum",
-          "range": true,
-          "refId": "A"
-        },
-        {
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "max(cnpg_pg_stat_activity_long_running_avg_duration * on (pod) group_left() (label_replace(kube_customresource_primary_info{customresource_group=\"postgresql.cnpg.io\", customresource_kind=\"Cluster\", namespace=\"$namespace\"}, \"pod\", \"$1\", \"current_primary\", \"(.*)\")))",
+          "expr": "max(cnpg_pg_stat_activity_long_running_max_duration{job=\"$namespace/$cluster\"} * on (pod) group_left() (label_replace(kube_customresource_primary_info{customresource_group=\"postgresql.cnpg.io\", customresource_kind=\"Cluster\",  namespace=\"$namespace\",cluster=\"$cluster\"}, \"pod\", \"$1\", \"current_primary\", \"(.*)\")))",
           "hide": false,
+          "instant": false,
+          "legendFormat": "Maximum",
+          "range": true,
+          "refId": "B"
+        },
+        {
+          "editorMode": "code",
+          "exemplar": false,
+          "expr": "sum((max by (datname) (cnpg_pg_stat_activity_long_running_avg_duration{job=\"$namespace/$cluster\"} * on (pod) group_left() (label_replace(kube_customresource_primary_info{customresource_group=\"postgresql.cnpg.io\", customresource_kind=\"Cluster\",  namespace=\"$namespace\",cluster=\"$cluster\"}, \"pod\", \"$1\", \"current_primary\", \"(.*)\")))) * on (datname) (max by (datname) (cnpg_pg_stat_activity_long_running_count{job=\"$namespace/$cluster\"} * on (pod) group_left() (label_replace(kube_customresource_primary_info{customresource_group=\"postgresql.cnpg.io\", customresource_kind=\"Cluster\",  namespace=\"$namespace\",cluster=\"$cluster\"}, \"pod\", \"$1\", \"current_primary\", \"(.*)\"))))) / clamp_min(sum(max by (datname) (cnpg_pg_stat_activity_long_running_count{job=\"$namespace/$cluster\"} * on (pod) group_left() (label_replace(kube_customresource_primary_info{customresource_group=\"postgresql.cnpg.io\", customresource_kind=\"Cluster\",  namespace=\"$namespace\",cluster=\"$cluster\"}, \"pod\", \"$1\", \"current_primary\", \"(.*)\")))), 1)",
+          "format": "time_series",
           "instant": false,
           "legendFormat": "Average",
           "range": true,
-          "refId": "B"
+          "refId": "A"
         }
       ],
-      "title": "Long running queries duration",
+      "title": "Long-running query duration",
       "type": "timeseries"
     },
     {
@@ -7585,7 +7607,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 124
+        "y": 128
       },
       "id": 35,
       "panels": [],
@@ -7655,7 +7677,7 @@
         "h": 8,
         "w": 7,
         "x": 0,
-        "y": 125
+        "y": 129
       },
       "id": 816,
       "options": {
@@ -7683,7 +7705,7 @@
           "expr": "max by (datname) (cnpg_pg_database_size_bytes{datname!~\"template.*\",datname!=\"postgres\",namespace=~\"$namespace\",pod=~\"$instances\"})",
           "format": "time_series",
           "instant": false,
-          "legendFormat": "__auto",
+          "legendFormat": "{{datname}}",
           "range": true,
           "refId": "A"
         }
@@ -7696,13 +7718,11 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "Based on the data from the last 24h",
       "fieldConfig": {
         "defaults": {
           "color": {
             "mode": "thresholds"
           },
-          "decimals": 2,
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
@@ -7712,7 +7732,7 @@
               }
             ]
           },
-          "unit": "decbytes"
+          "unit": "bytes"
         },
         "overrides": []
       },
@@ -7720,12 +7740,12 @@
         "h": 4,
         "w": 5,
         "x": 7,
-        "y": 125
+        "y": 129
       },
       "id": 817,
       "options": {
         "colorMode": "value",
-        "graphMode": "area",
+        "graphMode": "none",
         "justifyMode": "auto",
         "orientation": "auto",
         "percentChangeColorMode": "standard",
@@ -7748,18 +7768,17 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "exemplar": false,
-          "expr": "max by (datname) (delta( cnpg_pg_database_size_bytes{datname!~\"template.*\", datname!=\"postgres\", namespace=\"$namespace\",job=\"$namespace/$cluster\"}[$__range]))",
-          "format": "time_series",
+          "expr": "max by (datname) (delta( cnpg_pg_database_size_bytes{ datname!~\"template.*\", datname!=\"postgres\", namespace=\"$namespace\",job=\"$namespace/$cluster\"}[24h]))",
+          "hide": false,
           "instant": true,
-          "legendFormat": "__auto",
+          "legendFormat": "{{datname}}",
           "range": false,
-          "refId": "A"
+          "refId": "B"
         }
       ],
-      "timeFrom": "24h",
-      "title": "Δsize / month",
-      "type": "stat"
+      "title": "Size change (24h)",
+      "type": "stat",
+      "description": "Database size change over the 24h ending at the dashboard end time."
     },
     {
       "datasource": {
@@ -7831,7 +7850,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 125
+        "y": 129
       },
       "id": 424,
       "options": {
@@ -7864,20 +7883,19 @@
         }
       ],
       "title": "Volume Space Usage",
-      "type": "timeseries"
+      "type": "timeseries",
+      "description": "Used-capacity fraction for each selected persistent volume claim."
     },
     {
       "datasource": {
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "Based on the data from the last 7d",
       "fieldConfig": {
         "defaults": {
           "color": {
             "mode": "thresholds"
           },
-          "decimals": 2,
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
@@ -7887,7 +7905,7 @@
               }
             ]
           },
-          "unit": "decbytes"
+          "unit": "bytes"
         },
         "overrides": []
       },
@@ -7895,12 +7913,12 @@
         "h": 4,
         "w": 5,
         "x": 7,
-        "y": 129
+        "y": 133
       },
       "id": 818,
       "options": {
         "colorMode": "value",
-        "graphMode": "area",
+        "graphMode": "none",
         "justifyMode": "auto",
         "orientation": "auto",
         "percentChangeColorMode": "standard",
@@ -7923,18 +7941,17 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "exemplar": false,
-          "expr": "max by (datname) (delta( cnpg_pg_database_size_bytes{datname!~\"template.*\", datname!=\"postgres\", namespace=\"$namespace\",job=\"$namespace/$cluster\"}[$__range]))",
-          "format": "time_series",
+          "expr": "max by (datname) (delta( cnpg_pg_database_size_bytes{ datname!~\"template.*\", datname!=\"postgres\", namespace=\"$namespace\",job=\"$namespace/$cluster\"}[7d]))",
+          "hide": false,
           "instant": true,
-          "legendFormat": "__auto",
+          "legendFormat": "{{datname}}",
           "range": false,
           "refId": "A"
         }
       ],
-      "timeFrom": "7d",
-      "title": "Δsize / month",
-      "type": "stat"
+      "title": "Size change (7d)",
+      "type": "stat",
+      "description": "Database size change over the 7d ending at the dashboard end time."
     },
     {
       "datasource": {
@@ -8053,7 +8070,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 133
+        "y": 137
       },
       "id": 819,
       "options": {
@@ -8118,14 +8135,15 @@
           }
         }
       ],
-      "type": "table"
+      "type": "table",
+      "description": "Storage class, provisioner, reclaim policy, and volume-binding mode for the cluster's data and WAL volume claims."
     },
     {
       "datasource": {
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "Represents that Inode usage of your filesystem. Reaching the limit will result in data loss and downtime. This number may be shown as 0.00% even with terrabytes of data on disk which is normal.",
+      "description": "Used-inode fraction for each selected persistent volume claim. Inodes can run out even when byte capacity remains.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -8192,7 +8210,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 133
+        "y": 137
       },
       "id": 426,
       "options": {
@@ -8290,7 +8308,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 141
+        "y": 145
       },
       "id": 829,
       "options": {
@@ -8389,7 +8407,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 141
+        "y": 145
       },
       "id": 830,
       "options": {
@@ -8488,7 +8506,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 149
+        "y": 153
       },
       "id": 833,
       "options": {
@@ -8579,7 +8597,8 @@
                 "value": 80
               }
             ]
-          }
+          },
+          "unit": "ops"
         },
         "overrides": []
       },
@@ -8587,7 +8606,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 149
+        "y": 153
       },
       "id": 46,
       "options": {
@@ -8633,8 +8652,9 @@
           "refId": "B"
         }
       ],
-      "title": "Block I/O [5m]",
-      "type": "timeseries"
+      "title": "Block I/O rate",
+      "type": "timeseries",
+      "description": "Per-second rate over a 5-minute window."
     },
     {
       "datasource": {
@@ -8691,7 +8711,8 @@
                 "value": 80
               }
             ]
-          }
+          },
+          "unit": "ops"
         },
         "overrides": []
       },
@@ -8699,7 +8720,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 157
+        "y": 161
       },
       "id": 44,
       "options": {
@@ -8787,8 +8808,9 @@
           "refId": "E"
         }
       ],
-      "title": "Tuple I/O [5m]",
-      "type": "timeseries"
+      "title": "Tuple I/O rate",
+      "type": "timeseries",
+      "description": "Per-second rate over a 5-minute window."
     },
     {
       "datasource": {
@@ -8846,7 +8868,7 @@
               }
             ]
           },
-          "unit": "decbytes"
+          "unit": "Bps"
         },
         "overrides": []
       },
@@ -8854,7 +8876,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 157
+        "y": 161
       },
       "id": 2,
       "options": {
@@ -8885,8 +8907,9 @@
           "refId": "A"
         }
       ],
-      "title": "Temp Bytes [5m]",
-      "type": "timeseries"
+      "title": "Temporary data write rate",
+      "type": "timeseries",
+      "description": "Per-second rate over a 5-minute window."
     },
     {
       "datasource": {
@@ -8954,7 +8977,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 165
+        "y": 169
       },
       "id": 834,
       "options": {
@@ -8973,14 +8996,8 @@
       "pluginVersion": "11.5.1",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
           "editorMode": "code",
-          "exemplar": true,
-          "expr": "sum by (pod, datname) (rate(cnpg_pg_stat_database_blks_hit{namespace=~\"$namespace\",pod=~\"$instances\",datname!=\"\",datname!~\"template.*\"}[$__rate_interval]))\n/\n(\n  sum by (pod, datname) (rate(cnpg_pg_stat_database_blks_hit{namespace=~\"$namespace\",pod=~\"$instances\",datname!=\"\",datname!~\"template.*\"}[$__rate_interval]))\n  +\n  sum by (pod, datname) (rate(cnpg_pg_stat_database_blks_read{namespace=~\"$namespace\",pod=~\"$instances\",datname!=\"\",datname!~\"template.*\"}[$__rate_interval]))\n)",
-          "interval": "",
+          "expr": "sum by (pod,datname) (rate(cnpg_pg_stat_database_blks_hit{ namespace=\"$namespace\",job=\"$namespace/$cluster\",datname!=\"\",datname!~\"template.*\"}[$__rate_interval])) / (sum by (pod,datname) (rate(cnpg_pg_stat_database_blks_hit{ namespace=\"$namespace\",job=\"$namespace/$cluster\",datname!=\"\",datname!~\"template.*\"}[$__rate_interval])) + sum by (pod,datname) (rate(cnpg_pg_stat_database_blks_read{ namespace=\"$namespace\",job=\"$namespace/$cluster\",datname!=\"\",datname!~\"template.*\"}[$__rate_interval])))",
           "legendFormat": "{{datname}} ({{pod}})",
           "range": true,
           "refId": "A"
@@ -8988,7 +9005,7 @@
       ],
       "title": "Cache Hit Ratio",
       "type": "timeseries",
-      "description": "Share of block reads served from the buffer cache rather than from disk, per database. Template databases and the shared-objects row are excluded."
+      "description": "Share of PostgreSQL block accesses served by shared buffers over the query rate interval, by database and instance. This does not measure the operating-system cache or ParadeDB index cache. No block accesses can produce a gap."
     },
     {
       "collapsed": false,
@@ -8996,7 +9013,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 173
+        "y": 177
       },
       "id": 827,
       "panels": [],
@@ -9063,7 +9080,7 @@
         "h": 10,
         "w": 24,
         "x": 0,
-        "y": 174
+        "y": 178
       },
       "id": 828,
       "options": {
@@ -9113,7 +9130,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 184
+        "y": 188
       },
       "id": 37,
       "panels": [],
@@ -9183,7 +9200,7 @@
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 185
+        "y": 189
       },
       "id": 6,
       "options": {
@@ -9226,7 +9243,8 @@
         }
       ],
       "title": "WAL Segment Archive Status",
-      "type": "timeseries"
+      "type": "timeseries",
+      "description": "WAL segments marked ready for archiving or already archived, by instance."
     },
     {
       "datasource": {
@@ -9283,7 +9301,8 @@
                 "value": 80
               }
             ]
-          }
+          },
+          "unit": "ops"
         },
         "overrides": []
       },
@@ -9291,7 +9310,7 @@
         "h": 8,
         "w": 8,
         "x": 8,
-        "y": 185
+        "y": 189
       },
       "id": 52,
       "options": {
@@ -9333,15 +9352,16 @@
           "refId": "B"
         }
       ],
-      "title": "Archiver Status [5m]",
-      "type": "timeseries"
+      "title": "WAL archive rate",
+      "type": "timeseries",
+      "description": "Per-second rate over a 5-minute window."
     },
     {
       "datasource": {
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "",
+      "description": "Seconds since the last successful WAL archival reported by each selected instance.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -9401,7 +9421,7 @@
         "h": 8,
         "w": 8,
         "x": 16,
-        "y": 185
+        "y": 189
       },
       "id": 53,
       "options": {
@@ -9497,7 +9517,7 @@
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 193
+        "y": 197
       },
       "id": 725,
       "options": {
@@ -9529,7 +9549,8 @@
         }
       ],
       "title": "WAL Count",
-      "type": "timeseries"
+      "type": "timeseries",
+      "description": "Number of WAL files reported in each selected instance's WAL directory."
     },
     {
       "collapsed": false,
@@ -9537,7 +9558,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 201
+        "y": 205
       },
       "id": 18,
       "panels": [],
@@ -9612,7 +9633,7 @@
         "h": 8,
         "w": 6,
         "x": 0,
-        "y": 202
+        "y": 206
       },
       "id": 16,
       "options": {
@@ -9644,7 +9665,8 @@
         }
       ],
       "title": "Replication Lag",
-      "type": "timeseries"
+      "type": "timeseries",
+      "description": "Physical replication replay lag reported by each instance, in seconds."
     },
     {
       "datasource": {
@@ -9710,7 +9732,7 @@
         "h": 8,
         "w": 6,
         "x": 6,
-        "y": 202
+        "y": 206
       },
       "id": 14,
       "options": {
@@ -9743,7 +9765,8 @@
         }
       ],
       "title": "Write Lag",
-      "type": "timeseries"
+      "type": "timeseries",
+      "description": "Time for each standby to acknowledge writing recent WAL, as reported by its upstream instance."
     },
     {
       "datasource": {
@@ -9809,7 +9832,7 @@
         "h": 8,
         "w": 6,
         "x": 12,
-        "y": 202
+        "y": 206
       },
       "id": 59,
       "options": {
@@ -9842,14 +9865,15 @@
         }
       ],
       "title": "Flush Lag",
-      "type": "timeseries"
+      "type": "timeseries",
+      "description": "Time for each standby to acknowledge flushing recent WAL, as reported by its upstream instance."
     },
     {
       "datasource": {
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "",
+      "description": "Time for each standby to acknowledge replaying recent WAL, as reported by its upstream instance.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -9909,7 +9933,7 @@
         "h": 8,
         "w": 6,
         "x": 18,
-        "y": 202
+        "y": 206
       },
       "id": 20,
       "options": {
@@ -9950,7 +9974,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 210
+        "y": 214
       },
       "id": 231,
       "panels": [],
@@ -9964,16 +9988,54 @@
       },
       "fieldConfig": {
         "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
           "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
             "hideFrom": {
               "legend": false,
               "tooltip": false,
               "viz": false
             },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
             "scaleDistribution": {
               "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
             }
-          }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "s",
+          "min": 0
         },
         "overrides": []
       },
@@ -9981,45 +10043,20 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 211
+        "y": 215
       },
       "id": 233,
       "options": {
-        "calculate": true,
-        "calculation": {},
-        "cellGap": 2,
-        "cellValues": {},
-        "color": {
-          "exponent": 0.5,
-          "fill": "#b4ff00",
-          "mode": "scheme",
-          "reverse": false,
-          "scale": "exponential",
-          "scheme": "Oranges",
-          "steps": 128
-        },
-        "exemplars": {
-          "color": "rgba(255,0,255,0.7)"
-        },
-        "filterValues": {
-          "le": 1e-9
-        },
         "legend": {
-          "show": false
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
         },
-        "rowsFrame": {
-          "layout": "auto"
-        },
-        "showValue": "never",
         "tooltip": {
-          "mode": "single",
-          "showColorScale": false,
-          "yHistogram": false
-        },
-        "yAxis": {
-          "axisPlacement": "left",
-          "reverse": false,
-          "unit": "s"
+          "hideZeros": false,
+          "mode": "multi",
+          "sort": "none"
         }
       },
       "pluginVersion": "11.5.1",
@@ -10030,14 +10067,18 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": true,
-          "expr": "cnpg_collector_collection_duration_seconds{namespace=~\"$namespace\",pod=~\"$instances\"}",
+          "expr": "cnpg_collector_collection_duration_seconds{ namespace=\"$namespace\",pod=~\"$instances\"}",
           "interval": "",
-          "legendFormat": "",
-          "refId": "A"
+          "legendFormat": "{{pod}}",
+          "refId": "A",
+          "format": "time_series",
+          "range": true,
+          "instant": false
         }
       ],
-      "title": "Collection Duration",
-      "type": "heatmap"
+      "title": "Collection duration",
+      "type": "timeseries",
+      "description": "Metric collection duration by PostgreSQL instance."
     },
     {
       "datasource": {
@@ -10102,7 +10143,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 211
+        "y": 215
       },
       "id": 235,
       "options": {
@@ -10133,7 +10174,8 @@
         }
       ],
       "title": "Errors",
-      "type": "timeseries"
+      "type": "timeseries",
+      "description": "Whether the most recent metrics collection failed: 1 indicates an error and 0 indicates success."
     },
     {
       "collapsed": false,
@@ -10141,7 +10183,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 219
+        "y": 223
       },
       "id": 239,
       "panels": [],
@@ -10212,7 +10254,7 @@
         "h": 6,
         "w": 8,
         "x": 0,
-        "y": 220
+        "y": 224
       },
       "id": 237,
       "options": {
@@ -10244,7 +10286,8 @@
         }
       ],
       "title": "First Recoverability Point",
-      "type": "timeseries"
+      "type": "timeseries",
+      "description": "Earliest recovery timestamp reported by each instance; zero timestamps are omitted."
     },
     {
       "collapsed": false,
@@ -10252,7 +10295,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 226
+        "y": 230
       },
       "id": 293,
       "panels": [],
@@ -10264,7 +10307,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "",
+      "description": "Cumulative PostgreSQL checkpoint statistics since statistics were last reset.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -10324,7 +10367,7 @@
         "h": 6,
         "w": 5,
         "x": 0,
-        "y": 227
+        "y": 231
       },
       "id": 295,
       "options": {
@@ -10371,7 +10414,7 @@
           "refId": "A"
         }
       ],
-      "title": "Requested/Timed",
+      "title": "Checkpoint counts since reset",
       "type": "timeseries"
     },
     {
@@ -10379,7 +10422,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "",
+      "description": "Cumulative PostgreSQL checkpoint statistics since statistics were last reset.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -10439,7 +10482,7 @@
         "h": 6,
         "w": 5,
         "x": 5,
-        "y": 227
+        "y": 231
       },
       "id": 296,
       "options": {
@@ -10486,7 +10529,7 @@
           "refId": "A"
         }
       ],
-      "title": "Write/Sync time",
+      "title": "Checkpoint time since reset",
       "type": "timeseries"
     },
     {
@@ -10495,7 +10538,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 233
+        "y": 237
       },
       "id": 794,
       "panels": [],
@@ -10579,7 +10622,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 234
+        "y": 238
       },
       "id": 792,
       "options": {
@@ -10664,7 +10707,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 242
+        "y": 246
       },
       "id": 696,
       "panels": [],
@@ -10676,7 +10719,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "",
+      "description": "Number of ready CloudNativePG operator pods in the selected operator namespace.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -10722,7 +10765,7 @@
         "h": 2,
         "w": 4,
         "x": 0,
-        "y": 243
+        "y": 247
       },
       "id": 697,
       "options": {
@@ -10767,7 +10810,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "The operator reconcile errors don't distinguish between database cluster or namespaces.",
+      "description": "Largest cumulative reconciliation-error counter among operator instances, since each process started. This includes every database namespace managed by the operator; use the overview indicator for errors in the last 10 minutes.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -10824,7 +10867,7 @@
         "h": 2,
         "w": 4,
         "x": 4,
-        "y": 243
+        "y": 247
       },
       "id": 702,
       "options": {
@@ -10869,7 +10912,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "The operator reconcile errors don't distinguish between database cluster or namespaces.",
+      "description": "Largest cumulative reconciliation-error counter among operator instances, since each process started. This includes every database namespace managed by the operator; use the overview indicator for errors in the last 10 minutes.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -10926,7 +10969,7 @@
         "h": 2,
         "w": 4,
         "x": 8,
-        "y": 243
+        "y": 247
       },
       "id": 698,
       "options": {
@@ -10971,7 +11014,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "The operator reconcile errors don't distinguish between database cluster or namespaces.",
+      "description": "Largest cumulative reconciliation-error counter among operator instances, since each process started. This includes every database namespace managed by the operator; use the overview indicator for errors in the last 10 minutes.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -11028,7 +11071,7 @@
         "h": 2,
         "w": 4,
         "x": 12,
-        "y": 243
+        "y": 247
       },
       "id": 704,
       "options": {
@@ -11057,7 +11100,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "max(controller_runtime_reconcile_total{namespace=~\"$operatorNamespace\", result=\"error\", controller=~\"scheduledbackup|scheduled-backup\"})",
+          "expr": "max(controller_runtime_reconcile_total{ namespace=\"$operatorNamespace\", result=\"error\", controller=~\"scheduledbackup|scheduled-backup\"})",
           "hide": false,
           "instant": true,
           "legendFormat": "Scheduled Backup Reconcile Errors",
@@ -11073,7 +11116,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "The operator reconcile errors don't distinguish between database cluster or namespaces.",
+      "description": "Largest cumulative reconciliation-error counter among operator instances, since each process started. This includes every database namespace managed by the operator; use the overview indicator for errors in the last 10 minutes.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -11130,7 +11173,7 @@
         "h": 2,
         "w": 4,
         "x": 16,
-        "y": 243
+        "y": 247
       },
       "id": 703,
       "options": {
@@ -11175,7 +11218,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "",
+      "description": "Number of ready CloudNativePG operator pods over time in the selected operator namespace.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -11254,7 +11297,7 @@
         "h": 8,
         "w": 4,
         "x": 0,
-        "y": 245
+        "y": 249
       },
       "id": 746,
       "options": {
@@ -11294,7 +11337,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "The operator reconcile errors don't distinguish between database cluster or namespaces.",
+      "description": "Largest cumulative reconciliation-error counter among operator instances, since each process started. This includes every database namespace managed by the operator; use the overview indicator for errors in the last 10 minutes.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -11384,7 +11427,7 @@
         "h": 8,
         "w": 4,
         "x": 4,
-        "y": 245
+        "y": 249
       },
       "id": 767,
       "options": {
@@ -11423,7 +11466,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "The operator reconcile errors don't distinguish between database cluster or namespaces.",
+      "description": "Largest cumulative reconciliation-error counter among operator instances, since each process started. This includes every database namespace managed by the operator; use the overview indicator for errors in the last 10 minutes.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -11513,7 +11556,7 @@
         "h": 8,
         "w": 4,
         "x": 8,
-        "y": 245
+        "y": 249
       },
       "id": 768,
       "options": {
@@ -11552,7 +11595,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "The operator reconcile errors don't distinguish between database cluster or namespaces.",
+      "description": "Largest cumulative reconciliation-error counter among operator instances, since each process started. This includes every database namespace managed by the operator; use the overview indicator for errors in the last 10 minutes.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -11642,7 +11685,7 @@
         "h": 8,
         "w": 4,
         "x": 12,
-        "y": 245
+        "y": 249
       },
       "id": 790,
       "options": {
@@ -11667,7 +11710,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "max(controller_runtime_reconcile_total{namespace=~\"$operatorNamespace\", result=\"error\", controller=~\"scheduledbackup|scheduled-backup\"})",
+          "expr": "max(controller_runtime_reconcile_total{ namespace=\"$operatorNamespace\", result=\"error\", controller=~\"scheduledbackup|scheduled-backup\"})",
           "hide": false,
           "instant": false,
           "legendFormat": "Scheduled Backup Reconcile Errors",
@@ -11683,7 +11726,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "The operator reconcile errors don't distinguish between database cluster or namespaces.",
+      "description": "Largest cumulative reconciliation-error counter among operator instances, since each process started. This includes every database namespace managed by the operator; use the overview indicator for errors in the last 10 minutes.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -11773,7 +11816,7 @@
         "h": 8,
         "w": 4,
         "x": 16,
-        "y": 245
+        "y": 249
       },
       "id": 769,
       "options": {
@@ -11817,7 +11860,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 253
+        "y": 257
       }
     },
     {
@@ -11833,7 +11876,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 254
+        "y": 258
       },
       "targets": [
         {
@@ -12045,14 +12088,14 @@
           "text": "All",
           "value": "$__all"
         },
-        "definition": "label_values(cnpg_paradedb_index_document_distribution_segment_count{namespace=\"$namespace\"},relname)",
+        "definition": "label_values(cnpg_paradedb_index_document_distribution_segment_count{namespace=\"$namespace\",job=\"$namespace/$cluster\"},relname)",
         "hide": 2,
         "includeAll": true,
         "name": "paradedb_indexes",
         "options": [],
         "query": {
           "qryType": 1,
-          "query": "label_values(cnpg_paradedb_index_document_distribution_segment_count{namespace=\"$namespace\"},relname)",
+          "query": "label_values(cnpg_paradedb_index_document_distribution_segment_count{namespace=\"$namespace\",job=\"$namespace/$cluster\"},relname)",
           "refId": "PrometheusVariableQueryEditor-VariableQuery"
         },
         "refresh": 2,

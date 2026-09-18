@@ -8,8 +8,6 @@ This commonly happens when `CREATE INDEX CONCURRENTLY` or `REINDEX CONCURRENTLY`
 
 The catalog-only `cnpg_paradedb_invalid_indexes_count` metric reports the count per database, including zero. Indexes reported as actively building in `pg_stat_progress_create_index` are excluded, including builds waiting for locks or validation. Failed or cancelled builds are counted once their progress entry disappears. `cnpg_paradedb_index_health_is_valid` and `cnpg_paradedb_index_health_is_ready` identify the individual indexes. MCC Customer Overview shows the cluster total under **ParadeDB Indexes**. These metrics do not open index storage.
 
-Physical replicas can replay intermediate invalid index states from a concurrent build before replaying its completion. Object-store WAL shipping can extend this interval, and the primary's active build is not visible in the replica's local `pg_stat_progress_create_index`. The dashboard retains this observed count on replicas, but it does not indicate an independently failed build. Use replication-health alerts to detect failure to catch up. After promotion out of recovery, invalid-index alerting applies again.
-
 ## Impact
 
 - An index with `indisvalid = false` is not available to the query planner.
