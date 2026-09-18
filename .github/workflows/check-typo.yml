@@ -25,4 +25,4 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Check Typo
-        uses: paradedb/actions/check-typo@v12
+        uses: paradedb/actions/check-typo@v13
