@@ -2135,7 +2135,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "Container memory working set",
+      "description": "Total container memory working set across database instances. It can include active file cache.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -2445,7 +2445,8 @@
         }
       ],
       "title": "",
-      "type": "stat"
+      "type": "stat",
+      "description": "Current and target primary instance names reported by CNPG. An arrow shows the requested primary transition."
     },
     {
       "datasource": {
@@ -2535,7 +2536,8 @@
           }
         }
       ],
-      "type": "stat"
+      "type": "stat",
+      "description": "Current CNPG reconciliation phase for clusters in the selected database namespace."
     },
     {
       "fieldConfig": {
@@ -2665,7 +2667,8 @@
           }
         }
       ],
-      "type": "stat"
+      "type": "stat",
+      "description": "Container image reported by CNPG for the selected database namespace, with the digest omitted for readability."
     },
     {
       "datasource": {
@@ -2733,7 +2736,8 @@
       ],
       "title": "",
       "transparent": true,
-      "type": "stat"
+      "type": "stat",
+      "description": "Current CNPG reconciliation phase for clusters in the selected database namespace."
     },
     {
       "datasource": {
@@ -3138,7 +3142,8 @@
         }
       ],
       "title": "",
-      "type": "stat"
+      "type": "stat",
+      "description": "CNPG-reported status for each cluster instance: ready, replicating, or failed."
     },
     {
       "datasource": {
@@ -7619,7 +7624,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "",
+      "description": "Database size by database name, taking the largest reported copy across selected instances. Template databases and postgres are excluded.",
       "fieldConfig": {
         "defaults": {
           "color": {
