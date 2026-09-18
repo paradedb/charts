@@ -1876,7 +1876,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "Controllers with reconciliation errors observed in the last 10 minutes. These errors cover the whole operator, not just the selected database cluster. If several controllers have errors, this compact card names only one of them. Missing telemetry is not treated as healthy.",
+      "description": "Reconciliation errors observed in the last 10 minutes across the backup, cluster, pooler, and scheduled-backup controllers. Errors take precedence over missing telemetry. None requires telemetry for all four controllers; otherwise the card shows Unknown. These controllers cover the whole operator, not just the selected database cluster.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1884,62 +1884,24 @@
           },
           "mappings": [
             {
+              "type": "value",
               "options": {
                 "0": {
                   "color": "green",
                   "index": 0,
                   "text": "None"
-                }
-              },
-              "type": "value"
-            },
-            {
-              "options": {
-                "from": 1,
-                "result": {
-                  "color": "red",
-                  "index": 1,
-                  "text": "Backup"
                 },
-                "to": 9
-              },
-              "type": "range"
-            },
-            {
-              "options": {
-                "from": 10,
-                "result": {
+                "1": {
+                  "color": "orange",
+                  "index": 1,
+                  "text": "Unknown"
+                },
+                "2": {
                   "color": "red",
                   "index": 2,
-                  "text": "Cluster"
-                },
-                "to": 99
-              },
-              "type": "range"
-            },
-            {
-              "options": {
-                "from": 100,
-                "result": {
-                  "color": "red",
-                  "index": 3,
-                  "text": "Pooler"
-                },
-                "to": 999
-              },
-              "type": "range"
-            },
-            {
-              "options": {
-                "from": 1000,
-                "result": {
-                  "color": "red",
-                  "index": 4,
-                  "text": "Scheduled Backup"
-                },
-                "to": 9999
-              },
-              "type": "range"
+                  "text": "Errors"
+                }
+              }
             }
           ],
           "thresholds": {
@@ -2000,61 +1962,12 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "(max(increase(controller_runtime_reconcile_total{ namespace=\"$operatorNamespace\", result=\"error\", controller=\"backup\"}[10m])) > bool 0) or (0 * max(increase(controller_runtime_reconcile_total{ namespace=\"$operatorNamespace\", controller=\"backup\"}[10m])))",
-          "hide": true,
-          "legendFormat": "__auto",
-          "range": false,
-          "refId": "RECONCILE_ERRORS_BACKUP",
-          "instant": true
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
-          "editorMode": "code",
-          "expr": "(max(increase(controller_runtime_reconcile_total{ namespace=\"$operatorNamespace\", result=\"error\", controller=\"cluster\"}[10m])) > bool 0) or (0 * max(increase(controller_runtime_reconcile_total{ namespace=\"$operatorNamespace\", controller=\"cluster\"}[10m])))",
-          "hide": true,
-          "legendFormat": "__auto",
-          "range": false,
-          "refId": "RECONCILE_ERRORS_CLUSTER",
-          "instant": true
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
-          "editorMode": "code",
-          "expr": "(max(increase(controller_runtime_reconcile_total{ namespace=\"$operatorNamespace\", result=\"error\", controller=\"pooler\"}[10m])) > bool 0) or (0 * max(increase(controller_runtime_reconcile_total{ namespace=\"$operatorNamespace\", controller=\"pooler\"}[10m])))",
-          "hide": true,
-          "legendFormat": "__auto",
-          "range": false,
-          "refId": "RECONCILE_ERRORS_POOLER",
-          "instant": true
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
-          "editorMode": "code",
-          "expr": "(max(increase(controller_runtime_reconcile_total{ namespace=\"$operatorNamespace\", result=\"error\", controller=~\"scheduledbackup|scheduled-backup\"}[10m])) > bool 0) or (0 * max(increase(controller_runtime_reconcile_total{ namespace=\"$operatorNamespace\", controller=~\"scheduledbackup|scheduled-backup\"}[10m])))",
-          "hide": true,
-          "legendFormat": "__auto",
-          "range": false,
-          "refId": "RECONCILE_ERRORS_SCHEDULED_BACKUP",
-          "instant": true
-        },
-        {
-          "datasource": {
-            "type": "__expr__",
-            "uid": "__expr__"
-          },
-          "expression": "$RECONCILE_ERRORS_BACKUP + $RECONCILE_ERRORS_CLUSTER * 10 + $RECONCILE_ERRORS_POOLER * 100 + $RECONCILE_ERRORS_SCHEDULED_BACKUP * 1000",
+          "expr": "(2 * (max(((max by (controller) (label_replace(increase(controller_runtime_reconcile_total{ namespace=\"$operatorNamespace\", controller=~\"backup|cluster|pooler|scheduledbackup|scheduled-backup\", result=\"error\"}[10m]), \"controller\", \"scheduledbackup\", \"controller\", \"scheduled-backup\")) > bool 0) or (0 * max by (controller) (label_replace(increase(controller_runtime_reconcile_total{ namespace=\"$operatorNamespace\", controller=~\"backup|cluster|pooler|scheduledbackup|scheduled-backup\"}[10m]), \"controller\", \"scheduledbackup\", \"controller\", \"scheduled-backup\"))))) > 0))\nor (0 * (count(((max by (controller) (label_replace(increase(controller_runtime_reconcile_total{ namespace=\"$operatorNamespace\", controller=~\"backup|cluster|pooler|scheduledbackup|scheduled-backup\", result=\"error\"}[10m]), \"controller\", \"scheduledbackup\", \"controller\", \"scheduled-backup\")) > bool 0) or (0 * max by (controller) (label_replace(increase(controller_runtime_reconcile_total{ namespace=\"$operatorNamespace\", controller=~\"backup|cluster|pooler|scheduledbackup|scheduled-backup\"}[10m]), \"controller\", \"scheduledbackup\", \"controller\", \"scheduled-backup\"))))) == 4))\nor vector(1)",
           "hide": false,
+          "legendFormat": "Errors (10m)",
+          "range": false,
           "refId": "A",
-          "type": "math"
+          "instant": true
         }
       ],
       "title": "",
@@ -11463,7 +11376,7 @@
           "refId": "RECONCILE_ERRORS_BACKUP"
         }
       ],
-      "title": "Cluster Reconcile Errors",
+      "title": "Cluster Reconcile Errors (cumulative)",
       "type": "timeseries"
     },
     {
@@ -11592,7 +11505,7 @@
           "refId": "RECONCILE_ERRORS_BACKUP"
         }
       ],
-      "title": "Backup Reconcile Errors",
+      "title": "Backup Reconcile Errors (cumulative)",
       "type": "timeseries"
     },
     {
@@ -11723,7 +11636,7 @@
           "refId": "RECONCILE_ERRORS_BACKUP"
         }
       ],
-      "title": "Scheduled Backup Reconcile Errors",
+      "title": "Scheduled Backup Reconcile Errors (cumulative)",
       "type": "timeseries"
     },
     {
@@ -11852,7 +11765,7 @@
           "refId": "RECONCILE_ERRORS_BACKUP"
         }
       ],
-      "title": "Pooler Reconcile Errors",
+      "title": "Pooler Reconcile Errors (cumulative)",
       "type": "timeseries"
     },
     {
