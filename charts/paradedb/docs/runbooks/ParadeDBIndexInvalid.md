@@ -2,11 +2,13 @@
 
 ## Description
 
-The `ParadeDBIndexInvalid` alert is triggered when the cluster primary reports one or more invalid or not-ready ParadeDB indexes for five minutes. The notification reports their total across databases; standby copies are not counted again.
+The `ParadeDBIndexInvalid` alert is triggered when the writable primary reports one or more invalid or not-ready ParadeDB indexes for five minutes. The notification reports their total across databases; instances in recovery are excluded, including the designated leader of a dedicated replica cluster.
 
 This commonly happens when `CREATE INDEX CONCURRENTLY` or `REINDEX CONCURRENTLY` fails or is cancelled. PostgreSQL leaves the incomplete index behind, consuming storage even though the planner will not use it. Queries can silently fall back to a sequential scan and become much slower without returning an application error.
 
 The catalog-only `cnpg_paradedb_invalid_indexes_count` metric reports the count per database, including zero. Indexes reported as actively building in `pg_stat_progress_create_index` are excluded, including builds waiting for locks or validation. Failed or cancelled builds are counted once their progress entry disappears. `cnpg_paradedb_index_health_is_valid` and `cnpg_paradedb_index_health_is_ready` identify the individual indexes. MCC Customer Overview shows the cluster total under **ParadeDB Indexes**. These metrics do not open index storage.
+
+Physical replicas can replay intermediate invalid index states from a concurrent build before replaying its completion. Object-store WAL shipping can extend this interval, and the primary's active build is not visible in the replica's local `pg_stat_progress_create_index`. The dashboard retains this observed count on replicas, but it does not indicate an independently failed build. Use replication-health alerts to detect failure to catch up. After promotion out of recovery, invalid-index alerting applies again.
 
 ## Impact
 

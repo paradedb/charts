@@ -58,6 +58,8 @@ spec:
               printf '%s\n' "$rendered" | alert_rule CNPGPoolerClientsWaiting | grep -Fq 'database!="pgbouncer"'
 
               printf '%s\n' "$rendered" | alert_rule ParadeDBIndexInvalid | grep -Fq 'cnpg_paradedb_invalid_indexes_count'
+              printf '%s\n' "$rendered" | alert_rule ParadeDBIndexInvalid | grep -Fq 'unless on (namespace, pod)'
+              printf '%s\n' "$rendered" | alert_rule ParadeDBIndexInvalid | grep -Fq 'cnpg_pg_replication_in_recovery'
               printf '%s\n' "$rendered" | alert_rule ParadeDBIndexInvalid | grep -Fq 'severity: warning'
               printf '%s\n' "$rendered" | alert_rule ParadeDBIndexInvalid | grep -Fq 'for: 5m'
               printf '%s\n' "$rendered" | alert_rule CNPGInstanceMetricsFailing | grep -Fq 'cnpg_errors_total'
