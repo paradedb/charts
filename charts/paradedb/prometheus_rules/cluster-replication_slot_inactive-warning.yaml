@@ -17,7 +17,10 @@ expr: |
     and on (namespace, pod, slot_name, slot_type)
       (cnpg_pg_replication_slots_active{namespace="{{ .namespace }}",pod=~"{{ .podSelector }}"} == 0)
     and on (namespace, pod)
-      (cnpg_pg_replication_in_recovery{namespace="{{ .namespace }}",pod=~"{{ .podSelector }}"} == 0)
+      label_replace(
+        kube_customresource_primary_info{customresource_group="postgresql.cnpg.io",customresource_kind="Cluster",namespace="{{ .namespace }}",cluster="{{ .cluster }}"} == 1,
+        "pod", "$1", "current_primary", "(.+)"
+      )
   ) > 0
 for: 15m
 labels:

@@ -1,0 +1,217 @@
+rule_files:
+  - rules.generated.yaml
+evaluation_interval: 1m
+tests:
+  - name: current primary=parity-paradedb-1, recovery=0
+    interval: 1m
+    input_series:
+      - &id001
+        series: cnpg_pg_replication_slots_pg_wal_lsn_diff{namespace="alert-test",pod="parity-paradedb-1",slot_name="consumer",slot_type="logical"}
+        values: 100+0x40
+      - &id002
+        series: cnpg_pg_replication_slots_active{namespace="alert-test",pod="parity-paradedb-1",slot_name="consumer",slot_type="logical"}
+        values: 0+0x40
+      - &id003
+        series: kubelet_volume_stats_capacity_bytes{namespace="alert-test",persistentvolumeclaim="parity-paradedb-1-wal"}
+        values: 200+0x40
+      - series: cnpg_pg_replication_in_recovery{namespace="alert-test",pod="parity-paradedb-1"}
+        values: 0+0x40
+      - series: kube_customresource_primary_info{namespace="alert-test",customresource_group="postgresql.cnpg.io",customresource_kind="Cluster",cluster="parity-paradedb",current_primary="parity-paradedb-1"}
+        values: 1+0x40
+    alert_rule_test:
+      - eval_time: 20m
+        alertname: CNPGReplicationSlotInactive
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              namespace: alert-test
+              cnpg_cluster: parity-paradedb
+              pod: parity-paradedb-1
+              slot_name: consumer
+              slot_type: logical
+            exp_annotations:
+              summary: PostgreSQL replication slot is inactive and retaining WAL
+              description: |-
+                Replication slot "consumer" (logical) on primary
+                "alert-test/parity-paradedb/parity-paradedb-1" is inactive and retaining
+                100 bytes of WAL.
+
+                PostgreSQL retains this WAL indefinitely while the slot cannot advance. If the consumer does
+                not recover or the abandoned slot is not removed, the WAL volume can fill and stop writes.
+              runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGReplicationSlotRetention.md
+      - eval_time: 20m
+        alertname: CNPGReplicationSlotHighRetention
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              namespace: alert-test
+              cnpg_cluster: parity-paradedb
+              pod: parity-paradedb-1
+              slot_name: consumer
+              slot_type: logical
+              persistentvolumeclaim: parity-paradedb-1-wal
+            exp_annotations:
+              summary: PostgreSQL replication slot is retaining too much WAL
+              description: |-
+                Replication slot "consumer" (logical) on primary
+                "alert-test/parity-paradedb/parity-paradedb-1" is retaining
+                50% of volume "parity-paradedb-1-wal".
+
+                A stalled or badly lagging consumer can retain WAL indefinitely. At the current level, this
+                slot is a material risk to the volume and can eventually fill it and stop writes.
+              runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGReplicationSlotRetention.md
+  - name: current primary=parity-paradedb-1, recovery=1
+    interval: 1m
+    input_series:
+      - *id001
+      - *id002
+      - *id003
+      - series: cnpg_pg_replication_in_recovery{namespace="alert-test",pod="parity-paradedb-1"}
+        values: 1+0x40
+      - series: kube_customresource_primary_info{namespace="alert-test",customresource_group="postgresql.cnpg.io",customresource_kind="Cluster",cluster="parity-paradedb",current_primary="parity-paradedb-1"}
+        values: 1+0x40
+    alert_rule_test:
+      - eval_time: 20m
+        alertname: CNPGReplicationSlotInactive
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              namespace: alert-test
+              cnpg_cluster: parity-paradedb
+              pod: parity-paradedb-1
+              slot_name: consumer
+              slot_type: logical
+            exp_annotations:
+              summary: PostgreSQL replication slot is inactive and retaining WAL
+              description: |-
+                Replication slot "consumer" (logical) on primary
+                "alert-test/parity-paradedb/parity-paradedb-1" is inactive and retaining
+                100 bytes of WAL.
+
+                PostgreSQL retains this WAL indefinitely while the slot cannot advance. If the consumer does
+                not recover or the abandoned slot is not removed, the WAL volume can fill and stop writes.
+              runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGReplicationSlotRetention.md
+      - eval_time: 20m
+        alertname: CNPGReplicationSlotHighRetention
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              namespace: alert-test
+              cnpg_cluster: parity-paradedb
+              pod: parity-paradedb-1
+              slot_name: consumer
+              slot_type: logical
+              persistentvolumeclaim: parity-paradedb-1-wal
+            exp_annotations:
+              summary: PostgreSQL replication slot is retaining too much WAL
+              description: |-
+                Replication slot "consumer" (logical) on primary
+                "alert-test/parity-paradedb/parity-paradedb-1" is retaining
+                50% of volume "parity-paradedb-1-wal".
+
+                A stalled or badly lagging consumer can retain WAL indefinitely. At the current level, this
+                slot is a material risk to the volume and can eventually fill it and stop writes.
+              runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGReplicationSlotRetention.md
+  - name: current primary=parity-paradedb-2, recovery=1
+    interval: 1m
+    input_series:
+      - *id001
+      - *id002
+      - *id003
+      - series: cnpg_pg_replication_in_recovery{namespace="alert-test",pod="parity-paradedb-1"}
+        values: 1+0x40
+      - series: kube_customresource_primary_info{namespace="alert-test",customresource_group="postgresql.cnpg.io",customresource_kind="Cluster",cluster="parity-paradedb",current_primary="parity-paradedb-2"}
+        values: 1+0x40
+    alert_rule_test:
+      - eval_time: 20m
+        alertname: CNPGReplicationSlotInactive
+        exp_alerts: []
+      - eval_time: 20m
+        alertname: CNPGReplicationSlotHighRetention
+        exp_alerts: []
+  - name: current primary=None, recovery=0
+    interval: 1m
+    input_series:
+      - *id001
+      - *id002
+      - *id003
+      - series: cnpg_pg_replication_in_recovery{namespace="alert-test",pod="parity-paradedb-1"}
+        values: 0+0x40
+    alert_rule_test:
+      - eval_time: 20m
+        alertname: CNPGReplicationSlotInactive
+        exp_alerts: []
+      - eval_time: 20m
+        alertname: CNPGReplicationSlotHighRetention
+        exp_alerts: []
+  - name: data PVC fallback retains primary coverage
+    interval: 1m
+    input_series:
+      - series: cnpg_pg_replication_slots_pg_wal_lsn_diff{namespace="alert-test",pod="parity-paradedb-1",slot_name="consumer",slot_type="logical"}
+        values: 100+0x40
+      - series: cnpg_pg_replication_slots_active{namespace="alert-test",pod="parity-paradedb-1",slot_name="consumer",slot_type="logical"}
+        values: 0+0x40
+      - series: kubelet_volume_stats_capacity_bytes{namespace="alert-test",persistentvolumeclaim="parity-paradedb-1"}
+        values: 200+0x40
+      - series: kube_customresource_primary_info{namespace="alert-test",customresource_group="postgresql.cnpg.io",customresource_kind="Cluster",cluster="parity-paradedb",current_primary="parity-paradedb-1"}
+        values: 1+0x40
+    alert_rule_test:
+      - eval_time: 20m
+        alertname: CNPGReplicationSlotInactive
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              namespace: alert-test
+              cnpg_cluster: parity-paradedb
+              pod: parity-paradedb-1
+              slot_name: consumer
+              slot_type: logical
+            exp_annotations:
+              summary: PostgreSQL replication slot is inactive and retaining WAL
+              description: |-
+                Replication slot "consumer" (logical) on primary
+                "alert-test/parity-paradedb/parity-paradedb-1" is inactive and retaining
+                100 bytes of WAL.
+
+                PostgreSQL retains this WAL indefinitely while the slot cannot advance. If the consumer does
+                not recover or the abandoned slot is not removed, the WAL volume can fill and stop writes.
+              runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGReplicationSlotRetention.md
+      - eval_time: 20m
+        alertname: CNPGReplicationSlotHighRetention
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              namespace: alert-test
+              cnpg_cluster: parity-paradedb
+              pod: parity-paradedb-1
+              slot_name: consumer
+              slot_type: logical
+              persistentvolumeclaim: parity-paradedb-1
+            exp_annotations:
+              summary: PostgreSQL replication slot is retaining too much WAL
+              description: |-
+                Replication slot "consumer" (logical) on primary
+                "alert-test/parity-paradedb/parity-paradedb-1" is retaining
+                50% of volume "parity-paradedb-1".
+
+                A stalled or badly lagging consumer can retain WAL indefinitely. At the current level, this
+                slot is a material risk to the volume and can eventually fill it and stop writes.
+              runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGReplicationSlotRetention.md
+  - name: active non-retaining slot
+    interval: 1m
+    input_series:
+      - series: cnpg_pg_replication_slots_pg_wal_lsn_diff{namespace="alert-test",pod="parity-paradedb-1",slot_name="consumer",slot_type="logical"}
+        values: 0+0x40
+      - series: cnpg_pg_replication_slots_active{namespace="alert-test",pod="parity-paradedb-1",slot_name="consumer",slot_type="logical"}
+        values: 1+0x40
+      - series: kubelet_volume_stats_capacity_bytes{namespace="alert-test",persistentvolumeclaim="parity-paradedb-1"}
+        values: 200+0x40
+      - series: kube_customresource_primary_info{namespace="alert-test",customresource_group="postgresql.cnpg.io",customresource_kind="Cluster",cluster="parity-paradedb",current_primary="parity-paradedb-1"}
+        values: 1+0x40
+    alert_rule_test:
+      - eval_time: 20m
+        alertname: CNPGReplicationSlotInactive
+        exp_alerts: []
+      - eval_time: 20m
+        alertname: CNPGReplicationSlotHighRetention
+        exp_alerts: []
