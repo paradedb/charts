@@ -1,0 +1,21 @@
+{{- $alert := "CNPGScheduledBackupStalled" -}}
+{{- if not (has $alert .excludeRules) -}}
+alert: {{ $alert }}
+annotations:
+  summary: ParadeDB CNPG ScheduledBackup is not advancing its schedule
+  description: |-
+    CloudNativePG Cluster "{{ .namespace }}/{{ .cluster }}" scheduled backup "{{ .labels.scheduled_backup }}" was due {{ .value }} seconds ago and has not been rescheduled. Check operator reconciliation.
+  runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGScheduledBackupStalled.md
+expr: |
+  time() - max by (namespace, cluster, scheduled_backup) (
+    kube_customresource_next_schedule_time{customresource_group="postgresql.cnpg.io",customresource_kind="ScheduledBackup",namespace="{{ .namespace }}",cluster="{{ .cluster }}"}
+  ) > 3600
+for: 15m
+labels:
+  severity: warning
+  namespace: {{ .namespace }}
+  cnpg_cluster: {{ .cluster }}
+{{- range $key, $val := .additionalLabels }}
+  {{ $key }}: {{ $val | toString | quote }}
+{{- end }}
+{{- end -}}

@@ -1,0 +1,128 @@
+rule_files:
+  - rules.generated.yaml
+evaluation_interval: 1m
+tests:
+  - name: last successful=300, failed=600
+    interval: 1m
+    input_series:
+      - series: kube_customresource_last_failed_backup{namespace="alert-test",customresource_group="postgresql.cnpg.io",customresource_kind="Cluster",cluster="parity-paradedb"}
+        values: 946685400+0x40
+      - series: kube_customresource_last_successful_backup{namespace="alert-test",customresource_group="postgresql.cnpg.io",customresource_kind="Cluster",cluster="parity-paradedb",method="plugin"}
+        values: 946685100+0x40
+    alert_rule_test:
+      - eval_time: 20m
+        alertname: CNPGBackupFailed
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              namespace: alert-test
+              cnpg_cluster: parity-paradedb
+            exp_annotations:
+              summary: ParadeDB CNPG Cluster's most recent backup failed
+              description: CloudNativePG Cluster "alert-test/parity-paradedb" has a failed backup newer than its last successful backup, or has never completed
+                a successful backup. Check the Backup objects and object-store credentials.
+              runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGBackupFailed.md
+  - name: last successful=900, failed=600
+    interval: 1m
+    input_series:
+      - series: kube_customresource_last_failed_backup{namespace="alert-test",customresource_group="postgresql.cnpg.io",customresource_kind="Cluster",cluster="parity-paradedb"}
+        values: 946685400+0x40
+      - series: kube_customresource_last_successful_backup{namespace="alert-test",customresource_group="postgresql.cnpg.io",customresource_kind="Cluster",cluster="parity-paradedb",method="plugin"}
+        values: 946685700+0x40
+    alert_rule_test:
+      - eval_time: 20m
+        alertname: CNPGBackupFailed
+        exp_alerts: []
+  - name: last successful=None, failed=600
+    interval: 1m
+    input_series:
+      - series: kube_customresource_last_failed_backup{namespace="alert-test",customresource_group="postgresql.cnpg.io",customresource_kind="Cluster",cluster="parity-paradedb"}
+        values: 946685400+0x40
+    alert_rule_test:
+      - eval_time: 20m
+        alertname: CNPGBackupFailed
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              namespace: alert-test
+              cnpg_cluster: parity-paradedb
+            exp_annotations:
+              summary: ParadeDB CNPG Cluster's most recent backup failed
+              description: CloudNativePG Cluster "alert-test/parity-paradedb" has a failed backup newer than its last successful backup, or has never completed
+                a successful backup. Check the Backup objects and object-store credentials.
+              runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGBackupFailed.md
+  - name: stale plugin backup without collector backup metrics
+    interval: 1m
+    input_series:
+      - series: kube_customresource_last_successful_backup{namespace="alert-test",customresource_group="postgresql.cnpg.io",customresource_kind="Cluster",cluster="parity-paradedb",method="plugin"}
+        values: 946584800+0x40
+    alert_rule_test:
+      - eval_time: 20m
+        alertname: CNPGBackupStale
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+              namespace: alert-test
+              cnpg_cluster: parity-paradedb
+            exp_annotations:
+              summary: ParadeDB CNPG Cluster has no recent successful backup
+              description: |-
+                CloudNativePG Cluster "alert-test/parity-paradedb" last completed a successful backup 101200 seconds ago.
+
+                Backups are expected nightly, so 26 hours is one missed run plus two hours of grace. Everything written since that backup is outside the recovery window.
+
+                This fires on the outcome regardless of cause, so it covers backups that are failing, a schedule that has stopped being reconciled, and backups that were switched off and forgotten.
+              runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGBackupStale.md
+  - name: recent backup through any method
+    interval: 1m
+    input_series:
+      - series: kube_customresource_last_successful_backup{namespace="alert-test",customresource_group="postgresql.cnpg.io",customresource_kind="Cluster",cluster="parity-paradedb",method="plugin"}
+        values: 946685400+0x40
+      - series: kube_customresource_last_successful_backup{namespace="alert-test",customresource_group="postgresql.cnpg.io",customresource_kind="Cluster",cluster="parity-paradedb",method="volumeSnapshot"}
+        values: 946584800+0x40
+    alert_rule_test:
+      - eval_time: 20m
+        alertname: CNPGBackupStale
+        exp_alerts: []
+  - name: scheduled backup due=-7200
+    interval: 1m
+    input_series:
+      - series: kube_customresource_next_schedule_time{namespace="alert-test",customresource_group="postgresql.cnpg.io",customresource_kind="ScheduledBackup",cluster="parity-paradedb",scheduled_backup="daily"}
+        values: 946677600+0x40
+    alert_rule_test:
+      - eval_time: 20m
+        alertname: CNPGScheduledBackupStalled
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              namespace: alert-test
+              cnpg_cluster: parity-paradedb
+              cluster: parity-paradedb
+              scheduled_backup: daily
+            exp_annotations:
+              summary: ParadeDB CNPG ScheduledBackup is not advancing its schedule
+              description: CloudNativePG Cluster "alert-test/parity-paradedb" scheduled backup "daily" was due 8400 seconds ago and has not been rescheduled.
+                Check operator reconciliation.
+              runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGScheduledBackupStalled.md
+  - name: scheduled backup due=7200
+    interval: 1m
+    input_series:
+      - series: kube_customresource_next_schedule_time{namespace="alert-test",customresource_group="postgresql.cnpg.io",customresource_kind="ScheduledBackup",cluster="parity-paradedb",scheduled_backup="daily"}
+        values: 946692000+0x40
+    alert_rule_test:
+      - eval_time: 20m
+        alertname: CNPGScheduledBackupStalled
+        exp_alerts: []
+  - name: no backup history and no failure
+    interval: 1m
+    input_series: []
+    alert_rule_test:
+      - eval_time: 20m
+        alertname: CNPGBackupFailed
+        exp_alerts: []
+      - eval_time: 20m
+        alertname: CNPGBackupStale
+        exp_alerts: []
+      - eval_time: 20m
+        alertname: CNPGScheduledBackupStalled
+        exp_alerts: []

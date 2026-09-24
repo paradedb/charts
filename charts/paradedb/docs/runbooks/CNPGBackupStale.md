@@ -6,7 +6,10 @@ The `CNPGBackupStale` alert is triggered when a CloudNativePG cluster's most rec
 
 Backups are scheduled nightly, so 26 hours is one missed run plus two hours of grace. The alert does not distinguish why the backup is old: it fires whether backups have been failing, whether the ScheduledBackup stopped being reconciled, or whether backups were switched off and nobody noticed.
 
-This is the only backup alert that fires when backups stop happening silently. `CNPGBackupFailed` needs a failure to report, and a backup that is never attempted never fails.
+This alert uses the Cluster's `lastSuccessfulBackupByMethod` status exported by
+kube-state-metrics, including plugin backups. It requires a previous successful
+backup timestamp. `CNPGBackupFailed` reports failures and `CNPGScheduledBackupStalled`
+reports a schedule that stopped advancing; neither replaces this recovery-age check.
 
 ## Impact
 
