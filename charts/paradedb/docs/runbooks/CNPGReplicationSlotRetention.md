@@ -46,3 +46,11 @@ SELECT pg_drop_replication_slot('<slot_name>');
 Dropping a slot is irreversible and forces that consumer to be reinitialized from a new snapshot or base backup. Do not manually drop CloudNativePG-managed `_cnpg_` physical slots; repair or remove the corresponding replica through CloudNativePG instead.
 
 If the volume is close to full, add storage before recovery work so the database does not run out of space while the consumer catches up. Confirm afterward that the slot is active or gone, retained bytes are falling, and both alerts clear.
+
+## Primary selection
+
+Both alerts use the CNPG Cluster's `currentPrimary` from kube-state-metrics. This
+includes a replica cluster's designated primary while it is in recovery, and
+excludes ordinary standby pods. Configure the supplied Cluster custom-resource
+metrics and list/watch permissions; without primary metadata these alerts cannot
+select a pod.
