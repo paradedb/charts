@@ -213,6 +213,12 @@ Alternatively, you can manually import the dashboard from the `monitoring` direc
 ### Metrics Configuration
 
 Additionally, we recommend enabling the `kube-state-metrics` CRD monitoring and adding the CNPG metrics. The configuration can be found in `monitoring/metrics-clusters_postgresql_cnpg_io.yaml`.
+Enable list/watch permissions for both `clusters` and `scheduledbackups` in the
+`postgresql.cnpg.io` API group. Backup alerts use Cluster backup-status timestamps
+and ScheduledBackup's `nextScheduleTime`; apply the updated metrics configuration
+alongside the chart upgrade. A stale-backup alert requires a successful-backup
+timestamp; a cluster that has never produced a backup and has no reported failure
+is not covered by that rule.
 
 ## Examples
 
