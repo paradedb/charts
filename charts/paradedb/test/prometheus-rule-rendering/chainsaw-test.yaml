@@ -105,3 +105,18 @@ spec:
                 echo "excluded PgBouncer alerts must not render"
                 exit 1
               fi
+
+              errors_excluded="$(render 3 \
+                --set 'cluster.monitoring.prometheusRule.excludeRules[0]=CNPGClusterLogicalReplicationErrors' \
+                --set 'cluster.monitoring.prometheusRule.excludeRules[1]=CNPGClusterLogicalReplicationErrorsCritical')"
+              if printf '%s\n' "$errors_excluded" | grep -Fq 'alert: CNPGClusterLogicalReplicationErrors'; then
+                echo "excluded logical replication error alerts must not render"
+                exit 1
+              fi
+
+              # Evaluate the Helm-rendered runtime query annotations against counters.
+              test_dir="$(mktemp -d)"
+              trap 'rm -rf "$test_dir"' EXIT
+              printf '%s\n' "$rendered" | sed -n '/^spec:/,$p' | tail -n +2 > "$test_dir/rules.generated.yaml"
+              cp logical-replication-errors.test.yaml "$test_dir/"
+              (cd "$test_dir" && vmalert-tool unittest --disableAlertgroupLabel --files=logical-replication-errors.test.yaml)

@@ -9,6 +9,20 @@ The `CNPGClusterLogicalReplicationErrors` and `CNPGClusterLogicalReplicationErro
 
 Both count apply errors, raised when applying changes received from the publisher, and sync errors, raised during the initial table synchronization.
 
+## Alert details
+
+Both alerts include `apply_errors` and `sync_errors` annotations for the last five
+minutes, scoped to the namespace, scrape job, subscription, and cluster's pods.
+The `logs_url` annotation links to the subscriber-log diagnosis below. Notification
+templates should render each alert's annotations: grouped subscriptions can have
+different descriptions and counts that are absent from common annotations.
+
+Counts can be fractional because they are calculated from scraped counters, and
+retries of the same error count repeatedly. Each phase reports the largest
+per-pod increase rather than summing replicas. Around failover, the two phase
+maxima can come from different pods and may not sum to the combined alert count.
+These counters do not contain error messages; use the subscriber logs for those.
+
 ## Impact
 
 PostgreSQL stops applying changes when it hits a conflict and retries the same transaction, so the subscription makes no progress until the conflict is resolved. The subscriber's data diverges from the publisher, and the publisher retains WAL for the subscription's replication slot in the meantime.

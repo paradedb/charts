@@ -1,0 +1,140 @@
+rule_files:
+  - rules.generated.yaml
+evaluation_interval: 1m
+tests:
+  - interval: 1m
+    name: phase counts are isolated by subscription job namespace and cluster pods
+    input_series:
+      - series: cnpg_pg_stat_subscription_apply_error_count{namespace="alert-test",job="alert-test/db",pod="alerts-3-paradedb-1",subname="orders"}
+        values: 0+1x13
+      - series: cnpg_pg_stat_subscription_sync_error_count{namespace="alert-test",job="alert-test/db",pod="alerts-3-paradedb-1",subname="orders"}
+        values: 0+2x13
+      - series: cnpg_pg_stat_subscription_apply_error_count{namespace="alert-test",job="alert-test/db",pod="alerts-3-paradedb-1",subname="invoices"}
+        values: 0+0x13
+      - series: cnpg_pg_stat_subscription_sync_error_count{namespace="alert-test",job="alert-test/db",pod="alerts-3-paradedb-1",subname="invoices"}
+        values: 0+1x13
+      - series: cnpg_pg_stat_subscription_apply_error_count{namespace="alert-test",job="alert-test/db",pod="alerts-3-paradedb-1",subname="healthy"}
+        values: 0+0x13
+      - series: cnpg_pg_stat_subscription_sync_error_count{namespace="alert-test",job="alert-test/db",pod="alerts-3-paradedb-1",subname="healthy"}
+        values: 0+0x13
+      - series: cnpg_pg_stat_subscription_apply_error_count{namespace="alert-test",job="alert-test/db",pod="other-cluster-1",subname="orders"}
+        values: 0+100x13
+      - series: cnpg_pg_stat_subscription_sync_error_count{namespace="alert-test",job="alert-test/db",pod="other-cluster-1",subname="orders"}
+        values: 0+100x13
+      - series: cnpg_pg_stat_subscription_apply_error_count{namespace="other-namespace",job="alert-test/db",pod="alerts-3-paradedb-1",subname="orders"}
+        values: 0+100x13
+      - series: cnpg_pg_stat_subscription_sync_error_count{namespace="other-namespace",job="alert-test/db",pod="alerts-3-paradedb-1",subname="orders"}
+        values: 0+100x13
+      - series: cnpg_pg_stat_subscription_apply_error_count{namespace="alert-test",job="alert-test/other",pod="alerts-3-paradedb-1",subname="orders"}
+        values: 0+4x13
+      - series: cnpg_pg_stat_subscription_sync_error_count{namespace="alert-test",job="alert-test/other",pod="alerts-3-paradedb-1",subname="orders"}
+        values: 0+0x13
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: CNPGClusterLogicalReplicationErrorsCritical
+        exp_alerts:
+          - exp_labels:
+              namespace: alert-test
+              job: alert-test/db
+              cluster: db
+              subname: orders
+              severity: critical
+              cnpg_cluster: alerts-3-paradedb
+            exp_annotations:
+              summary: CNPG Cluster critical logical replication errors
+              description: |-
+                CloudNativePG Cluster's "alert-test/alerts-3-paradedb" "orders" subscription has experienced 15 errors in the last 5 minutes.
+
+                CRITICAL: High error rate indicates persistent replication issues requiring immediate attention. This could lead to significant data inconsistency or complete replication failure. Errors include both apply errors and sync errors. The subscription may stop working if errors continue.
+              apply_errors: '5.00'
+              sync_errors: '10.00'
+              logs_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterLogicalReplicationErrors.md#diagnosis
+              runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterLogicalReplicationErrors.md
+          - exp_labels:
+              namespace: alert-test
+              job: alert-test/db
+              cluster: db
+              subname: invoices
+              severity: critical
+              cnpg_cluster: alerts-3-paradedb
+            exp_annotations:
+              summary: CNPG Cluster critical logical replication errors
+              description: |-
+                CloudNativePG Cluster's "alert-test/alerts-3-paradedb" "invoices" subscription has experienced 5 errors in the last 5 minutes.
+
+                CRITICAL: High error rate indicates persistent replication issues requiring immediate attention. This could lead to significant data inconsistency or complete replication failure. Errors include both apply errors and sync errors. The subscription may stop working if errors continue.
+              apply_errors: '0.00'
+              sync_errors: '5.00'
+              logs_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterLogicalReplicationErrors.md#diagnosis
+              runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterLogicalReplicationErrors.md
+          - exp_labels:
+              namespace: alert-test
+              job: alert-test/other
+              cluster: other
+              subname: orders
+              severity: critical
+              cnpg_cluster: alerts-3-paradedb
+            exp_annotations:
+              summary: CNPG Cluster critical logical replication errors
+              description: |-
+                CloudNativePG Cluster's "alert-test/alerts-3-paradedb" "orders" subscription has experienced 20 errors in the last 5 minutes.
+
+                CRITICAL: High error rate indicates persistent replication issues requiring immediate attention. This could lead to significant data inconsistency or complete replication failure. Errors include both apply errors and sync errors. The subscription may stop working if errors continue.
+              apply_errors: '20.00'
+              sync_errors: '0.00'
+              logs_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterLogicalReplicationErrors.md#diagnosis
+              runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterLogicalReplicationErrors.md
+      - eval_time: 10m
+        alertname: CNPGClusterLogicalReplicationErrors
+        exp_alerts:
+          - exp_labels:
+              namespace: alert-test
+              job: alert-test/db
+              cluster: db
+              subname: orders
+              severity: warning
+              cnpg_cluster: alerts-3-paradedb
+            exp_annotations:
+              summary: CNPG Cluster logical replication errors detected
+              description: |-
+                CloudNativePG Cluster's "alert-test/alerts-3-paradedb" "orders" subscription has experienced 15 errors in the last 5 minutes.
+
+                This includes both apply errors (during normal replication) and sync errors (during initial table sync). Errors indicate data consistency issues that need immediate attention to prevent data divergence.
+              apply_errors: '5.00'
+              sync_errors: '10.00'
+              logs_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterLogicalReplicationErrors.md#diagnosis
+              runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterLogicalReplicationErrors.md
+          - exp_labels:
+              namespace: alert-test
+              job: alert-test/db
+              cluster: db
+              subname: invoices
+              severity: warning
+              cnpg_cluster: alerts-3-paradedb
+            exp_annotations:
+              summary: CNPG Cluster logical replication errors detected
+              description: |-
+                CloudNativePG Cluster's "alert-test/alerts-3-paradedb" "invoices" subscription has experienced 5 errors in the last 5 minutes.
+
+                This includes both apply errors (during normal replication) and sync errors (during initial table sync). Errors indicate data consistency issues that need immediate attention to prevent data divergence.
+              apply_errors: '0.00'
+              sync_errors: '5.00'
+              logs_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterLogicalReplicationErrors.md#diagnosis
+              runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterLogicalReplicationErrors.md
+          - exp_labels:
+              namespace: alert-test
+              job: alert-test/other
+              cluster: other
+              subname: orders
+              severity: warning
+              cnpg_cluster: alerts-3-paradedb
+            exp_annotations:
+              summary: CNPG Cluster logical replication errors detected
+              description: |-
+                CloudNativePG Cluster's "alert-test/alerts-3-paradedb" "orders" subscription has experienced 20 errors in the last 5 minutes.
+
+                This includes both apply errors (during normal replication) and sync errors (during initial table sync). Errors indicate data consistency issues that need immediate attention to prevent data divergence.
+              apply_errors: '20.00'
+              sync_errors: '0.00'
+              logs_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterLogicalReplicationErrors.md#diagnosis
+              runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterLogicalReplicationErrors.md
