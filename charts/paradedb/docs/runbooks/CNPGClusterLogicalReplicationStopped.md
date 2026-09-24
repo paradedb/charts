@@ -2,12 +2,14 @@
 
 ## Description
 
-The `CNPGClusterLogicalReplicationStopped` and `CNPGClusterLogicalReplicationStoppedCritical` alerts are triggered when a logical replication subscription is not actively replicating data.
+Cloud and BYOC monitoring distinguish two conditions on the writable primary, separately for each database/subscription pair:
 
-- **Warning level**: the subscription has been stopped for 5 minutes
-- **Critical level**: the subscription has been stopped for 15 minutes
+- `CNPGClusterLogicalReplicationSubscriptionDisabled`: the subscription is disabled for 5 minutes (warning).
+- `CNPGClusterLogicalReplicationWorkerDown`: the subscription is enabled but has no positive worker PID for 5 minutes (critical).
 
-A subscription counts as stopped either when it has been explicitly disabled (`subenabled = false`), or when it is enabled but has no worker process while data is still pending.
+Neither condition requires receipt-age or WAL-position metrics, which can be absent when no worker runs. Physical standbys and replica-cluster primaries in recovery are excluded.
+
+These replace the Charts alerts `CNPGClusterLogicalReplicationStopped` and `CNPGClusterLogicalReplicationStoppedCritical`. Existing `excludeRules` entries for those names also exclude the corresponding new rule; update external routing and silences that match the old alert names.
 
 ## Impact
 
@@ -18,14 +20,14 @@ The subscriber receives no updates from the publisher and its data becomes incre
 - Determine which of the two conditions applies:
 
 ```bash
-kubectl exec -n <namespace> -it services/paradedb-rw -- psql -c "
+kubectl exec -n <namespace> -it services/paradedb-rw -- psql -d <database> -c "
 SELECT
     s.subname,
     s.subenabled AS enabled,
-    ss.pid IS NOT NULL AS has_worker,
-    COALESCE(pg_wal_lsn_diff(ss.received_lsn, ss.latest_end_lsn), 0) AS pending_bytes
+    ss.pid IS NOT NULL AS has_worker
 FROM pg_subscription s
-LEFT JOIN pg_stat_subscription ss ON s.oid = ss.subid;
+LEFT JOIN pg_stat_subscription ss ON s.oid = ss.subid
+WHERE s.subdbid = (SELECT oid FROM pg_database WHERE datname = current_database());
 "
 ```
 

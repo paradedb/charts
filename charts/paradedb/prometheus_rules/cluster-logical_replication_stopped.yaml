@@ -1,30 +1,37 @@
-{{- $alert := "CNPGClusterLogicalReplicationStopped" -}}
-{{- if not (has $alert .excludeRules) -}}
+{{- $alert := "CNPGClusterLogicalReplicationSubscriptionDisabled" -}}
+{{- if and (not (has $alert .excludeRules)) (not (has "CNPGClusterLogicalReplicationStopped" .excludeRules)) -}}
 alert: {{ $alert }}
 annotations:
-  summary: CNPG Cluster logical replication subscription stopped
+  summary: ParadeDB logical replication subscription is disabled
   description: |-
-    CloudNativePG Cluster's "{{ .namespace }}/{{ .cluster }}" "{{ .labels.subname }}" subscription is stopped.
+    CloudNativePG Cluster "{{ .namespace }}/{{ .cluster }}" subscription "{{ .labels.subname }}" is disabled and is replicating nothing.
 
-    Status: {{ .labels.stop_reason }}
-
-    The subscription is not actively replicating data. This could be intentional (disabled) or due to an issue preventing the subscription from working.
+    This may be intentional (e.g. a subscription disabled for maintenance, or an ALTER SUBSCRIPTION ... DISABLE)
+    that was never reverted. Either way the lag alerts cannot fire for this subscription while it is
+    disabled, so nothing else will catch it.
   runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterLogicalReplicationStopped.md
 expr: |
-  (
-    # Subscription is explicitly disabled
-    label_replace(max by (namespace, job, subname) (cnpg_pg_stat_subscription_enabled{namespace="{{ .namespace }}",pod=~"{{ .podSelector }}"}), "cluster", "$1", "job", ".+/(.+)") == 0
-  ) or (
-    # Subscription is enabled but stuck (no worker process with significant lag)
-    label_replace(max by (namespace, job, subname) (cnpg_pg_stat_subscription_enabled{namespace="{{ .namespace }}",pod=~"{{ .podSelector }}"}), "cluster", "$1", "job", ".+/(.+)") == 1
-    and label_replace(max by (namespace, job, subname) (cnpg_pg_stat_subscription_pid{namespace="{{ .namespace }}",pod=~"{{ .podSelector }}"}), "cluster", "$1", "job", ".+/(.+)") <= 0
-    and label_replace(max by (namespace, job, subname) (cnpg_pg_stat_subscription_buffered_lag_bytes{namespace="{{ .namespace }}",pod=~"{{ .podSelector }}"}), "cluster", "$1", "job", ".+/(.+)") / 1024^3 > 0.1
+  max by (namespace, cluster, pod, datname, subname) (
+    label_replace(cnpg_pg_stat_subscription_enabled{namespace="{{ .namespace }}",pod=~"{{ .podSelector }}"}, "cluster", "$1", "job", ".+/(.+)") == 0
+  )
+  and on (namespace, pod)
+  label_replace(
+    kube_customresource_primary_info{namespace="{{ .namespace }}", cluster="{{ .cluster }}", customresource_group="postgresql.cnpg.io", customresource_kind="Cluster"},
+    "pod", "$1", "current_primary", "(.*)"
+  )
+  unless on (namespace, pod)
+  max by (namespace, pod) (
+    label_replace(cnpg_pg_replication_in_recovery{namespace="{{ .namespace }}",pod=~"{{ .podSelector }}"}, "cluster", "$1", "job", ".+/(.+)") == 1
+    or
+    label_replace(cnpg_paradedb_physical_replication_in_recovery{namespace="{{ .namespace }}",pod=~"{{ .podSelector }}"}, "cluster", "$1", "job", ".+/(.+)") == 1
   )
 for: 5m
 labels:
   severity: warning
   namespace: {{ .namespace }}
   cnpg_cluster: {{ .cluster }}
+  alert_type: logical-replication
+  subname: "{{ .labels.subname }}"
 {{- range $key, $val := .additionalLabels }}
   {{ $key }}: {{ $val | toString | quote }}
 {{- end }}

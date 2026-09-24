@@ -28,3 +28,6 @@ charts/**/charts/*.tgz
 
 # Tooling for local development
 mise.local.toml
+
+# Locally rendered alert test inputs
+charts/paradedb/tests/*.generated.yaml

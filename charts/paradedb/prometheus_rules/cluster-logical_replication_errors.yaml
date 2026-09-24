@@ -2,19 +2,28 @@
 {{- if not (has $alert .excludeRules) -}}
 alert: {{ $alert }}
 annotations:
-  summary: CNPG Cluster logical replication errors detected
+  summary: ParadeDB logical replication errors detected
   description: |-
-    CloudNativePG Cluster's "{{ .namespace }}/{{ .cluster }}" "{{ .labels.subname }}" subscription has experienced {{ .value }} errors.
+    CloudNativePG Cluster "{{ .namespace }}/{{ .cluster }}" subscription "{{ .labels.subname }}" has recorded {{ .value }} errors in the last 5 minutes.
 
-    This includes both apply errors (during normal replication) and sync errors (during initial table sync). Errors indicate data consistency issues that need immediate attention to prevent data divergence.
+    Counts both apply errors during normal replication and sync errors during initial table sync.
+    Errors here mean rows are failing to land on the subscriber, which diverges it from the publisher.
   runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterLogicalReplicationErrors.md
 expr: |
-  label_replace(max by (namespace, job, subname) (increase(cnpg_pg_stat_subscription_apply_error_count{namespace="{{ .namespace }}",pod=~"{{ .podSelector }}"}[5m]) + increase(cnpg_pg_stat_subscription_sync_error_count{namespace="{{ .namespace }}",pod=~"{{ .podSelector }}"}[5m])), "cluster", "$1", "job", ".+/(.+)") > 0
+  max by (namespace, cluster, datname, subname) (
+    label_replace(
+      increase(cnpg_pg_stat_subscription_apply_error_count{namespace="{{ .namespace }}",pod=~"{{ .podSelector }}"}[5m])
+      + increase(cnpg_pg_stat_subscription_sync_error_count{namespace="{{ .namespace }}",pod=~"{{ .podSelector }}"}[5m]),
+      "cluster", "$1", "job", ".+/(.+)"
+    )
+  ) > 0
 for: 1m
 labels:
   severity: warning
   namespace: {{ .namespace }}
   cnpg_cluster: {{ .cluster }}
+  alert_type: logical-replication
+  subname: "{{ .labels.subname }}"
 {{- range $key, $val := .additionalLabels }}
   {{ $key }}: {{ $val | toString | quote }}
 {{- end }}

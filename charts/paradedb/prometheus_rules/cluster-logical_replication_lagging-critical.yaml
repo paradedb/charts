@@ -2,33 +2,36 @@
 {{- if not (has $alert .excludeRules) -}}
 alert: {{ $alert }}
 annotations:
-  summary: CNPG Cluster critical logical replication lag
-  description: |-
-    CloudNativePG Cluster's "{{ .namespace }}/{{ .cluster }}" "{{ .labels.subname }}" subscription is experiencing critical replication lag!
+  summary: ParadeDB Logical replication lag critical
+  description: |
+    CloudNativePG Cluster "{{ .namespace }}/{{ .cluster }}" has critical logical replication lag of {{ .value }}s.
 
-    {{- if .labels.lag_type }}
-    Lag type: {{ .labels.lag_type }}
-    {{- end }}
-    Current lag: {{ .value }}s
+    The subscription has not received messages for over 5 minutes, indicating a significant replication issue.
+    Immediate investigation required to prevent data drift and service impact.
 
-    CRITICAL: The subscriber is significantly behind the publisher. Immediate action required. This could lead to significant data inconsistency, disk space exhaustion on publisher, or extended recovery time.
+    Potential causes:
+    - Network connectivity failure between publisher and subscriber
+    - Publisher database is down or unreachable
+    - Subscription connection is broken
+    - Resource constraints preventing message processing
   runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterLogicalReplicationLagging.md
 expr: |
   (
-    # Receipt lag - not receiving WAL data
-    label_replace(max by (namespace, job, subname) (cnpg_pg_stat_subscription_receipt_lag_seconds{namespace="{{ .namespace }}",pod=~"{{ .podSelector }}"}), "cluster", "$1", "job", ".+/(.+)") > 300
-  ) or (
-    # Apply lag - not applying received data
-    label_replace(max by (namespace, job, subname) (cnpg_pg_stat_subscription_apply_lag_seconds{namespace="{{ .namespace }}",pod=~"{{ .podSelector }}"}), "cluster", "$1", "job", ".+/(.+)") > 300
-  ) or (
-    # LSN distance - large amount of pending data
-    label_replace(max by (namespace, job, subname) (cnpg_pg_stat_subscription_buffered_lag_bytes{namespace="{{ .namespace }}",pod=~"{{ .podSelector }}"}), "cluster", "$1", "job", ".+/(.+)") / 1024^3 > 4
-  )
+    max by (namespace, cluster, pod, datname, subname) (
+      label_replace(cnpg_pg_stat_subscription_receipt_lag_seconds{namespace="{{ .namespace }}",pod=~"{{ .podSelector }}"}, "cluster", "$1", "job", ".+/(.+)")
+    )
+    or
+    max by (namespace, cluster, pod, datname, subname) (
+      time() - label_replace(cnpg_pg_stat_subscription_last_msg_receipt_time{namespace="{{ .namespace }}",pod=~"{{ .podSelector }}"}, "cluster", "$1", "job", ".+/(.+)")
+    )
+  ) > 300
 for: 2m
 labels:
   severity: critical
   namespace: {{ .namespace }}
   cnpg_cluster: {{ .cluster }}
+  alert_type: logical-replication
+  subname: "{{ .labels.subname }}"
 {{- range $key, $val := .additionalLabels }}
   {{ $key }}: {{ $val | toString | quote }}
 {{- end }}

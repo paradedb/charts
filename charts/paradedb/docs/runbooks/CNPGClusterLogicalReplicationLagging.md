@@ -2,18 +2,14 @@
 
 ## Description
 
-The `CNPGClusterLogicalReplicationLagging` and `CNPGClusterLogicalReplicationLaggingCritical` alerts are triggered when a logical replication subscription falls behind its publisher.
+The `CNPGClusterLogicalReplicationLagging` and `CNPGClusterLogicalReplicationLaggingCritical` alerts measure message receipt age for each database/subscription pair.
 
-- **Warning level**: any lag metric exceeds 60 seconds or 1 GB
-- **Critical level**: any lag metric exceeds 300 seconds or 4 GB
+- **Warning level**: receipt age exceeds 60 seconds for 5 minutes
+- **Critical level**: receipt age exceeds 300 seconds for 2 minutes
 
-Three metrics can raise them:
+Both use `cnpg_pg_stat_subscription_receipt_lag_seconds`, with `time() - cnpg_pg_stat_subscription_last_msg_receipt_time` as a fallback for exporters without the derived metric. Receipt age measures transport activity, not committed apply progress.
 
-- `cnpg_pg_stat_subscription_receipt_lag_seconds`: time since the last WAL message was received from the publisher
-- `cnpg_pg_stat_subscription_apply_lag_seconds`: delay between receiving changes and applying them
-- `cnpg_pg_stat_subscription_buffered_lag_bytes`: WAL data received but not yet applied
-
-Which metric fired narrows the cause. Receipt lag points at the network between the two clusters, apply lag at resource contention on the subscriber.
+The legacy `cnpg_pg_stat_subscription_apply_lag_seconds` measures the age of `latest_end_time`, and `cnpg_pg_stat_subscription_buffered_lag_bytes` measures the nonnegative received-versus-reported WAL position gap. They remain available for dashboard compatibility, but neither establishes committed apply delay or unapplied backlog. They do not trigger these alerts.
 
 ## Impact
 
@@ -21,18 +17,19 @@ The cluster remains operational, but queries against the subscriber return stale
 
 ## Diagnosis
 
-- Identify which kind of lag is occurring:
+- Connect to the affected database and inspect receipt activity:
 
 ```bash
-kubectl exec -n <namespace> -it services/paradedb-rw -- psql -c "
+kubectl exec -n <namespace> -it services/paradedb-rw -- psql -d <database> -c "
 SELECT
     s.subname,
     s.subenabled AS enabled,
     EXTRACT(EPOCH FROM (NOW() - ss.last_msg_receipt_time)) AS receipt_lag_seconds,
-    EXTRACT(EPOCH FROM (NOW() - ss.latest_end_time)) AS apply_lag_seconds,
-    COALESCE(pg_wal_lsn_diff(ss.received_lsn, ss.latest_end_lsn), 0) AS pending_bytes
+    EXTRACT(EPOCH FROM (NOW() - ss.latest_end_time)) AS reported_position_age_seconds,
+    COALESCE(pg_wal_lsn_diff(ss.received_lsn, ss.latest_end_lsn), 0) AS received_reported_gap_bytes
 FROM pg_subscription s
-LEFT JOIN pg_stat_subscription ss ON s.oid = ss.subid;
+LEFT JOIN pg_stat_subscription ss ON s.oid = ss.subid
+WHERE s.subdbid = (SELECT oid FROM pg_database WHERE datname = current_database());
 "
 ```
 
@@ -42,7 +39,7 @@ LEFT JOIN pg_stat_subscription ss ON s.oid = ss.subid;
 kubectl exec -n <namespace> -it services/paradedb-rw -- nc -zv <publisher-host> 5432
 ```
 
-- For apply lag, check resource usage and long-running queries on the subscriber:
+- If separate investigation indicates slow apply, check resource usage and long-running queries on the subscriber:
 
 ```bash
 kubectl top -n <namespace> pods -l "cnpg.io/podRole=instance"
@@ -84,7 +81,7 @@ For receipt lag:
 
 - Tune `cluster.postgresql.parameters.wal_receiver_status_interval` and `wal_sender_timeout` so that a slow link is not mistaken for a dead one.
 
-For apply lag:
+For independently confirmed apply delays:
 
 - Increase the memory and CPU resources of the subscriber by setting `cluster.resources.requests` and `cluster.resources.limits` in your Helm values.
 

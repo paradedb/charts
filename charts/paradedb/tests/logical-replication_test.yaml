@@ -1,0 +1,506 @@
+rule_files:
+  - rules.generated.yaml
+evaluation_interval: 1m
+tests:
+  - interval: 1m
+    name: disabled subscription is caught while the lag rules stay silent
+    input_series:
+      - series: cnpg_pg_stat_subscription_enabled{job="customer-acme/db", pod="db-1", namespace="customer-acme", subname="sub1"}
+        values: 0+0x20
+      - series:
+          kube_customresource_primary_info{customresource_group="postgresql.cnpg.io", customresource_kind="Cluster", cluster="db",
+          namespace="customer-acme", current_primary="db-1"}
+        values: 1+0x20
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: CNPGClusterLogicalReplicationSubscriptionDisabled
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              namespace: customer-acme
+              cnpg_cluster: db
+              alert_type: logical-replication
+              subname: sub1
+              cluster: db
+              pod: db-1
+            exp_annotations:
+              summary: ParadeDB logical replication subscription is disabled
+              runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterLogicalReplicationStopped.md
+              description: |-
+                CloudNativePG Cluster "customer-acme/db" subscription "sub1" is disabled and is replicating nothing.
+
+                This may be intentional (e.g. a subscription disabled for maintenance, or an ALTER SUBSCRIPTION ... DISABLE)
+                that was never reverted. Either way the lag alerts cannot fire for this subscription while it is
+                disabled, so nothing else will catch it.
+      - eval_time: 10m
+        alertname: CNPGClusterLogicalReplicationLaggingCritical
+        exp_alerts: []
+      - eval_time: 10m
+        alertname: CNPGClusterLogicalReplicationLagging
+        exp_alerts: []
+      - eval_time: 10m
+        alertname: CNPGClusterLogicalReplicationWorkerDown
+        exp_alerts: []
+  - interval: 1m
+    name: enabled subscription with no apply worker is caught
+    input_series:
+      - series: cnpg_pg_stat_subscription_enabled{job="customer-acme/db", pod="db-1", namespace="customer-acme", subname="sub1"}
+        values: 1+0x20
+      - series:
+          kube_customresource_primary_info{customresource_group="postgresql.cnpg.io", customresource_kind="Cluster", cluster="db",
+          namespace="customer-acme", current_primary="db-1"}
+        values: 1+0x20
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: CNPGClusterLogicalReplicationWorkerDown
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+              namespace: customer-acme
+              cnpg_cluster: db
+              alert_type: logical-replication
+              subname: sub1
+              cluster: db
+              pod: db-1
+            exp_annotations:
+              summary: ParadeDB logical replication subscription has no apply worker
+              runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterLogicalReplicationStopped.md
+              description: |-
+                CloudNativePG Cluster "customer-acme/db" subscription "sub1" is enabled but has no apply worker running.
+
+                The subscription is meant to be replicating and is not. Data is diverging from the publisher for
+                as long as this persists, and the lag alerts cannot fire while the worker is absent.
+
+                Check the subscriber logs for repeated apply worker crashes, and the publisher for a dropped or
+                invalidated replication slot.
+      - eval_time: 10m
+        alertname: CNPGClusterLogicalReplicationLaggingCritical
+        exp_alerts: []
+      - eval_time: 10m
+        alertname: CNPGClusterLogicalReplicationSubscriptionDisabled
+        exp_alerts: []
+  - interval: 1m
+    name: healthy subscription produces no alerts at all
+    input_series:
+      - series: cnpg_pg_stat_subscription_enabled{job="customer-acme/db", pod="db-1", namespace="customer-acme", subname="sub1"}
+        values: 1+0x20
+      - series: cnpg_pg_stat_subscription_pid{job="customer-acme/db", pod="db-1", namespace="customer-acme", subname="sub1"}
+        values: 4242+0x20
+      - series: cnpg_pg_stat_subscription_receipt_lag_seconds{job="customer-acme/db", pod="db-1", namespace="customer-acme", subname="sub1"}
+        values: 2+0x20
+      - series: cnpg_pg_stat_subscription_apply_error_count{job="customer-acme/db", pod="db-1", namespace="customer-acme", subname="sub1"}
+        values: 0+0x20
+      - series: cnpg_pg_stat_subscription_sync_error_count{job="customer-acme/db", pod="db-1", namespace="customer-acme", subname="sub1"}
+        values: 0+0x20
+      - series:
+          kube_customresource_primary_info{customresource_group="postgresql.cnpg.io", customresource_kind="Cluster", cluster="db",
+          namespace="customer-acme", current_primary="db-1"}
+        values: 1+0x20
+    alert_rule_test:
+      - eval_time: 15m
+        alertname: CNPGClusterLogicalReplicationSubscriptionDisabled
+        exp_alerts: []
+      - eval_time: 15m
+        alertname: CNPGClusterLogicalReplicationWorkerDown
+        exp_alerts: []
+      - eval_time: 15m
+        alertname: CNPGClusterLogicalReplicationLagging
+        exp_alerts: []
+      - eval_time: 15m
+        alertname: CNPGClusterLogicalReplicationLaggingCritical
+        exp_alerts: []
+      - eval_time: 15m
+        alertname: CNPGClusterLogicalReplicationErrors
+        exp_alerts: []
+      - eval_time: 15m
+        alertname: CNPGClusterLogicalReplicationErrorsCritical
+        exp_alerts: []
+  - interval: 1m
+    name: standby replica does not trigger worker-down
+    input_series:
+      - series: cnpg_pg_stat_subscription_enabled{job="customer-acme/db", pod="db-2", namespace="customer-acme", subname="sub1"}
+        values: 1+0x20
+      - series:
+          kube_customresource_primary_info{customresource_group="postgresql.cnpg.io", customresource_kind="Cluster", cluster="db",
+          namespace="customer-acme", current_primary="db-1"}
+        values: 1+0x20
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: CNPGClusterLogicalReplicationWorkerDown
+        exp_alerts: []
+      - eval_time: 10m
+        alertname: CNPGClusterLogicalReplicationSubscriptionDisabled
+        exp_alerts: []
+  - interval: 1m
+    name: designated primary of a replica cluster does not trigger worker-down
+    input_series:
+      - series:
+          cnpg_pg_stat_subscription_enabled{job="customer-acme/db", pod="db-1", namespace="customer-acme",
+          subname="sub1"}
+        values: 1+0x20
+      - series:
+          kube_customresource_primary_info{customresource_group="postgresql.cnpg.io", customresource_kind="Cluster", cluster="db",
+          namespace="customer-acme", current_primary="db-1"}
+        values: 1+0x20
+      - series: cnpg_pg_replication_in_recovery{job="customer-acme/db", pod="db-1", namespace="customer-acme"}
+        values: 1+0x20
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: CNPGClusterLogicalReplicationWorkerDown
+        exp_alerts: []
+      - eval_time: 10m
+        alertname: CNPGClusterLogicalReplicationSubscriptionDisabled
+        exp_alerts: []
+  - interval: 1m
+    name: writable primary reporting in_recovery still triggers worker-down
+    input_series:
+      - series: cnpg_pg_stat_subscription_enabled{job="customer-acme/db", pod="db-1", namespace="customer-acme", subname="sub1"}
+        values: 1+0x20
+      - series:
+          kube_customresource_primary_info{customresource_group="postgresql.cnpg.io", customresource_kind="Cluster", cluster="db",
+          namespace="customer-acme", current_primary="db-1"}
+        values: 1+0x20
+      - series: cnpg_pg_replication_in_recovery{job="customer-acme/db", pod="db-1", namespace="customer-acme"}
+        values: 0+0x20
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: CNPGClusterLogicalReplicationWorkerDown
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+              namespace: customer-acme
+              cnpg_cluster: db
+              alert_type: logical-replication
+              subname: sub1
+              cluster: db
+              pod: db-1
+            exp_annotations:
+              summary: ParadeDB logical replication subscription has no apply worker
+              runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterLogicalReplicationStopped.md
+              description: |-
+                CloudNativePG Cluster "customer-acme/db" subscription "sub1" is enabled but has no apply worker running.
+
+                The subscription is meant to be replicating and is not. Data is diverging from the publisher for
+                as long as this persists, and the lag alerts cannot fire while the worker is absent.
+
+                Check the subscriber logs for repeated apply worker crashes, and the publisher for a dropped or
+                invalidated replication slot.
+  - interval: 1m
+    name: lag fires from the server-side receipt_lag_seconds
+    input_series:
+      - series: cnpg_pg_stat_subscription_receipt_lag_seconds{job="customer-acme/db", pod="db-1", namespace="customer-acme", subname="sub1"}
+        values: 400+0x20
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: CNPGClusterLogicalReplicationLaggingCritical
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+              namespace: customer-acme
+              cnpg_cluster: db
+              alert_type: logical-replication
+              subname: sub1
+              cluster: db
+              pod: db-1
+            exp_annotations:
+              summary: ParadeDB Logical replication lag critical
+              runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterLogicalReplicationLagging.md
+              description: |
+                CloudNativePG Cluster "customer-acme/db" has critical logical replication lag of 400s.
+
+                The subscription has not received messages for over 5 minutes, indicating a significant replication issue.
+                Immediate investigation required to prevent data drift and service impact.
+
+                Potential causes:
+                - Network connectivity failure between publisher and subscriber
+                - Publisher database is down or unreachable
+                - Subscription connection is broken
+                - Resource constraints preventing message processing
+  - interval: 1m
+    name: lag falls back to last_msg_receipt_time when receipt_lag_seconds is absent
+    input_series:
+      - series:
+          cnpg_pg_stat_subscription_last_msg_receipt_time{job="customer-acme/db", pod="db-1", namespace="customer-acme",
+          subname="sub1"}
+        values: 946684200+0x20
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: CNPGClusterLogicalReplicationLaggingCritical
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+              namespace: customer-acme
+              cnpg_cluster: db
+              alert_type: logical-replication
+              subname: sub1
+              cluster: db
+              pod: db-1
+            exp_annotations:
+              summary: ParadeDB Logical replication lag critical
+              runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterLogicalReplicationLagging.md
+              description: |
+                CloudNativePG Cluster "customer-acme/db" has critical logical replication lag of 1200s.
+
+                The subscription has not received messages for over 5 minutes, indicating a significant replication issue.
+                Immediate investigation required to prevent data drift and service impact.
+
+                Potential causes:
+                - Network connectivity failure between publisher and subscriber
+                - Publisher database is down or unreachable
+                - Subscription connection is broken
+                - Resource constraints preventing message processing
+  - interval: 1m
+    name: both lag metrics present yields exactly one alert
+    input_series:
+      - series: cnpg_pg_stat_subscription_receipt_lag_seconds{job="customer-acme/db", pod="db-1", namespace="customer-acme", subname="sub1"}
+        values: 400+0x20
+      - series:
+          cnpg_pg_stat_subscription_last_msg_receipt_time{job="customer-acme/db", pod="db-1", namespace="customer-acme",
+          subname="sub1"}
+        values: 946684200+0x20
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: CNPGClusterLogicalReplicationLaggingCritical
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+              namespace: customer-acme
+              cnpg_cluster: db
+              alert_type: logical-replication
+              subname: sub1
+              cluster: db
+              pod: db-1
+            exp_annotations:
+              summary: ParadeDB Logical replication lag critical
+              runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterLogicalReplicationLagging.md
+              description: |
+                CloudNativePG Cluster "customer-acme/db" has critical logical replication lag of 400s.
+
+                The subscription has not received messages for over 5 minutes, indicating a significant replication issue.
+                Immediate investigation required to prevent data drift and service impact.
+
+                Potential causes:
+                - Network connectivity failure between publisher and subscriber
+                - Publisher database is down or unreachable
+                - Subscription connection is broken
+                - Resource constraints preventing message processing
+  - interval: 1m
+    name: apply errors are caught while lag looks healthy
+    input_series:
+      - series: cnpg_pg_stat_subscription_apply_error_count{job="customer-acme/db", pod="db-1", namespace="customer-acme", subname="sub1"}
+        values: 0 0 1 2 3 4 5 6 7 8 9 10 11 12
+      - series: cnpg_pg_stat_subscription_sync_error_count{job="customer-acme/db", pod="db-1", namespace="customer-acme", subname="sub1"}
+        values: 0+0x13
+      - series: cnpg_pg_stat_subscription_receipt_lag_seconds{job="customer-acme/db", pod="db-1", namespace="customer-acme", subname="sub1"}
+        values: 1+0x13
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: CNPGClusterLogicalReplicationErrors
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              namespace: customer-acme
+              cnpg_cluster: db
+              alert_type: logical-replication
+              subname: sub1
+              cluster: db
+            exp_annotations:
+              summary: ParadeDB logical replication errors detected
+              runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterLogicalReplicationErrors.md
+              description: |-
+                CloudNativePG Cluster "customer-acme/db" subscription "sub1" has recorded 5 errors in the last 5 minutes.
+
+                Counts both apply errors during normal replication and sync errors during initial table sync.
+                Errors here mean rows are failing to land on the subscriber, which diverges it from the publisher.
+      - eval_time: 10m
+        alertname: CNPGClusterLogicalReplicationErrorsCritical
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+              namespace: customer-acme
+              cnpg_cluster: db
+              alert_type: logical-replication
+              subname: sub1
+              cluster: db
+            exp_annotations:
+              summary: ParadeDB logical replication errors critical
+              runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterLogicalReplicationErrors.md
+              description: |-
+                CloudNativePG Cluster "customer-acme/db" subscription "sub1" has recorded 5 errors in the last 5 minutes.
+
+                At this rate the subscription is not making progress and is unlikely to recover without
+                intervention. The subscriber is diverging from the publisher for as long as it continues.
+
+                Check the subscriber logs for the failing statement, since a persistent apply error is normally a
+                conflict the worker retries forever.
+      - eval_time: 10m
+        alertname: CNPGClusterLogicalReplicationLagging
+        exp_alerts: []
+  - interval: 1m
+    name: lag between the two thresholds alerts warning only
+    input_series:
+      - series: cnpg_pg_stat_subscription_receipt_lag_seconds{job="customer-acme/db", pod="db-1", namespace="customer-acme", subname="sub1"}
+        values: 120+0x20
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: CNPGClusterLogicalReplicationLagging
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              namespace: customer-acme
+              cnpg_cluster: db
+              alert_type: logical-replication
+              subname: sub1
+              cluster: db
+              pod: db-1
+            exp_annotations:
+              summary: ParadeDB Logical replication lag warning
+              runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterLogicalReplicationLagging.md
+              description: |
+                CloudNativePG Cluster "customer-acme/db" has logical replication lag of 120s.
+
+                This indicates the subscription is receiving messages slower than expected, but may recover quickly.
+                Monitor for escalation to critical status.
+
+                Common causes:
+                - Network latency or temporary connectivity issues
+                - High load on publisher or subscriber
+                - Large transaction batches being processed
+      - eval_time: 10m
+        alertname: CNPGClusterLogicalReplicationLaggingCritical
+        exp_alerts: []
+  - interval: 1m
+    name: same subscription name in another database cannot hide a missing worker
+    input_series:
+      - series:
+          cnpg_pg_stat_subscription_enabled{job="customer-acme/db", pod="db-1", namespace="customer-acme", datname="broken",
+          subname="sub1"}
+        values: 1+0x20
+      - series:
+          kube_customresource_primary_info{customresource_group="postgresql.cnpg.io", customresource_kind="Cluster", cluster="db",
+          namespace="customer-acme", current_primary="db-1"}
+        values: 1+0x20
+      - series:
+          cnpg_pg_stat_subscription_enabled{job="customer-acme/db", pod="db-1", namespace="customer-acme", datname="healthy",
+          subname="sub1"}
+        values: 1+0x20
+      - series:
+          cnpg_pg_stat_subscription_pid{job="customer-acme/db", pod="db-1", namespace="customer-acme", datname="healthy",
+          subname="sub1"}
+        values: 4242+0x20
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: CNPGClusterLogicalReplicationWorkerDown
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+              namespace: customer-acme
+              cnpg_cluster: db
+              alert_type: logical-replication
+              subname: sub1
+              cluster: db
+              pod: db-1
+              datname: broken
+            exp_annotations:
+              summary: ParadeDB logical replication subscription has no apply worker
+              runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterLogicalReplicationStopped.md
+              description: |-
+                CloudNativePG Cluster "customer-acme/db" subscription "sub1" is enabled but has no apply worker running.
+
+                The subscription is meant to be replicating and is not. Data is diverging from the publisher for
+                as long as this persists, and the lag alerts cannot fire while the worker is absent.
+
+                Check the subscriber logs for repeated apply worker crashes, and the publisher for a dropped or
+                invalidated replication slot.
+      - eval_time: 10m
+        alertname: CNPGClusterLogicalReplicationLaggingCritical
+        exp_alerts: []
+      - eval_time: 10m
+        alertname: CNPGClusterLogicalReplicationSubscriptionDisabled
+        exp_alerts: []
+  - interval: 1m
+    name: same-name enabled subscription does not hide a disabled database
+    input_series:
+      - series:
+          cnpg_pg_stat_subscription_enabled{job="customer-acme/db", pod="db-1", namespace="customer-acme", datname="broken",
+          subname="sub1"}
+        values: 0+0x20
+      - series:
+          kube_customresource_primary_info{customresource_group="postgresql.cnpg.io", customresource_kind="Cluster", cluster="db",
+          namespace="customer-acme", current_primary="db-1"}
+        values: 1+0x20
+      - series:
+          cnpg_pg_stat_subscription_enabled{job="customer-acme/db", pod="db-1", namespace="customer-acme", datname="healthy",
+          subname="sub1"}
+        values: 1+0x20
+      - series: 'cnpg_pg_stat_subscription_pid{job="customer-acme/db", pod="db-1", namespace="customer-acme", datname="healthy", subname="sub1"}'
+        values: "4242+0x20"
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: CNPGClusterLogicalReplicationSubscriptionDisabled
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              namespace: customer-acme
+              cnpg_cluster: db
+              alert_type: logical-replication
+              subname: sub1
+              cluster: db
+              pod: db-1
+              datname: broken
+            exp_annotations:
+              summary: ParadeDB logical replication subscription is disabled
+              runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterLogicalReplicationStopped.md
+              description: |-
+                CloudNativePG Cluster "customer-acme/db" subscription "sub1" is disabled and is replicating nothing.
+
+                This may be intentional (e.g. a subscription disabled for maintenance, or an ALTER SUBSCRIPTION ... DISABLE)
+                that was never reverted. Either way the lag alerts cannot fire for this subscription while it is
+                disabled, so nothing else will catch it.
+      - eval_time: 10m
+        alertname: CNPGClusterLogicalReplicationLaggingCritical
+        exp_alerts: []
+      - eval_time: 10m
+        alertname: CNPGClusterLogicalReplicationLagging
+        exp_alerts: []
+      - eval_time: 10m
+        alertname: CNPGClusterLogicalReplicationWorkerDown
+        exp_alerts: []
+  - interval: 1m
+    name: receipt age fallback is selected per database
+    input_series:
+      - series:
+          cnpg_pg_stat_subscription_last_msg_receipt_time{job="customer-acme/db", pod="db-1", namespace="customer-acme",
+          datname="broken", subname="sub1"}
+        values: 946684200+0x20
+      - series:
+          cnpg_pg_stat_subscription_receipt_lag_seconds{job="customer-acme/db", pod="db-1", namespace="customer-acme", datname="healthy",
+          subname="sub1"}
+        values: 1+0x20
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: CNPGClusterLogicalReplicationLaggingCritical
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+              namespace: customer-acme
+              cnpg_cluster: db
+              alert_type: logical-replication
+              subname: sub1
+              cluster: db
+              pod: db-1
+              datname: broken
+            exp_annotations:
+              summary: ParadeDB Logical replication lag critical
+              runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterLogicalReplicationLagging.md
+              description: |
+                CloudNativePG Cluster "customer-acme/db" has critical logical replication lag of 1200s.
+
+                The subscription has not received messages for over 5 minutes, indicating a significant replication issue.
+                Immediate investigation required to prevent data drift and service impact.
+
+                Potential causes:
+                - Network connectivity failure between publisher and subscriber
+                - Publisher database is down or unreachable
+                - Subscription connection is broken
+                - Resource constraints preventing message processing
