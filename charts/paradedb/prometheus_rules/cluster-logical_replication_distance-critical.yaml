@@ -1,0 +1,25 @@
+{{- $alert := "CNPGClusterLogicalReplicationDistanceCritical" -}}
+{{- if not (has $alert .excludeRules) -}}
+alert: {{ $alert }}
+annotations:
+  summary: ParadeDB logical replication WAL-position distance is critical
+  description: |-
+    CloudNativePG Cluster "{{ .namespace }}/{{ .cluster }}" database "{{ .labels.datname }}" subscription "{{ .labels.subname }}" has a received-versus-reported WAL-position gap of {{ .value }} GiB.
+
+    This transport/reporting gap does not measure committed apply progress. Check receipt age, worker health, error counters, and subscriber logs before diagnosing a replication backlog.
+  runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterLogicalReplicationDistance.md
+expr: |
+  max by (namespace, job, pod, datname, subname) (
+    cnpg_pg_stat_subscription_received_lsn{namespace="{{ .namespace }}",pod=~"{{ .podSelector }}"}
+    - cnpg_pg_stat_subscription_latest_end_lsn{namespace="{{ .namespace }}",pod=~"{{ .podSelector }}"}
+  ) / 1024^3 > 4
+for: 2m
+labels:
+  severity: critical
+  namespace: {{ .namespace }}
+  cnpg_cluster: {{ .cluster }}
+  alert_type: logical-replication
+{{- range $key, $val := .additionalLabels }}
+  {{ $key }}: {{ $val | toString | quote }}
+{{- end }}
+{{- end -}}

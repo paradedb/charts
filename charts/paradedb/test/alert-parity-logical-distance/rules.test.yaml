@@ -1,0 +1,186 @@
+rule_files:
+  - rules.generated.yaml
+evaluation_interval: 1m
+tests:
+  - name: position gap=0 GiB
+    interval: 1m
+    input_series:
+      - series: cnpg_pg_stat_subscription_received_lsn{namespace="alert-test",job="alert-test/db",pod="parity-paradedb-1",datname="app",subname="orders"}
+        values: 10737418240+0x40
+      - series: cnpg_pg_stat_subscription_latest_end_lsn{namespace="alert-test",job="alert-test/db",pod="parity-paradedb-1",datname="app",subname="orders"}
+        values: 10737418240+0x40
+      - series: cnpg_pg_stat_subscription_received_lsn{namespace="alert-test",job="alert-test/db",pod="parity-paradedb-1",datname="healthy",subname="orders"}
+        values: 10737418240+0x40
+      - series: cnpg_pg_stat_subscription_latest_end_lsn{namespace="alert-test",job="alert-test/db",pod="parity-paradedb-1",datname="healthy",subname="orders"}
+        values: 10737418240+0x40
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: CNPGClusterLogicalReplicationDistanceHigh
+        exp_alerts: []
+      - eval_time: 10m
+        alertname: CNPGClusterLogicalReplicationDistanceCritical
+        exp_alerts: []
+  - name: position gap=1 GiB
+    interval: 1m
+    input_series:
+      - series: cnpg_pg_stat_subscription_received_lsn{namespace="alert-test",job="alert-test/db",pod="parity-paradedb-1",datname="app",subname="orders"}
+        values: 11811160064+0x40
+      - series: cnpg_pg_stat_subscription_latest_end_lsn{namespace="alert-test",job="alert-test/db",pod="parity-paradedb-1",datname="app",subname="orders"}
+        values: 10737418240+0x40
+      - series: cnpg_pg_stat_subscription_received_lsn{namespace="alert-test",job="alert-test/db",pod="parity-paradedb-1",datname="healthy",subname="orders"}
+        values: 10737418240+0x40
+      - series: cnpg_pg_stat_subscription_latest_end_lsn{namespace="alert-test",job="alert-test/db",pod="parity-paradedb-1",datname="healthy",subname="orders"}
+        values: 10737418240+0x40
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: CNPGClusterLogicalReplicationDistanceHigh
+        exp_alerts: []
+      - eval_time: 10m
+        alertname: CNPGClusterLogicalReplicationDistanceCritical
+        exp_alerts: []
+  - name: position gap=2 GiB
+    interval: 1m
+    input_series:
+      - series: cnpg_pg_stat_subscription_received_lsn{namespace="alert-test",job="alert-test/db",pod="parity-paradedb-1",datname="app",subname="orders"}
+        values: 12884901888+0x40
+      - series: cnpg_pg_stat_subscription_latest_end_lsn{namespace="alert-test",job="alert-test/db",pod="parity-paradedb-1",datname="app",subname="orders"}
+        values: 10737418240+0x40
+      - series: cnpg_pg_stat_subscription_received_lsn{namespace="alert-test",job="alert-test/db",pod="parity-paradedb-1",datname="healthy",subname="orders"}
+        values: 10737418240+0x40
+      - series: cnpg_pg_stat_subscription_latest_end_lsn{namespace="alert-test",job="alert-test/db",pod="parity-paradedb-1",datname="healthy",subname="orders"}
+        values: 10737418240+0x40
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: CNPGClusterLogicalReplicationDistanceHigh
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              namespace: alert-test
+              cnpg_cluster: parity-paradedb
+              alert_type: logical-replication
+              job: alert-test/db
+              pod: parity-paradedb-1
+              datname: app
+              subname: orders
+            exp_annotations:
+              summary: ParadeDB logical replication WAL-position distance is warning
+              description: |-
+                CloudNativePG Cluster "alert-test/parity-paradedb" database "app" subscription "orders" has a received-versus-reported WAL-position gap of 2 GiB.
+
+                This transport/reporting gap does not measure committed apply progress. Check receipt age, worker health, error counters, and subscriber logs before diagnosing a replication backlog.
+              runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterLogicalReplicationDistance.md
+      - eval_time: 10m
+        alertname: CNPGClusterLogicalReplicationDistanceCritical
+        exp_alerts: []
+  - name: position gap=4 GiB
+    interval: 1m
+    input_series:
+      - series: cnpg_pg_stat_subscription_received_lsn{namespace="alert-test",job="alert-test/db",pod="parity-paradedb-1",datname="app",subname="orders"}
+        values: 15032385536+0x40
+      - series: cnpg_pg_stat_subscription_latest_end_lsn{namespace="alert-test",job="alert-test/db",pod="parity-paradedb-1",datname="app",subname="orders"}
+        values: 10737418240+0x40
+      - series: cnpg_pg_stat_subscription_received_lsn{namespace="alert-test",job="alert-test/db",pod="parity-paradedb-1",datname="healthy",subname="orders"}
+        values: 10737418240+0x40
+      - series: cnpg_pg_stat_subscription_latest_end_lsn{namespace="alert-test",job="alert-test/db",pod="parity-paradedb-1",datname="healthy",subname="orders"}
+        values: 10737418240+0x40
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: CNPGClusterLogicalReplicationDistanceHigh
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              namespace: alert-test
+              cnpg_cluster: parity-paradedb
+              alert_type: logical-replication
+              job: alert-test/db
+              pod: parity-paradedb-1
+              datname: app
+              subname: orders
+            exp_annotations:
+              summary: ParadeDB logical replication WAL-position distance is warning
+              description: |-
+                CloudNativePG Cluster "alert-test/parity-paradedb" database "app" subscription "orders" has a received-versus-reported WAL-position gap of 4 GiB.
+
+                This transport/reporting gap does not measure committed apply progress. Check receipt age, worker health, error counters, and subscriber logs before diagnosing a replication backlog.
+              runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterLogicalReplicationDistance.md
+      - eval_time: 10m
+        alertname: CNPGClusterLogicalReplicationDistanceCritical
+        exp_alerts: []
+  - name: position gap=5 GiB
+    interval: 1m
+    input_series:
+      - series: cnpg_pg_stat_subscription_received_lsn{namespace="alert-test",job="alert-test/db",pod="parity-paradedb-1",datname="app",subname="orders"}
+        values: 16106127360+0x40
+      - series: cnpg_pg_stat_subscription_latest_end_lsn{namespace="alert-test",job="alert-test/db",pod="parity-paradedb-1",datname="app",subname="orders"}
+        values: 10737418240+0x40
+      - series: cnpg_pg_stat_subscription_received_lsn{namespace="alert-test",job="alert-test/db",pod="parity-paradedb-1",datname="healthy",subname="orders"}
+        values: 10737418240+0x40
+      - series: cnpg_pg_stat_subscription_latest_end_lsn{namespace="alert-test",job="alert-test/db",pod="parity-paradedb-1",datname="healthy",subname="orders"}
+        values: 10737418240+0x40
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: CNPGClusterLogicalReplicationDistanceHigh
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              namespace: alert-test
+              cnpg_cluster: parity-paradedb
+              alert_type: logical-replication
+              job: alert-test/db
+              pod: parity-paradedb-1
+              datname: app
+              subname: orders
+            exp_annotations:
+              summary: ParadeDB logical replication WAL-position distance is warning
+              description: |-
+                CloudNativePG Cluster "alert-test/parity-paradedb" database "app" subscription "orders" has a received-versus-reported WAL-position gap of 5 GiB.
+
+                This transport/reporting gap does not measure committed apply progress. Check receipt age, worker health, error counters, and subscriber logs before diagnosing a replication backlog.
+              runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterLogicalReplicationDistance.md
+      - eval_time: 10m
+        alertname: CNPGClusterLogicalReplicationDistanceCritical
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+              namespace: alert-test
+              cnpg_cluster: parity-paradedb
+              alert_type: logical-replication
+              job: alert-test/db
+              pod: parity-paradedb-1
+              datname: app
+              subname: orders
+            exp_annotations:
+              summary: ParadeDB logical replication WAL-position distance is critical
+              description: |-
+                CloudNativePG Cluster "alert-test/parity-paradedb" database "app" subscription "orders" has a received-versus-reported WAL-position gap of 5 GiB.
+
+                This transport/reporting gap does not measure committed apply progress. Check receipt age, worker health, error counters, and subscriber logs before diagnosing a replication backlog.
+              runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterLogicalReplicationDistance.md
+  - name: position gap=-1 GiB
+    interval: 1m
+    input_series:
+      - series: cnpg_pg_stat_subscription_received_lsn{namespace="alert-test",job="alert-test/db",pod="parity-paradedb-1",datname="app",subname="orders"}
+        values: 9663676416+0x40
+      - series: cnpg_pg_stat_subscription_latest_end_lsn{namespace="alert-test",job="alert-test/db",pod="parity-paradedb-1",datname="app",subname="orders"}
+        values: 10737418240+0x40
+      - series: cnpg_pg_stat_subscription_received_lsn{namespace="alert-test",job="alert-test/db",pod="parity-paradedb-1",datname="healthy",subname="orders"}
+        values: 10737418240+0x40
+      - series: cnpg_pg_stat_subscription_latest_end_lsn{namespace="alert-test",job="alert-test/db",pod="parity-paradedb-1",datname="healthy",subname="orders"}
+        values: 10737418240+0x40
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: CNPGClusterLogicalReplicationDistanceHigh
+        exp_alerts: []
+      - eval_time: 10m
+        alertname: CNPGClusterLogicalReplicationDistanceCritical
+        exp_alerts: []
+  - name: no worker metrics
+    interval: 1m
+    input_series: []
+    alert_rule_test:
+      - eval_time: 20m
+        alertname: CNPGClusterLogicalReplicationDistanceHigh
+        exp_alerts: []
+      - eval_time: 20m
+        alertname: CNPGClusterLogicalReplicationDistanceCritical
+        exp_alerts: []
