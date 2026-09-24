@@ -1,0 +1,27 @@
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  name: alert-parity-missing-metrics
+spec:
+  timeouts:
+    exec: 5m
+  steps:
+    - name: Evaluate rendered alert rules
+      try:
+        - script:
+            content: |
+              set -eu
+              test_dir="$(mktemp -d)"
+              trap 'rm -rf "$test_dir"' EXIT
+              helm template parity ../../ --namespace alert-test \
+                --set cluster.monitoring.enabled=true \
+                --set cluster.monitoring.prometheusRule.enabled=true \
+                --show-only templates/prometheus-rule.yaml \
+                | sed -n '/^spec:/,$p' | tail -n +2 > "$test_dir/rules.generated.yaml"
+              cp rules.test.yaml "$test_dir/"
+              if [ -z "${VMALERT_TOOL:-}" ]; then
+                curl -fsSL https://github.com/VictoriaMetrics/VictoriaMetrics/releases/download/v1.148.0/vmutils-linux-amd64-v1.148.0.tar.gz \
+                  | tar xz -C "$test_dir" vmalert-tool-prod
+                VMALERT_TOOL="$test_dir/vmalert-tool-prod"
+              fi
+              (cd "$test_dir" && "$VMALERT_TOOL" unittest --disableAlertgroupLabel --files=rules.test.yaml)

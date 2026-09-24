@@ -1,0 +1,100 @@
+rule_files:
+  - rules.generated.yaml
+evaluation_interval: 1m
+tests:
+  - name: collector disappeared, Ready=0
+    interval: 1m
+    input_series:
+      - series: cnpg_collector_up{namespace="alert-test",pod="parity-paradedb-1"}
+        values: 1+0x4 stale _x35
+      - series: up{namespace="alert-test",pod="parity-paradedb-1"}
+        values: 1+0x40
+      - series: kube_pod_status_ready{namespace="alert-test",pod="parity-paradedb-1",condition="true"}
+        values: 0+0x40
+    alert_rule_test:
+      - eval_time: 20m
+        alertname: CNPGInstanceMetricsAbsent
+        exp_alerts: []
+  - name: collector disappeared, Ready=1
+    interval: 1m
+    input_series:
+      - series: cnpg_collector_up{namespace="alert-test",pod="parity-paradedb-1"}
+        values: 1+0x4 stale _x35
+      - series: up{namespace="alert-test",pod="parity-paradedb-1"}
+        values: 1+0x40
+      - series: kube_pod_status_ready{namespace="alert-test",pod="parity-paradedb-1",condition="true"}
+        values: 1+0x40
+    alert_rule_test:
+      - eval_time: 20m
+        alertname: CNPGInstanceMetricsAbsent
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+              namespace: alert-test
+              cnpg_cluster: parity-paradedb
+              pod: parity-paradedb-1
+            exp_annotations:
+              summary: ParadeDB CNPG instance metrics are missing
+              description: |-
+                ParadeDB CNPG instance "alert-test/parity-paradedb-1" is Ready but has had an unreachable metrics endpoint or missing collector metrics for 10 minutes. The missing-series check uses collector samples from the last hour.
+
+                The lag, HA and replication alerts all read from this exporter and will not fire while it is down. A hung exporter has previously coincided with a frozen standby, so physical replication may be stuck and unmonitored. Check the instance directly.
+              runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGInstanceMetricsAbsent.md
+  - name: collector disappeared, Ready=None
+    interval: 1m
+    input_series:
+      - series: cnpg_collector_up{namespace="alert-test",pod="parity-paradedb-1"}
+        values: 1+0x4 stale _x35
+      - series: up{namespace="alert-test",pod="parity-paradedb-1"}
+        values: 1+0x40
+    alert_rule_test:
+      - eval_time: 20m
+        alertname: CNPGInstanceMetricsAbsent
+        exp_alerts: []
+  - name: ready pod with failed endpoint scrape
+    interval: 1m
+    input_series:
+      - series: up{namespace="alert-test",pod="parity-paradedb-1"}
+        values: 0+0x40
+      - series: kube_pod_status_ready{namespace="alert-test",pod="parity-paradedb-1",condition="true"}
+        values: 1+0x40
+    alert_rule_test:
+      - eval_time: 20m
+        alertname: CNPGInstanceMetricsAbsent
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+              namespace: alert-test
+              cnpg_cluster: parity-paradedb
+              pod: parity-paradedb-1
+            exp_annotations:
+              summary: ParadeDB CNPG instance metrics are missing
+              description: |-
+                ParadeDB CNPG instance "alert-test/parity-paradedb-1" is Ready but has had an unreachable metrics endpoint or missing collector metrics for 10 minutes. The missing-series check uses collector samples from the last hour.
+
+                The lag, HA and replication alerts all read from this exporter and will not fire while it is down. A hung exporter has previously coincided with a frozen standby, so physical replication may be stuck and unmonitored. Check the instance directly.
+              runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGInstanceMetricsAbsent.md
+  - name: new pod with no previous collector sample
+    interval: 1m
+    input_series:
+      - series: up{namespace="alert-test",pod="parity-paradedb-1"}
+        values: 1+0x40
+      - series: kube_pod_status_ready{namespace="alert-test",pod="parity-paradedb-1",condition="true"}
+        values: 1+0x40
+    alert_rule_test:
+      - eval_time: 20m
+        alertname: CNPGInstanceMetricsAbsent
+        exp_alerts: []
+  - name: collector metrics resume
+    interval: 1m
+    input_series:
+      - series: cnpg_collector_up{namespace="alert-test",pod="parity-paradedb-1"}
+        values: 1+0x4 stale _x5 1+0x30
+      - series: up{namespace="alert-test",pod="parity-paradedb-1"}
+        values: 1+0x40
+      - series: kube_pod_status_ready{namespace="alert-test",pod="parity-paradedb-1",condition="true"}
+        values: 1+0x40
+    alert_rule_test:
+      - eval_time: 20m
+        alertname: CNPGInstanceMetricsAbsent
+        exp_alerts: []
