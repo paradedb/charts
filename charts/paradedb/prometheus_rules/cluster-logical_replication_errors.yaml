@@ -1,12 +1,20 @@
 {{- $alert := "CNPGClusterLogicalReplicationErrors" -}}
 {{- if not (has $alert .excludeRules) -}}
+{{- $errorSelector := printf "{namespace=%%q,job=%%q,subname=%%q,pod=~%q}" .podSelector -}}
+{{- $applyQuery := printf "max(increase(cnpg_pg_stat_subscription_apply_error_count%s[5m]))" $errorSelector -}}
+{{- $syncQuery := printf "max(increase(cnpg_pg_stat_subscription_sync_error_count%s[5m]))" $errorSelector -}}
 alert: {{ $alert }}
 annotations:
   summary: CNPG Cluster logical replication errors detected
   description: |-
-    CloudNativePG Cluster's "{{ .namespace }}/{{ .cluster }}" "{{ .labels.subname }}" subscription has experienced {{ .value }} errors.
+    CloudNativePG Cluster's "{{ .namespace }}/{{ .cluster }}" "{{ .labels.subname }}" subscription has experienced {{ .value }} errors in the last 5 minutes.
 
     This includes both apply errors (during normal replication) and sync errors (during initial table sync). Errors indicate data consistency issues that need immediate attention to prevent data divergence.
+  apply_errors: >-
+    {{ printf "{{ with query (printf %q $labels.namespace $labels.job $labels.subname) }}{{ . | first | value | printf \"%%.2f\" }}{{ else }}unavailable{{ end }}" $applyQuery }}
+  sync_errors: >-
+    {{ printf "{{ with query (printf %q $labels.namespace $labels.job $labels.subname) }}{{ . | first | value | printf \"%%.2f\" }}{{ else }}unavailable{{ end }}" $syncQuery }}
+  logs_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterLogicalReplicationErrors.md#diagnosis
   runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterLogicalReplicationErrors.md
 expr: |
   label_replace(max by (namespace, job, subname) (increase(cnpg_pg_stat_subscription_apply_error_count{namespace="{{ .namespace }}",pod=~"{{ .podSelector }}"}[5m]) + increase(cnpg_pg_stat_subscription_sync_error_count{namespace="{{ .namespace }}",pod=~"{{ .podSelector }}"}[5m])), "cluster", "$1", "job", ".+/(.+)") > 0

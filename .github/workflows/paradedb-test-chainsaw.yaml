@@ -83,6 +83,13 @@ jobs:
           helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
           helm install prometheus-crds prometheus-community/prometheus-operator-crds
 
+      - name: Install alert rule test tool
+        if: matrix.test == 'prometheus-rule-rendering'
+        run: |
+          curl -fsSL https://github.com/VictoriaMetrics/VictoriaMetrics/releases/download/v1.148.0/vmutils-linux-amd64-v1.148.0.tar.gz \
+            | tar xz vmalert-tool-prod
+          sudo install vmalert-tool-prod /usr/local/bin/vmalert-tool
+
       - name: Install Chainsaw
         uses: kyverno/action-install-chainsaw@1223ef75bedeb59c4e7b5455463d4316e76dff01 # v0.2.15
         with:
