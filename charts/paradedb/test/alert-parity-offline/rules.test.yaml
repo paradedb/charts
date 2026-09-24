@@ -1,0 +1,63 @@
+rule_files:
+  - rules.generated.yaml
+evaluation_interval: 1m
+tests:
+  - name: ready=0, collector=1
+    interval: 1m
+    input_series:
+      - series: kube_customresource_instances_ready{namespace="alert-test",customresource_group="postgresql.cnpg.io",customresource_kind="Cluster",cluster="parity-paradedb"}
+        values: 0+0x40
+      - series: cnpg_collector_up{namespace="alert-test",pod="parity-paradedb-1"}
+        values: 1+0x40
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: CNPGClusterOffline
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+              namespace: alert-test
+              cnpg_cluster: parity-paradedb
+              cluster: parity-paradedb
+            exp_annotations:
+              summary: ParadeDB CNPG Cluster has no running instances!
+              description: |-
+                ParadeDB CloudNativePG Cluster "alert-test/parity-paradedb" has no ready instances.
+
+                Having an offline cluster means your applications will not be able to access the database, leading to potential service disruption and/or data loss.
+              runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterOffline.md
+  - name: ready=1, collector=None
+    interval: 1m
+    input_series:
+      - series: kube_customresource_instances_ready{namespace="alert-test",customresource_group="postgresql.cnpg.io",customresource_kind="Cluster",cluster="parity-paradedb"}
+        values: 1+0x40
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: CNPGClusterOffline
+        exp_alerts: []
+  - name: ready=1, collector=0
+    interval: 1m
+    input_series:
+      - series: kube_customresource_instances_ready{namespace="alert-test",customresource_group="postgresql.cnpg.io",customresource_kind="Cluster",cluster="parity-paradedb"}
+        values: 1+0x40
+      - series: cnpg_collector_up{namespace="alert-test",pod="parity-paradedb-1"}
+        values: 0+0x40
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: CNPGClusterOffline
+        exp_alerts: []
+  - name: missing readiness does not claim an outage
+    interval: 1m
+    input_series: []
+    alert_rule_test:
+      - eval_time: 20m
+        alertname: CNPGClusterOffline
+        exp_alerts: []
+  - name: other cluster is offline
+    interval: 1m
+    input_series:
+      - series: kube_customresource_instances_ready{namespace="alert-test",customresource_group="postgresql.cnpg.io",customresource_kind="Cluster",cluster="other"}
+        values: 0+0x40
+    alert_rule_test:
+      - eval_time: 20m
+        alertname: CNPGClusterOffline
+        exp_alerts: []
