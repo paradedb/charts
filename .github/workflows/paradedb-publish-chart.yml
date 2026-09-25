@@ -43,18 +43,22 @@ jobs:
         working-directory: charts/paradedb/
         env:
           GH_TOKEN: ${{ github.token }}
+          INPUTS_APPVERSION: ${{ github.event.inputs.appVersion }}
+          VARS_CHART_VERSION_MAJOR: ${{ vars.CHART_VERSION_MAJOR }}
+          VARS_CHART_VERSION_MINOR: ${{ vars.CHART_VERSION_MINOR }}
+          VARS_CHART_VERSION_PATCH: ${{ vars.CHART_VERSION_PATCH }}
         run: |
           # If no appVersion is provided, use the ParadeDB release marked Latest on GitHub
-          if [ -z "${{ github.event.inputs.appVersion }}" ]; then
+          if [ -z "${INPUTS_APPVERSION}" ]; then
             LATEST_TAG=$(gh api repos/paradedb/paradedb/releases/latest --jq '.tag_name')
             APP_VERSION=${LATEST_TAG#v}
           else
-            APP_VERSION=${{ github.event.inputs.appVersion }}
+            APP_VERSION="${INPUTS_APPVERSION}"
           fi
           # Update appVersion to the GitHub Release version and version to the Helm Chart version
           sed -i "s/^[[:space:]]*paradedb: .*/  paradedb: \"$APP_VERSION\"/" values.yaml
           sed -i "s/^appVersion: .*/appVersion: \"$APP_VERSION\"/" Chart.yaml
-          sed -i "s/^version: .*/version: ${{ vars.CHART_VERSION_MAJOR }}.${{ vars.CHART_VERSION_MINOR }}.${{ vars.CHART_VERSION_PATCH }}/" Chart.yaml
+          sed -i "s/^version: .*/version: ${VARS_CHART_VERSION_MAJOR}.${VARS_CHART_VERSION_MINOR}.${VARS_CHART_VERSION_PATCH}/" Chart.yaml
           echo "values.yaml:"
           cat values.yaml
           echo "----------------------------------------"
@@ -62,7 +66,7 @@ jobs:
           cat Chart.yaml
 
           # Set output to update post-release, increasing the Helm Chart version patch number by one to update in GitHub Actions Variables
-          echo "new_chart_version_patch=$(( ${{ vars.CHART_VERSION_PATCH }} + 1 ))" >> $GITHUB_OUTPUT
+          echo "new_chart_version_patch=$(( ${VARS_CHART_VERSION_PATCH} + 1 ))" >> $GITHUB_OUTPUT
 
       # The GitHub repository secret `PARADEDB_PGP_PRIVATE_KEY` contains the private key
       # in ASCII-armored format. To export a (new) key, run this command:
@@ -103,6 +107,7 @@ jobs:
       - name: Increment Helm Chart Version Number in GitHub Actions Variables
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          STEP_SET_VERSIONS_NEW_CHART_VERSION_PATCH: ${{ steps.set_versions.outputs.new_chart_version_patch }}
         run: |
           gh api \
             --method PATCH \
@@ -110,7 +115,7 @@ jobs:
             -H "X-GitHub-Api-Version: 2022-11-28" \
             /repos/paradedb/charts/actions/variables/CHART_VERSION_PATCH \
             -f name='CHART_VERSION_PATCH' \
-            -f value='${{ steps.set_versions.outputs.new_chart_version_patch }}'
+            -f value="${STEP_SET_VERSIONS_NEW_CHART_VERSION_PATCH}"
 
       - name: Securely Delete the PGP Key and Passphrase
         if: always()
