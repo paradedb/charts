@@ -4,9 +4,9 @@ alert: {{ $alert }}
 annotations:
   summary: ParadeDB logical replication WAL-position distance is warning
   description: |-
-    CloudNativePG Cluster "{{ .namespace }}/{{ .cluster }}" database "{{ .labels.datname }}" subscription "{{ .labels.subname }}" has a received-versus-reported WAL-position gap of {{ .value }} GiB.
+    ParadeDB CNPG Cluster "{{ .namespace }}/{{ .cluster }}" reports a WAL-position difference of {{ .value }} GiB as the logical replication subscriber for subscription "{{ .labels.subname }}" in database "{{ .labels.datname }}".
 
-    This transport/reporting gap does not measure committed apply progress. Check receipt age, worker health, error counters, and subscriber logs before diagnosing a replication backlog.
+    This does not measure unapplied data. Check replication errors, worker health, and subscriber logs.
   runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterLogicalReplicationDistance.md
 expr: |
   max by (namespace, job, pod, datname, subname) (

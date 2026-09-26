@@ -65,9 +65,9 @@ tests:
             exp_annotations:
               summary: ParadeDB logical replication WAL-position distance is warning
               description: |-
-                CloudNativePG Cluster "alert-test/parity-paradedb" database "app" subscription "orders" has a received-versus-reported WAL-position gap of 2 GiB.
+                ParadeDB CNPG Cluster "alert-test/parity-paradedb" reports a WAL-position difference of 2 GiB as the logical replication subscriber for subscription "orders" in database "app".
 
-                This transport/reporting gap does not measure committed apply progress. Check receipt age, worker health, error counters, and subscriber logs before diagnosing a replication backlog.
+                This does not measure unapplied data. Check replication errors, worker health, and subscriber logs.
               runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterLogicalReplicationDistance.md
       - eval_time: 10m
         alertname: CNPGClusterLogicalReplicationDistanceCritical
@@ -99,9 +99,9 @@ tests:
             exp_annotations:
               summary: ParadeDB logical replication WAL-position distance is warning
               description: |-
-                CloudNativePG Cluster "alert-test/parity-paradedb" database "app" subscription "orders" has a received-versus-reported WAL-position gap of 4 GiB.
+                ParadeDB CNPG Cluster "alert-test/parity-paradedb" reports a WAL-position difference of 4 GiB as the logical replication subscriber for subscription "orders" in database "app".
 
-                This transport/reporting gap does not measure committed apply progress. Check receipt age, worker health, error counters, and subscriber logs before diagnosing a replication backlog.
+                This does not measure unapplied data. Check replication errors, worker health, and subscriber logs.
               runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterLogicalReplicationDistance.md
       - eval_time: 10m
         alertname: CNPGClusterLogicalReplicationDistanceCritical
@@ -133,9 +133,9 @@ tests:
             exp_annotations:
               summary: ParadeDB logical replication WAL-position distance is warning
               description: |-
-                CloudNativePG Cluster "alert-test/parity-paradedb" database "app" subscription "orders" has a received-versus-reported WAL-position gap of 5 GiB.
+                ParadeDB CNPG Cluster "alert-test/parity-paradedb" reports a WAL-position difference of 5 GiB as the logical replication subscriber for subscription "orders" in database "app".
 
-                This transport/reporting gap does not measure committed apply progress. Check receipt age, worker health, error counters, and subscriber logs before diagnosing a replication backlog.
+                This does not measure unapplied data. Check replication errors, worker health, and subscriber logs.
               runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterLogicalReplicationDistance.md
       - eval_time: 10m
         alertname: CNPGClusterLogicalReplicationDistanceCritical
@@ -152,9 +152,9 @@ tests:
             exp_annotations:
               summary: ParadeDB logical replication WAL-position distance is critical
               description: |-
-                CloudNativePG Cluster "alert-test/parity-paradedb" database "app" subscription "orders" has a received-versus-reported WAL-position gap of 5 GiB.
+                ParadeDB CNPG Cluster "alert-test/parity-paradedb" reports a WAL-position difference of 5 GiB as the logical replication subscriber for subscription "orders" in database "app".
 
-                This transport/reporting gap does not measure committed apply progress. Check receipt age, worker health, error counters, and subscriber logs before diagnosing a replication backlog.
+                This does not measure unapplied data. Check replication errors, worker health, and subscriber logs.
               runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterLogicalReplicationDistance.md
   - name: position gap=-1 GiB
     interval: 1m
