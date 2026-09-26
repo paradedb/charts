@@ -2,7 +2,10 @@
 
 ## Description
 
-The `CNPGInstanceMetricsAbsent` alert is triggered when a CloudNativePG instance's metrics endpoint has been unreachable for 10 minutes while the pod itself is still running. The delay is long enough to ride out routine restarts, upgrades, drains and scale-downs, so when the alert fires the instance is up but its exporter is hung.
+The `CNPGInstanceMetricsAbsent` alert fires when a ready CloudNativePG pod has an
+unreachable metrics endpoint or has lost previously reported collector metrics
+for 10 minutes. This can indicate an exporter problem even when HTTP scrapes
+still succeed. Deleted and unready pods are excluded.
 
 ## Impact
 
@@ -18,7 +21,7 @@ These are all `expr > threshold` rules, so once the exporter goes silent there a
 
 The alert labels carry the `namespace`, `cluster` and `pod`.
 
-- Confirm the pod is up. `Running` and `Ready` means the instance itself is healthy and only its exporter has failed:
+- Confirm the pod is up. `Running` and `Ready` identify the pod to investigate; they do not prove the database or replication is healthy:
 
 ```bash
 kubectl get -n <namespace> pods -l "cnpg.io/podRole=instance" -o wide
@@ -31,7 +34,7 @@ kubectl describe -n <namespace> pod/<instance-pod-name>
 kubectl exec -n <namespace> -it pod/<instance-pod-name> -- curl -sS --max-time 5 http://localhost:9187/metrics | grep cnpg_collector_up
 ```
 
-A timeout or empty response confirms the collector is stuck.
+A timeout or missing `cnpg_collector_up` confirms a metrics problem; inspect the endpoint and logs to determine its cause.
 
 - Look for a blocked backend. The exporter runs SQL on the local instance, so a stuck collector query shows up in `pg_stat_activity`:
 
@@ -76,10 +79,19 @@ kubectl exec -n <namespace> -it pod/<instance-pod-name> -- psql -c "SELECT pg_te
 kubectl delete -n <namespace> pod/<replica-pod-name>
 ```
 
-The alert resolves once the endpoint responds again. Confirm metrics are flowing:
+The alert resolves once the scrape succeeds and collector metrics resume. Confirm metrics are flowing:
 
 ```bash
 kubectl exec -n <namespace> -it pod/<instance-pod-name> -- curl -sS --max-time 5 http://localhost:9187/metrics | grep -E "cnpg_collector_up|cnpg_pg_replication_lag"
 ```
 
 Afterwards, audit whether any replication or HA alert should have fired while the exporter was down. Escalate if the endpoint stays unresponsive after terminating stuck backends, if `pg_stat_replication` on the primary shows replay frozen for the affected standby, or if the collector hangs repeatedly or across several instances, which suggests a systemic instrumentation or engine bug.
+
+## Alert coverage
+
+The alert checks ready pods for either a failed scrape (`up == 0`) or collector
+metrics that disappeared despite being present within the last hour. The second
+check also catches a successful HTTP scrape that no longer exposes CNPG metrics.
+Deleted and unready pods are excluded using kube-state-metrics pod readiness.
+The historical comparison needs a prior sample; absent-series detection expires
+after that one-hour history window, while a failed scrape can continue to alert.

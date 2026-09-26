@@ -2,14 +2,24 @@
 {{- if not (has $alert .excludeRules) -}}
 alert: {{ $alert }}
 annotations:
-  summary: ParadeDB CNPG metrics exporter hung
+  summary: ParadeDB CNPG instance metrics are missing
   description: |-
-    ParadeDB CNPG instance "{{ .namespace }}/{{ .labels.pod }}" has had an unreachable metrics endpoint for 10 minutes, so its metrics exporter is hung.
+    ParadeDB CNPG instance "{{ .namespace }}/{{ .labels.pod }}" is Ready but has had an unreachable metrics endpoint or missing collector metrics for 10 minutes. The missing-series check uses collector samples from the last hour.
 
     The lag, HA and replication alerts all read from this exporter and will not fire while it is down. A hung exporter has previously coincided with a frozen standby, so physical replication may be stuck and unmonitored. Check the instance directly.
   runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGInstanceMetricsAbsent.md
 expr: |
-  up{namespace="{{ .namespace }}",pod=~"{{ .podSelector }}"} == 0
+  (
+    (
+      count by (namespace, pod) (count_over_time(cnpg_collector_up{namespace="{{ .namespace }}",pod=~"{{ .podSelector }}"}[1h]))
+      unless
+      count by (namespace, pod) (cnpg_collector_up{namespace="{{ .namespace }}",pod=~"{{ .podSelector }}"})
+    )
+    or
+    max by (namespace, pod) (up{namespace="{{ .namespace }}",pod=~"{{ .podSelector }}"} == 0)
+  )
+  and on (namespace, pod)
+    (kube_pod_status_ready{namespace="{{ .namespace }}",pod=~"{{ .podSelector }}",condition="true"} == 1)
 for: 10m
 labels:
   severity: critical
