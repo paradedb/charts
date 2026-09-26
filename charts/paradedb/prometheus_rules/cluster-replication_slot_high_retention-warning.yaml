@@ -16,7 +16,10 @@ expr: |
     (
       cnpg_pg_replication_slots_pg_wal_lsn_diff{namespace="{{ .namespace }}",pod=~"{{ .podSelector }}"}
       and on (namespace, pod)
-        (cnpg_pg_replication_in_recovery{namespace="{{ .namespace }}",pod=~"{{ .podSelector }}"} == 0)
+        label_replace(
+        kube_customresource_primary_info{customresource_group="postgresql.cnpg.io",customresource_kind="Cluster",namespace="{{ .namespace }}",cluster="{{ .cluster }}"} == 1,
+        "pod", "$1", "current_primary", "(.+)"
+      )
     )
     / on (namespace, pod) group_left(persistentvolumeclaim)
     (
