@@ -62,6 +62,15 @@ spec:
             POD_URL="https://$(kubectl -n $NAMESPACE get pods -l cnpg.io/podRole=instance -o jsonpath="{.items[0].status.podIP}"):9187/metrics"
             echo "POD_URL: $POD_URL"
 
+            # The subscription belongs only to subscriber, even though the exporter
+            # also queries publisher and the default database on the same instance.
+            scrape > /tmp/subscription-metrics.txt
+            grep '^cnpg_pg_stat_subscription_enabled{' /tmp/subscription-metrics.txt | grep 'datname="subscriber"' | grep 'subname="test_sub"'
+            if grep '^cnpg_pg_stat_subscription_.*{' /tmp/subscription-metrics.txt | grep 'subname="test_sub"' | grep -v 'datname="subscriber"'; then
+              echo "subscription exported under a database that does not own it"
+              exit 1
+            fi
+
             echo "pg_stat_subscription_received_lsn"
             scrape | grep pg_stat_subscription_received_lsn
             echo "pg_stat_subscription_last_msg_send_time"

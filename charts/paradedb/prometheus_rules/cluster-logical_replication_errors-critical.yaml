@@ -2,19 +2,31 @@
 {{- if not (has $alert .excludeRules) -}}
 alert: {{ $alert }}
 annotations:
-  summary: CNPG Cluster critical logical replication errors
+  summary: ParadeDB logical replication errors critical
   description: |-
-    CloudNativePG Cluster's "{{ .namespace }}/{{ .cluster }}" "{{ .labels.subname }}" subscription has experienced {{ .value }} errors in the last 5 minutes.
+    CloudNativePG Cluster "{{ .namespace }}/{{ .cluster }}" subscription "{{ .labels.subname }}" has recorded {{ .value }} errors in the last 5 minutes.
 
-    CRITICAL: High error rate indicates persistent replication issues requiring immediate attention. This could lead to significant data inconsistency or complete replication failure. Errors include both apply errors and sync errors. The subscription may stop working if errors continue.
+    At this rate the subscription is not making progress and is unlikely to recover without
+    intervention. The subscriber is diverging from the publisher for as long as it continues.
+
+    Check the subscriber logs for the failing statement, since a persistent apply error is normally a
+    conflict the worker retries forever.
   runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterLogicalReplicationErrors.md
 expr: |
-  label_replace(max by (namespace, job, subname) (increase(cnpg_pg_stat_subscription_apply_error_count{namespace="{{ .namespace }}",pod=~"{{ .podSelector }}"}[5m]) + increase(cnpg_pg_stat_subscription_sync_error_count{namespace="{{ .namespace }}",pod=~"{{ .podSelector }}"}[5m])), "cluster", "$1", "job", ".+/(.+)") >= 5
+  max by (namespace, cluster, datname, subname) (
+    label_replace(
+      increase(cnpg_pg_stat_subscription_apply_error_count{namespace="{{ .namespace }}",pod=~"{{ .podSelector }}"}[5m])
+      + increase(cnpg_pg_stat_subscription_sync_error_count{namespace="{{ .namespace }}",pod=~"{{ .podSelector }}"}[5m]),
+      "cluster", "$1", "job", ".+/(.+)"
+    )
+  ) >= 5
 for: 0m
 labels:
   severity: critical
   namespace: {{ .namespace }}
   cnpg_cluster: {{ .cluster }}
+  alert_type: logical-replication
+  subname: "{{ .labels.subname }}"
 {{- range $key, $val := .additionalLabels }}
   {{ $key }}: {{ $val | toString | quote }}
 {{- end }}
