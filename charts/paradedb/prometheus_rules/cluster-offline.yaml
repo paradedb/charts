@@ -9,7 +9,9 @@ annotations:
     Having an offline cluster means your applications will not be able to access the database, leading to potential service disruption and/or data loss.
   runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterOffline.md
 expr: |
-  (count(cnpg_collector_up{namespace="{{ .namespace }}",pod=~"{{ .podSelector }}"}) OR on() vector(0)) == 0
+  max by (namespace, cluster) (
+    kube_customresource_instances_ready{customresource_group="postgresql.cnpg.io",customresource_kind="Cluster",namespace="{{ .namespace }}",cluster="{{ .cluster }}"}
+  ) == 0
 for: 5m
 labels:
   severity: critical
