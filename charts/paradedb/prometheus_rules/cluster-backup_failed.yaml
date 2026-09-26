@@ -1,0 +1,21 @@
+{{- $alert := "CNPGBackupFailed" -}}
+{{- if not (has $alert .excludeRules) -}}
+alert: {{ $alert }}
+annotations:
+  summary: ParadeDB CNPG Cluster's most recent backup failed
+  description: |-
+    CloudNativePG Cluster "{{ .namespace }}/{{ .cluster }}" has a failed backup newer than its last successful backup, or has never completed a successful backup. Check the Backup objects and object-store credentials.
+  runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGBackupFailed.md
+expr: |
+  (max(kube_customresource_last_failed_backup{customresource_group="postgresql.cnpg.io",customresource_kind="Cluster",namespace="{{ .namespace }}",cluster="{{ .cluster }}"}) unless max(kube_customresource_last_successful_backup{customresource_group="postgresql.cnpg.io",customresource_kind="Cluster",namespace="{{ .namespace }}",cluster="{{ .cluster }}"}))
+  or
+  (max(kube_customresource_last_failed_backup{customresource_group="postgresql.cnpg.io",customresource_kind="Cluster",namespace="{{ .namespace }}",cluster="{{ .cluster }}"}) > max(kube_customresource_last_successful_backup{customresource_group="postgresql.cnpg.io",customresource_kind="Cluster",namespace="{{ .namespace }}",cluster="{{ .cluster }}"}))
+for: 15m
+labels:
+  severity: warning
+  namespace: {{ .namespace }}
+  cnpg_cluster: {{ .cluster }}
+{{- range $key, $val := .additionalLabels }}
+  {{ $key }}: {{ $val | toString | quote }}
+{{- end }}
+{{- end -}}

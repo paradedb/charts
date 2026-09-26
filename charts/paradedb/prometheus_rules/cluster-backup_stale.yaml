@@ -11,7 +11,7 @@ annotations:
     This fires on the outcome regardless of cause, so it covers backups that are failing, a schedule that has stopped being reconciled, and backups that were switched off and forgotten.
   runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGBackupStale.md
 expr: |
-  time() - max(cnpg_collector_last_available_backup_timestamp{namespace="{{ .namespace }}",pod=~"{{ .podSelector }}"}) > 26 * 3600
+  time() - max(kube_customresource_last_successful_backup{customresource_group="postgresql.cnpg.io",customresource_kind="Cluster",namespace="{{ .namespace }}",cluster="{{ .cluster }}"}) > 26 * 3600
 for: 15m
 labels:
   severity: critical
