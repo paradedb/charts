@@ -80,7 +80,7 @@ version:
   # -- PostgreSQL major version to use
   postgresql: "18"
   # -- ParadeDB version to use
-  paradedb: "0.25.6"
+  paradedb: "0.26.0"
 
 cluster:
   instances: 1
