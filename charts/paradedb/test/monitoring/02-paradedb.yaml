@@ -20,7 +20,7 @@ spec:
           - |
             apk --no-cache add postgresql-client
             set -e
-            psql $DB_URI -c "CALL paradedb.create_bm25_test_table(schema_name => 'public', table_name => 'mock_items');"
+            psql $DB_URI -c "CALL paradedb.create_paradedb_test_table(schema_name => 'public', table_name => 'mock_items');"
             psql $DB_URI -c "CREATE INDEX search_idx ON mock_items USING paradedb (id, description, category, rating, in_stock, created_at, metadata, weight_range) WITH (key_field='id');"
 
             # Leave a real, unbuilt concurrent index behind. A writer transaction
