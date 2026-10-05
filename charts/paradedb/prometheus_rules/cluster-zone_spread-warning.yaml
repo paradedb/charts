@@ -39,6 +39,24 @@ expr: |
         kube_node_labels{label_topology_kubernetes_io_zone!=""}
       )
     )
+  )
+  and on()
+  count(
+    count by (label_topology_kubernetes_io_zone) (
+      (
+        max by (pod, node) (
+          kube_pod_info{namespace="{{ .namespace }}",pod=~"{{ .podSelector }}"}
+        )
+        and on (pod)
+        max by (pod) (
+          kube_pod_status_ready{namespace="{{ .namespace }}",pod=~"{{ .podSelector }}",condition="true"} == 1
+        )
+      )
+      * on (node) group_left(label_topology_kubernetes_io_zone)
+      max by (node, label_topology_kubernetes_io_zone) (
+        kube_node_labels{label_topology_kubernetes_io_zone!=""}
+      )
+    )
   ) < 3
 for: 5m
 labels:
