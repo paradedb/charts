@@ -7,6 +7,14 @@ is unreachable or a successful scrape has lost previously reported collector
 metrics for 10 minutes. This can indicate an exporter problem even when HTTP
 scrapes still succeed.
 
+The alert checks for either a failed scrape (`up == 0`) or a successful scrape
+(`up == 1`) whose collector metrics disappeared despite being present within the
+last hour. Both checks use scrape telemetry and do not require kube-state-metrics.
+The historical comparison needs a prior sample and expires after that one-hour
+window. A failed scrape can continue to alert while the target remains configured.
+Pod readiness is not checked, so investigate pod restarts and availability alongside
+the exporter. Removed targets do not remain eligible once their `up` series disappears.
+
 ## Impact
 
 The instance keeps serving queries, so the risk is in what the missing metrics hide. The lag, HA and replication alerts all read from this exporter:
@@ -86,13 +94,3 @@ kubectl exec -n <namespace> -it pod/<instance-pod-name> -- curl -sS --max-time 5
 ```
 
 Afterwards, audit whether any replication or HA alert should have fired while the exporter was down. Escalate if the endpoint stays unresponsive after terminating stuck backends, if `pg_stat_replication` on the primary shows replay frozen for the affected standby, or if the collector hangs repeatedly or across several instances, which suggests a systemic instrumentation or engine bug.
-
-## Alert coverage
-
-The alert checks for either a failed scrape (`up == 0`) or a successful scrape
-(`up == 1`) whose collector metrics disappeared despite being present within the
-last hour. Both checks use scrape telemetry and do not require kube-state-metrics.
-The historical comparison needs a prior sample and expires after that one-hour
-window. A failed scrape can continue to alert while the target remains configured.
-Pod readiness is not checked, so investigate pod restarts and availability alongside
-the exporter. Removed targets do not remain eligible once their `up` series disappears.
