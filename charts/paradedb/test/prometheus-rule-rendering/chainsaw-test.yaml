@@ -104,6 +104,7 @@ spec:
               printf '%s\n' "$rendered" | alert_rule CNPGClusterLogicalReplicationDistanceCritical | grep -Fq 'for: 2m'
               printf '%s\n' "$rendered" | alert_rule CNPGBackupStale | grep -Fq '> 26 * 3600'
               printf '%s\n' "$rendered" | alert_rule CNPGBackupStale | grep -Fq 'cnpg_collector_last_available_backup_timestamp|barman_cloud_cloudnative_pg_io_last_available_backup_timestamp'
+              printf '%s\n' "$rendered" | alert_rule CNPGBackupStale | grep -Fq '} > 0)'
               weekly="$(render 3 --set cluster.monitoring.prometheusRule.backupStaleAfterHours=170)"
               printf '%s\n' "$weekly" | alert_rule CNPGBackupStale | grep -Fq '> 170 * 3600'
               if render 3 --set cluster.monitoring.prometheusRule.backupStaleAfterHours=0 >/dev/null 2>&1; then
