@@ -58,7 +58,7 @@ spec:
               printf '%s\n' "$rendered" | alert_rule CNPGPoolerClientsWaiting | grep -Fq 'database!="pgbouncer"'
 
               printf '%s\n' "$rendered" | alert_rule ParadeDBIndexInvalid | grep -Fq 'cnpg_paradedb_invalid_indexes_count'
-              printf '%s\n' "$rendered" | alert_rule ParadeDBIndexInvalid | grep -Fq 'unless on (namespace, pod)'
+              printf '%s\n' "$rendered" | alert_rule ParadeDBIndexInvalid | grep -Fq 'and on (namespace, pod)'
               printf '%s\n' "$rendered" | alert_rule ParadeDBIndexInvalid | grep -Fq 'cnpg_pg_replication_in_recovery'
               printf '%s\n' "$rendered" | alert_rule ParadeDBIndexInvalid | grep -Fq 'severity: warning'
               printf '%s\n' "$rendered" | alert_rule ParadeDBIndexInvalid | grep -Fq 'for: 5m'
@@ -104,6 +104,25 @@ spec:
                 echo "backup freshness threshold must be positive"
                 exit 1
               fi
+              for alert in ParadeDBIndexInvalid CNPGClusterLogicalReplicationSubscriptionDisabled CNPGClusterLogicalReplicationWorkerDown; do
+                rule="$(printf '%s\n' "$rendered" | alert_rule "$alert")"
+                printf '%s\n' "$rule" | grep -Fq 'cnpg_pg_replication_in_recovery'
+                printf '%s\n' "$rule" | grep -Fq ') == 0'
+                if printf '%s\n' "$rule" | grep -Fq 'kube_customresource'; then
+                  echo "$alert must use exporter metrics to select the writable primary"
+                  exit 1
+                fi
+                excluded_rule="$(render 3 --set "cluster.monitoring.prometheusRule.excludeRules[0]=$alert")"
+                if printf '%s\n' "$excluded_rule" | grep -Fq -- "- alert: $alert"; then
+                  echo "$alert must respect excludeRules"
+                  exit 1
+                fi
+              done
+              for alert in CNPGClusterLowDiskSpaceWarning CNPGClusterLowDiskSpaceCritical; do
+                rule="$(printf '%s\n' "$rendered" | alert_rule "$alert")"
+                printf '%s\n' "$rule" | grep -Fq 'persistentvolumeclaim=~"alerts-3-paradedb-([1-9][0-9]*)(-wal|-tbs.*)?"'
+                printf '%s\n' "$rule" | grep -Fq 'max by (namespace, persistentvolumeclaim)'
+              done
 
               one_instance="$(render 1)"
               if printf '%s\n' "$one_instance" | grep -Fq 'CNPGClusterHA'; then
