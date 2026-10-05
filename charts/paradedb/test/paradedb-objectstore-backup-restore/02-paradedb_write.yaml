@@ -22,9 +22,9 @@ spec:
             psql "$DB_URI" <<-EOSQL
               CALL paradedb.create_paradedb_test_table(
                 schema_name => 'public',
-                table_name => 'mock_items_paradedb_minio_backup_restore'
+                table_name => 'mock_items_paradedb_objectstore_backup_restore'
               );
-              CREATE INDEX search_idx_paradedb_minio_backup_restore ON mock_items_paradedb_minio_backup_restore
+              CREATE INDEX search_idx_paradedb_objectstore_backup_restore ON mock_items_paradedb_objectstore_backup_restore
               USING paradedb (id, description, category, rating, in_stock, created_at, metadata, weight_range)
               WITH (key_field='id');
             EOSQL
