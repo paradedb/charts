@@ -28,7 +28,7 @@ spec:
     s3Credentials:
       accessKeyId:
         key: ACCESS_KEY_ID
-        name: barman-plugin-config-override-cluster-backup-s3-creds
+        name: barman-plugin-config-override-paradedb-backup-s3-creds
       secretAccessKey:
         key: ACCESS_SECRET_KEY
-        name: barman-plugin-config-override-cluster-backup-s3-creds
+        name: barman-plugin-config-override-paradedb-backup-s3-creds
