@@ -7,14 +7,6 @@ is unreachable or a successful scrape has lost previously reported collector
 metrics for 10 minutes. This can indicate an exporter problem even when HTTP
 scrapes still succeed.
 
-The alert checks for either a failed scrape (`up == 0`) or a successful scrape
-(`up == 1`) whose collector metrics disappeared despite being present within the
-last hour. Both checks use scrape telemetry and do not require kube-state-metrics.
-The historical comparison needs a prior sample and expires after that one-hour
-window. A failed scrape can continue to alert while the target remains configured.
-Pod readiness is not checked, so investigate pod restarts and availability alongside
-the exporter. Removed targets do not remain eligible once their `up` series disappears.
-
 ## Impact
 
 The instance keeps serving queries, so the risk is in what the missing metrics hide. The lag, HA and replication alerts all read from this exporter:
