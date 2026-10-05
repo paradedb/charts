@@ -171,6 +171,17 @@ spec:
                 exit 1
               fi
 
+              zone_rule="$(printf '%s\n' "$rendered" | alert_rule CNPGClusterZoneSpreadWarning)"
+              printf '%s\n' "$zone_rule" | grep -Fq 'kube_pod_status_ready'
+              printf '%s\n' "$zone_rule" | grep -Fq 'condition="true"'
+              printf '%s\n' "$zone_rule" | grep -Fq 'label_topology_kubernetes_io_zone!=""'
+              printf '%s\n' "$zone_rule" | grep -Fq 'for: 5m'
+              zone_excluded="$(render 3 --set 'cluster.monitoring.prometheusRule.excludeRules[0]=CNPGClusterZoneSpreadWarning')"
+              if printf '%s\n' "$zone_excluded" | grep -Fq -- '- alert: CNPGClusterZoneSpreadWarning'; then
+                echo "excluded zone-spread alert must not render"
+                exit 1
+              fi
+
               one_instance="$(render 1)"
               if printf '%s\n' "$one_instance" | grep -Fq 'CNPGClusterHA'; then
                 echo "single-instance clusters must not render HA alerts"
