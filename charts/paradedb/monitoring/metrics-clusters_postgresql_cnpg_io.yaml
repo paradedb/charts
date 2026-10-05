@@ -191,3 +191,19 @@ spec:
                 backup_capabilities: [backupCapabilities]
                 restore_job_hook_capabilities: [restoreJobHookCapabilities]
                 status: [status]
+
+    - groupVersionKind:
+        group: postgresql.cnpg.io
+        version: "v1"
+        kind: "ScheduledBackup"
+      labelsFromPath:
+        namespace: [metadata, namespace]
+        cluster: [spec, cluster, name]
+        scheduled_backup: [metadata, name]
+      metrics:
+        - name: "next_schedule_time"
+          help: "Timestamp of the next scheduled backup"
+          each:
+            type: Gauge
+            gauge:
+              path: [status, nextScheduleTime]
