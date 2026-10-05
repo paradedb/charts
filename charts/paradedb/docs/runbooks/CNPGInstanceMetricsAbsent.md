@@ -2,10 +2,10 @@
 
 ## Description
 
-The `CNPGInstanceMetricsAbsent` alert fires when a ready CloudNativePG pod has an
-unreachable metrics endpoint or has lost previously reported collector metrics
-for 10 minutes. This can indicate an exporter problem even when HTTP scrapes
-still succeed. Deleted and unready pods are excluded.
+The `CNPGInstanceMetricsAbsent` alert fires when a CloudNativePG metrics endpoint
+is unreachable or a successful scrape has lost previously reported collector
+metrics for 10 minutes. This can indicate an exporter problem even when HTTP
+scrapes still succeed.
 
 ## Impact
 
@@ -79,7 +79,7 @@ kubectl exec -n <namespace> -it pod/<instance-pod-name> -- psql -c "SELECT pg_te
 kubectl delete -n <namespace> pod/<replica-pod-name>
 ```
 
-The alert resolves once the scrape succeeds and collector metrics resume. Confirm metrics are flowing:
+The alert clears when scrapes succeed and collector metrics resume, or when the target is removed. Confirm metrics are flowing:
 
 ```bash
 kubectl exec -n <namespace> -it pod/<instance-pod-name> -- curl -sS --max-time 5 http://localhost:9187/metrics | grep -E "cnpg_collector_up|cnpg_pg_replication_lag"
@@ -89,9 +89,10 @@ Afterwards, audit whether any replication or HA alert should have fired while th
 
 ## Alert coverage
 
-The alert checks ready pods for either a failed scrape (`up == 0`) or collector
-metrics that disappeared despite being present within the last hour. The second
-check also catches a successful HTTP scrape that no longer exposes CNPG metrics.
-Deleted and unready pods are excluded using kube-state-metrics pod readiness.
-The historical comparison needs a prior sample; absent-series detection expires
-after that one-hour history window, while a failed scrape can continue to alert.
+The alert checks for either a failed scrape (`up == 0`) or a successful scrape
+(`up == 1`) whose collector metrics disappeared despite being present within the
+last hour. Both checks use scrape telemetry and do not require kube-state-metrics.
+The historical comparison needs a prior sample and expires after that one-hour
+window. A failed scrape can continue to alert while the target remains configured.
+Pod readiness is not checked, so investigate pod restarts and availability alongside
+the exporter. Removed targets do not remain eligible once their `up` series disappears.
