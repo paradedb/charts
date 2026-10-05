@@ -11,6 +11,8 @@ spec:
     assert: 5s
     cleanup: 30s
   steps:
+    # These fixtures test configuration propagation and cannot become ready.
+    # Helm must return after creation so Chainsaw can assert the resource specs.
     - name: Install the non-default configuration cluster
       try:
         - script:
@@ -19,7 +21,6 @@ spec:
                 --install \
                 --namespace $NAMESPACE \
                 --values ./01-non_default_configuration_cluster.yaml \
-                --wait \
                 non-default-configuration ../../
         - assert:
             file: ./01-non_default_configuration_cluster-assert.yaml
@@ -31,7 +32,6 @@ spec:
                 --install \
                 --namespace $NAMESPACE \
                 --values ./02-recovery_object_store_database_owner.yaml \
-                --wait \
                 recovery-object-store-database-owner ../../
         - assert:
             file: ./02-recovery_object_store_database_owner-assert.yaml
@@ -43,7 +43,6 @@ spec:
                 --install \
                 --namespace $NAMESPACE \
                 --values ./03-recovery_backup_database_owner.yaml \
-                --wait \
                 recovery-backup-database-owner ../../
         - assert:
             file: ./03-recovery_backup_database_owner-assert.yaml
