@@ -3,7 +3,7 @@
 ## Description
 
 The `CNPGInstanceMetricsAbsent` alert fires when a CloudNativePG metrics endpoint
-is unreachable or a successful scrape has lost previously reported collector
+is unreachable or a successful scrape is missing collector
 metrics for 10 minutes. This can indicate an exporter problem even when HTTP
 scrapes still succeed.
 
