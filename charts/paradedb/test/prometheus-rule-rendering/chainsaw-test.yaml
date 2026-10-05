@@ -161,6 +161,16 @@ spec:
                 fi
               done
 
+              failed_backup="$(printf '%s\n' "$rendered" | alert_rule CNPGBackupFailed)"
+              printf '%s\n' "$failed_backup" | grep -Fq 'barman_cloud_cloudnative_pg_io_last_failed_backup_timestamp'
+              printf '%s\n' "$failed_backup" | grep -Fq '} > 0)'
+              printf '%s\n' "$failed_backup" | grep -Fq 'for: 15m'
+              failed_excluded="$(render 3 --set 'cluster.monitoring.prometheusRule.excludeRules[0]=CNPGBackupFailed')"
+              if printf '%s\n' "$failed_excluded" | grep -Fq -- '- alert: CNPGBackupFailed'; then
+                echo "excluded failed backup alert must not render"
+                exit 1
+              fi
+
               one_instance="$(render 1)"
               if printf '%s\n' "$one_instance" | grep -Fq 'CNPGClusterHA'; then
                 echo "single-instance clusters must not render HA alerts"
