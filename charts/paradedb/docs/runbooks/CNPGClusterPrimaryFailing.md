@@ -4,6 +4,8 @@
 
 The `CNPGClusterPrimaryFailing` alert fires when CloudNativePG has reported a failing primary for more than five minutes and the condition then remains active for another five minutes. A successful promotion or brief primary transition does not trigger the alert.
 
+This alert requires the optional CNPG Cluster custom-resource metrics from kube-state-metrics.
+
 ## Impact
 
 - The cluster may not have a stable writable primary.

@@ -23,15 +23,10 @@ expr: |
     )
   )
   and on (namespace, pod)
-  label_replace(
-    kube_customresource_primary_info{namespace="{{ .namespace }}", cluster="{{ .cluster }}", customresource_group="postgresql.cnpg.io", customresource_kind="Cluster"},
-    "pod", "$1", "current_primary", "(.*)"
-  )
-  unless on (namespace, pod)
-  max by (namespace, pod) (
-    label_replace(cnpg_pg_replication_in_recovery{namespace="{{ .namespace }}",pod=~"{{ .podSelector }}"}, "cluster", "$1", "job", ".+/(.+)") == 1
-    or
-    label_replace(cnpg_paradedb_physical_replication_in_recovery{namespace="{{ .namespace }}",pod=~"{{ .podSelector }}"}, "cluster", "$1", "job", ".+/(.+)") == 1
+  (
+    max by (namespace, pod) (
+      {__name__=~"cnpg_pg_replication_in_recovery|cnpg_paradedb_physical_replication_in_recovery",namespace="{{ .namespace }}",pod=~"{{ .podSelector }}"}
+    ) == 0
   )
 for: 5m
 labels:

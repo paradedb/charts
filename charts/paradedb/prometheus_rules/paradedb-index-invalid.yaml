@@ -13,19 +13,11 @@ expr: |
     max by (namespace, pod, datname) (
       cnpg_paradedb_invalid_indexes_count{namespace="{{ .namespace }}",pod=~"{{ .podSelector }}"}
     )
-    * on (namespace, pod) group_left()
+    and on (namespace, pod)
+    (
       max by (namespace, pod) (
-        label_replace(
-          kube_customresource_primary_info{
-            namespace="{{ .namespace }}", cluster="{{ .cluster }}",
-            customresource_group="postgresql.cnpg.io", customresource_kind="Cluster"
-          } == 1,
-          "pod", "$1", "current_primary", "(.*)"
-        )
-      )
-    unless on (namespace, pod)
-    max by (namespace, pod) (
-      cnpg_pg_replication_in_recovery{namespace="{{ .namespace }}",pod=~"{{ .podSelector }}"} == 1
+        {__name__=~"cnpg_pg_replication_in_recovery|cnpg_paradedb_physical_replication_in_recovery",namespace="{{ .namespace }}",pod=~"{{ .podSelector }}"}
+      ) == 0
     )
   ) > 0
 for: 5m
