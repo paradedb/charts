@@ -14,11 +14,12 @@ data:
     paradedb_version:
       query: |
         SELECT current_database() AS datname
-             , extversion AS installed_version
-             , '{{ .Values.version.paradedb }}'::text AS expected_version
-             , (extversion = '{{ .Values.version.paradedb }}')::int AS "match"
-        FROM pg_extension
-        WHERE extname = 'pg_search';
+             , e.extversion AS installed_version
+             , a.default_version AS expected_version
+             , (e.extversion = a.default_version)::int AS "match"
+        FROM pg_extension e
+        JOIN pg_available_extensions a ON a.name = e.extname
+        WHERE e.extname = 'pg_search';
       target_databases: ["*"]
       metrics:
         - datname:
@@ -28,10 +29,10 @@ data:
             description: Version recorded in the pg_search extension catalog
             usage: LABEL
         - expected_version:
-            description: ParadeDB version declared by the Helm release
+            description: Default pg_search extension version shipped in the image
             usage: LABEL
         - match:
-            description: Whether the pg_search extension catalog matches the declared ParadeDB version
+            description: Whether the pg_search extension catalog matches the image extension version
             usage: GAUGE
     # Materialize the catalog filter before opening index storage. pdb.indexes()
     # inspects invalid concurrent-build leftovers before callers can filter them.
@@ -70,7 +71,7 @@ data:
           FROM pdb.index_segments(i.indexrelid::regclass)
         ) s ON true;
       target_databases: ["*"]
-      predicate_query: "SELECT 1 FROM pg_extension WHERE extname = 'pg_search' AND extversion = '{{ .Values.version.paradedb }}';"
+      predicate_query: "SELECT 1 FROM pg_extension e JOIN pg_available_extensions a ON a.name = e.extname WHERE e.extname = 'pg_search' AND e.extversion = a.default_version;"
       metrics:
         - datname:
             description: Name of the database
@@ -196,7 +197,7 @@ data:
         GROUP BY current_database(), i.schemaname, i.indexname, b.range_order, b.document_range
         ORDER BY i.schemaname, i.indexname, b.range_order;
       target_databases: ["*"]
-      predicate_query: "SELECT 1 FROM pg_extension WHERE extname = 'pg_search' AND extversion = '{{ .Values.version.paradedb }}';"
+      predicate_query: "SELECT 1 FROM pg_extension e JOIN pg_available_extensions a ON a.name = e.extname WHERE e.extname = 'pg_search' AND e.extversion = a.default_version;"
       metrics:
         - datname:
             description: Name of the database

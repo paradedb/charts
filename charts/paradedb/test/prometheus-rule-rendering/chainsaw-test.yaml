@@ -137,6 +137,28 @@ spec:
                 echo "excluded offline alert must not render"
                 exit 1
               fi
+              version_rule="$(printf '%s\n' "$rendered" | alert_rule ParadeDBVersionMismatch)"
+              printf '%s\n' "$version_rule" | grep -Fq 'cnpg_paradedb_version_match'
+              printf '%s\n' "$version_rule" | grep -Fq 'installed_version, expected_version'
+              printf '%s\n' "$version_rule" | grep -Fq 'for: 15m'
+              if printf '%s\n' "$version_rule" | grep -Fq 'kube_customresource'; then
+                echo "version mismatch alert must not require CRD metrics"
+                exit 1
+              fi
+              version_excluded="$(render 3 --set 'cluster.monitoring.prometheusRule.excludeRules[0]=ParadeDBVersionMismatch')"
+              if printf '%s\n' "$version_excluded" | grep -Fq -- '- alert: ParadeDBVersionMismatch'; then
+                echo "excluded version mismatch alert must not render"
+                exit 1
+              fi
+              for image in paradedb/paradedb:0.26.0-pg18 paradedb/paradedb:custom-pg18; do
+                queries="$(helm template alerts-3 ../../ --set "cluster.imageName=$image" --show-only templates/monitoring-paradedb-index.yaml)"
+                printf '%s\n' "$queries" | grep -Fq 'a.default_version AS expected_version'
+                printf '%s\n' "$queries" | grep -Fq "e.extversion = a.default_version;"
+                if printf '%s\n' "$queries" | grep -Fq "extversion = '"; then
+                  echo "version guards must use image metadata rather than Helm version values"
+                  exit 1
+                fi
+              done
 
               one_instance="$(render 1)"
               if printf '%s\n' "$one_instance" | grep -Fq 'CNPGClusterHA'; then
