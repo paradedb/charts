@@ -212,9 +212,7 @@ Alternatively, you can manually import the dashboard from the `monitoring` direc
 
 ### Metrics Configuration
 
-Additionally, we recommend enabling the `kube-state-metrics` CRD monitoring and adding the CNPG metrics. The configuration can be found in `monitoring/metrics-clusters_postgresql_cnpg_io.yaml`.
-
-The optional configuration also exports `kube_customresource_next_schedule_time` for ScheduledBackup resources, labeled by namespace, cluster, and scheduled backup. Grant kube-state-metrics list/watch permissions on `clusters` and `scheduledbackups` in the `postgresql.cnpg.io` API group, as well as `customresourcedefinitions` in `apiextensions.k8s.io`, then apply the configuration to enable these metrics.
+We recommend enabling `kube-state-metrics` custom-resource monitoring with `monitoring/metrics-clusters_postgresql_cnpg_io.yaml`, which exports CNPG Cluster metrics and ScheduledBackup's next scheduled time. Grant kube-state-metrics list/watch access to `clusters` and `scheduledbackups` in `postgresql.cnpg.io` and `customresourcedefinitions` in `apiextensions.k8s.io`.
 
 ## Examples
 
