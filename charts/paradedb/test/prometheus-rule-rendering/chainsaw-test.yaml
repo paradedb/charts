@@ -63,6 +63,15 @@ spec:
               printf '%s\n' "$rendered" | alert_rule ParadeDBIndexInvalid | grep -Fq 'severity: warning'
               printf '%s\n' "$rendered" | alert_rule ParadeDBIndexInvalid | grep -Fq 'for: 5m'
               printf '%s\n' "$rendered" | alert_rule CNPGInstanceMetricsFailing | grep -Fq 'cnpg_errors_total'
+              missing_metrics="$(printf '%s\n' "$rendered" | alert_rule CNPGInstanceMetricsAbsent)"
+              printf '%s\n' "$missing_metrics" | grep -Fq 'count_over_time(cnpg_collector_up'
+              printf '%s\n' "$missing_metrics" | grep -Fq '} == 1)'
+              printf '%s\n' "$missing_metrics" | grep -Fq '} == 0)'
+              printf '%s\n' "$missing_metrics" | grep -Fq 'for: 10m'
+              if printf '%s\n' "$missing_metrics" | grep -Fq 'kube_pod_status_ready'; then
+                echo "missing metrics alert must not require kube-state-metrics"
+                exit 1
+              fi
               invalid_excluded="$(render 3 --set 'cluster.monitoring.prometheusRule.excludeRules[0]=ParadeDBIndexInvalid')"
               if printf '%s\n' "$invalid_excluded" | grep -Fq -- '- alert: ParadeDBIndexInvalid'; then
                 echo "excluded invalid index alert must not render"

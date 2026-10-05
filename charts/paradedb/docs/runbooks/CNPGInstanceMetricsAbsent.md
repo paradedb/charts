@@ -2,7 +2,10 @@
 
 ## Description
 
-The `CNPGInstanceMetricsAbsent` alert is triggered when a CloudNativePG instance's metrics endpoint has been unreachable for 10 minutes while the pod itself is still running. The delay is long enough to ride out routine restarts, upgrades, drains and scale-downs, so when the alert fires the instance is up but its exporter is hung.
+The `CNPGInstanceMetricsAbsent` alert fires when a CloudNativePG metrics endpoint
+is unreachable or a successful scrape has lost previously reported collector
+metrics for 10 minutes. This can indicate an exporter problem even when HTTP
+scrapes still succeed.
 
 ## Impact
 
@@ -18,7 +21,7 @@ These are all `expr > threshold` rules, so once the exporter goes silent there a
 
 The alert labels carry the `namespace`, `cluster` and `pod`.
 
-- Confirm the pod is up. `Running` and `Ready` means the instance itself is healthy and only its exporter has failed:
+- Confirm the pod is up. `Running` and `Ready` identify the pod to investigate; they do not prove the database or replication is healthy:
 
 ```bash
 kubectl get -n <namespace> pods -l "cnpg.io/podRole=instance" -o wide
@@ -31,7 +34,7 @@ kubectl describe -n <namespace> pod/<instance-pod-name>
 kubectl exec -n <namespace> -it pod/<instance-pod-name> -- curl -sS --max-time 5 http://localhost:9187/metrics | grep cnpg_collector_up
 ```
 
-A timeout or empty response confirms the collector is stuck.
+A timeout or missing `cnpg_collector_up` confirms a metrics problem; inspect the endpoint and logs to determine its cause.
 
 - Look for a blocked backend. The exporter runs SQL on the local instance, so a stuck collector query shows up in `pg_stat_activity`:
 
@@ -76,7 +79,7 @@ kubectl exec -n <namespace> -it pod/<instance-pod-name> -- psql -c "SELECT pg_te
 kubectl delete -n <namespace> pod/<replica-pod-name>
 ```
 
-The alert resolves once the endpoint responds again. Confirm metrics are flowing:
+The alert clears when scrapes succeed and collector metrics resume, or when the target is removed. Confirm metrics are flowing:
 
 ```bash
 kubectl exec -n <namespace> -it pod/<instance-pod-name> -- curl -sS --max-time 5 http://localhost:9187/metrics | grep -E "cnpg_collector_up|cnpg_pg_replication_lag"
