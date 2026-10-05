@@ -6,12 +6,16 @@ tests:
     interval: 1m
     input_series:
       - series: kubelet_volume_stats_available_bytes{namespace="alert-test",persistentvolumeclaim="parity-paradedb-1"}
-        values: 5+0x40
-      - series: kubelet_volume_stats_used_bytes{namespace="alert-test",persistentvolumeclaim="parity-paradedb-1"}
-        values: 95+0x40
+        values: 5+0x20
       - series: kubelet_volume_stats_capacity_bytes{namespace="alert-test",persistentvolumeclaim="parity-paradedb-1"}
-        values: 100+0x40
+        values: 100+0x20
     alert_rule_test:
+      - eval_time: 4m
+        alertname: CNPGClusterLowDiskSpaceWarning
+        exp_alerts: []
+      - eval_time: 4m
+        alertname: CNPGClusterLowDiskSpaceCritical
+        exp_alerts: []
       - eval_time: 10m
         alertname: CNPGClusterLowDiskSpaceWarning
         exp_alerts:
@@ -19,10 +23,12 @@ tests:
               severity: warning
               namespace: alert-test
               cnpg_cluster: parity-paradedb
+              persistentvolumeclaim: parity-paradedb-1
             exp_annotations:
-              summary: ParadeDB Instance is running out of disk space.
-              description: ParadeDB CloudNativePG Cluster "alert-test/parity-paradedb" is running low on disk space. Check attached PVCs. Current disk space
-                usage is 95% of the total capacity.
+              summary: ParadeDB CNPG Cluster is running out of disk space.
+              description:
+                ParadeDB CloudNativePG Cluster "alert-test/parity-paradedb" volume "parity-paradedb-1" is 95%
+                full.
               runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterLowDiskSpace.md
       - eval_time: 10m
         alertname: CNPGClusterLowDiskSpaceCritical
@@ -31,21 +37,27 @@ tests:
               severity: critical
               namespace: alert-test
               cnpg_cluster: parity-paradedb
+              persistentvolumeclaim: parity-paradedb-1
             exp_annotations:
-              summary: ParadeDB Instance is running out of disk space!
-              description: ParadeDB CloudNativePG Cluster "alert-test/parity-paradedb" is running extremely low on disk space. Check attached PVCs! Current
-                disk space usage is 95% of the total capacity.
+              summary: ParadeDB CNPG Cluster is running out of disk space!
+              description:
+                ParadeDB CloudNativePG Cluster "alert-test/parity-paradedb" volume "parity-paradedb-1" is 95%
+                full.
               runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterLowDiskSpace.md
   - name: 95 percent usage on -wal PVC
     interval: 1m
     input_series:
       - series: kubelet_volume_stats_available_bytes{namespace="alert-test",persistentvolumeclaim="parity-paradedb-1-wal"}
-        values: 5+0x40
-      - series: kubelet_volume_stats_used_bytes{namespace="alert-test",persistentvolumeclaim="parity-paradedb-1-wal"}
-        values: 95+0x40
+        values: 5+0x20
       - series: kubelet_volume_stats_capacity_bytes{namespace="alert-test",persistentvolumeclaim="parity-paradedb-1-wal"}
-        values: 100+0x40
+        values: 100+0x20
     alert_rule_test:
+      - eval_time: 4m
+        alertname: CNPGClusterLowDiskSpaceWarning
+        exp_alerts: []
+      - eval_time: 4m
+        alertname: CNPGClusterLowDiskSpaceCritical
+        exp_alerts: []
       - eval_time: 10m
         alertname: CNPGClusterLowDiskSpaceWarning
         exp_alerts:
@@ -53,10 +65,12 @@ tests:
               severity: warning
               namespace: alert-test
               cnpg_cluster: parity-paradedb
+              persistentvolumeclaim: parity-paradedb-1-wal
             exp_annotations:
-              summary: ParadeDB Instance is running out of disk space.
-              description: ParadeDB CloudNativePG Cluster "alert-test/parity-paradedb" is running low on disk space. Check attached PVCs. Current disk space
-                usage is 95% of the total capacity.
+              summary: ParadeDB CNPG Cluster is running out of disk space.
+              description:
+                ParadeDB CloudNativePG Cluster "alert-test/parity-paradedb" volume "parity-paradedb-1-wal"
+                is 95% full.
               runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterLowDiskSpace.md
       - eval_time: 10m
         alertname: CNPGClusterLowDiskSpaceCritical
@@ -65,25 +79,27 @@ tests:
               severity: critical
               namespace: alert-test
               cnpg_cluster: parity-paradedb
+              persistentvolumeclaim: parity-paradedb-1-wal
             exp_annotations:
-              summary: ParadeDB Instance is running out of disk space!
-              description: ParadeDB CloudNativePG Cluster "alert-test/parity-paradedb" is running extremely low on disk space. Check attached PVCs! Current
-                disk space usage is 95% of the total capacity.
+              summary: ParadeDB CNPG Cluster is running out of disk space!
+              description:
+                ParadeDB CloudNativePG Cluster "alert-test/parity-paradedb" volume "parity-paradedb-1-wal"
+                is 95% full.
               runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterLowDiskSpace.md
   - name: 95 percent usage on -tbs1 PVC
     interval: 1m
     input_series:
       - series: kubelet_volume_stats_available_bytes{namespace="alert-test",persistentvolumeclaim="parity-paradedb-1-tbs1"}
-        values: 5+0x40
-      - series: kubelet_volume_stats_used_bytes{namespace="alert-test",persistentvolumeclaim="parity-paradedb-1-tbs1"}
-        values: 95+0x40
+        values: 5+0x20
       - series: kubelet_volume_stats_capacity_bytes{namespace="alert-test",persistentvolumeclaim="parity-paradedb-1-tbs1"}
-        values: 100+0x40
-      - series: kube_pod_spec_volumes_persistentvolumeclaims_info{namespace="alert-test",pod="parity-paradedb-1",persistentvolumeclaim="parity-paradedb-1-tbs1",volume="tablespace"}
-        values: 1+0x40
-      - series: kube_pod_spec_volumes_persistentvolumeclaims_info{namespace="other",pod="parity-paradedb-1",persistentvolumeclaim="parity-paradedb-1-tbs1",volume="tablespace"}
-        values: 1+0x40
+        values: 100+0x20
     alert_rule_test:
+      - eval_time: 4m
+        alertname: CNPGClusterLowDiskSpaceWarning
+        exp_alerts: []
+      - eval_time: 4m
+        alertname: CNPGClusterLowDiskSpaceCritical
+        exp_alerts: []
       - eval_time: 10m
         alertname: CNPGClusterLowDiskSpaceWarning
         exp_alerts:
@@ -91,10 +107,12 @@ tests:
               severity: warning
               namespace: alert-test
               cnpg_cluster: parity-paradedb
+              persistentvolumeclaim: parity-paradedb-1-tbs1
             exp_annotations:
-              summary: ParadeDB Instance is running out of disk space.
-              description: ParadeDB CloudNativePG Cluster "alert-test/parity-paradedb" is running low on disk space. Check attached PVCs. Current disk space
-                usage is 95% of the total capacity.
+              summary: ParadeDB CNPG Cluster is running out of disk space.
+              description:
+                ParadeDB CloudNativePG Cluster "alert-test/parity-paradedb" volume "parity-paradedb-1-tbs1"
+                is 95% full.
               runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterLowDiskSpace.md
       - eval_time: 10m
         alertname: CNPGClusterLowDiskSpaceCritical
@@ -103,26 +121,235 @@ tests:
               severity: critical
               namespace: alert-test
               cnpg_cluster: parity-paradedb
+              persistentvolumeclaim: parity-paradedb-1-tbs1
             exp_annotations:
-              summary: ParadeDB Instance is running out of disk space!
-              description: ParadeDB CloudNativePG Cluster "alert-test/parity-paradedb" is running extremely low on disk space. Check attached PVCs! Current
-                disk space usage is 95% of the total capacity.
+              summary: ParadeDB CNPG Cluster is running out of disk space!
+              description:
+                ParadeDB CloudNativePG Cluster "alert-test/parity-paradedb" volume "parity-paradedb-1-tbs1"
+                is 95% full.
               runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterLowDiskSpace.md
-  - name: healthy storage and full unrelated cluster
+  - name: simultaneous PVC breaches with duplicate scrapes
+    interval: 1m
+    input_series:
+      - series: kubelet_volume_stats_available_bytes{namespace="alert-test",persistentvolumeclaim="parity-paradedb-1"}
+        values: 90+0x20
+      - series: kubelet_volume_stats_capacity_bytes{namespace="alert-test",persistentvolumeclaim="parity-paradedb-1"}
+        values: 100+0x20
+      - series: kubelet_volume_stats_available_bytes{namespace="alert-test",persistentvolumeclaim="parity-paradedb-1-wal",instance="a"}
+        values: 5+0x20
+      - series: kubelet_volume_stats_capacity_bytes{namespace="alert-test",persistentvolumeclaim="parity-paradedb-1-wal",instance="a"}
+        values: 100+0x20
+      - series: kubelet_volume_stats_available_bytes{namespace="alert-test",persistentvolumeclaim="parity-paradedb-1-wal",instance="b"}
+        values: 5+0x20
+      - series: kubelet_volume_stats_capacity_bytes{namespace="alert-test",persistentvolumeclaim="parity-paradedb-1-wal",instance="b"}
+        values: 100+0x20
+      - series: kubelet_volume_stats_available_bytes{namespace="alert-test",persistentvolumeclaim="parity-paradedb-2"}
+        values: 15+0x20
+      - series: kubelet_volume_stats_capacity_bytes{namespace="alert-test",persistentvolumeclaim="parity-paradedb-2"}
+        values: 100+0x20
+      - series: kubelet_volume_stats_available_bytes{namespace="alert-test",persistentvolumeclaim="parity-paradedb-2-tbsarchive"}
+        values: 8+0x20
+      - series: kubelet_volume_stats_capacity_bytes{namespace="alert-test",persistentvolumeclaim="parity-paradedb-2-tbsarchive"}
+        values: 100+0x20
+    alert_rule_test:
+      - eval_time: 4m
+        alertname: CNPGClusterLowDiskSpaceWarning
+        exp_alerts: []
+      - eval_time: 4m
+        alertname: CNPGClusterLowDiskSpaceCritical
+        exp_alerts: []
+      - eval_time: 10m
+        alertname: CNPGClusterLowDiskSpaceWarning
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              namespace: alert-test
+              cnpg_cluster: parity-paradedb
+              persistentvolumeclaim: parity-paradedb-1-wal
+            exp_annotations:
+              summary: ParadeDB CNPG Cluster is running out of disk space.
+              description:
+                ParadeDB CloudNativePG Cluster "alert-test/parity-paradedb" volume "parity-paradedb-1-wal"
+                is 95% full.
+              runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterLowDiskSpace.md
+          - exp_labels:
+              severity: warning
+              namespace: alert-test
+              cnpg_cluster: parity-paradedb
+              persistentvolumeclaim: parity-paradedb-2
+            exp_annotations:
+              summary: ParadeDB CNPG Cluster is running out of disk space.
+              description:
+                ParadeDB CloudNativePG Cluster "alert-test/parity-paradedb" volume "parity-paradedb-2" is 85%
+                full.
+              runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterLowDiskSpace.md
+          - exp_labels:
+              severity: warning
+              namespace: alert-test
+              cnpg_cluster: parity-paradedb
+              persistentvolumeclaim: parity-paradedb-2-tbsarchive
+            exp_annotations:
+              summary: ParadeDB CNPG Cluster is running out of disk space.
+              description:
+                ParadeDB CloudNativePG Cluster "alert-test/parity-paradedb" volume "parity-paradedb-2-tbsarchive"
+                is 92% full.
+              runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterLowDiskSpace.md
+      - eval_time: 10m
+        alertname: CNPGClusterLowDiskSpaceCritical
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+              namespace: alert-test
+              cnpg_cluster: parity-paradedb
+              persistentvolumeclaim: parity-paradedb-1-wal
+            exp_annotations:
+              summary: ParadeDB CNPG Cluster is running out of disk space!
+              description:
+                ParadeDB CloudNativePG Cluster "alert-test/parity-paradedb" volume "parity-paradedb-1-wal"
+                is 95% full.
+              runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterLowDiskSpace.md
+          - exp_labels:
+              severity: critical
+              namespace: alert-test
+              cnpg_cluster: parity-paradedb
+              persistentvolumeclaim: parity-paradedb-2-tbsarchive
+            exp_annotations:
+              summary: ParadeDB CNPG Cluster is running out of disk space!
+              description:
+                ParadeDB CloudNativePG Cluster "alert-test/parity-paradedb" volume "parity-paradedb-2-tbsarchive"
+                is 92% full.
+              runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterLowDiskSpace.md
+  - name: strict 80 and 90 percent thresholds
+    interval: 1m
+    input_series:
+      - series: kubelet_volume_stats_available_bytes{namespace="alert-test",persistentvolumeclaim="parity-paradedb-1"}
+        values: 20+0x20
+      - series: kubelet_volume_stats_capacity_bytes{namespace="alert-test",persistentvolumeclaim="parity-paradedb-1"}
+        values: 100+0x20
+      - series: kubelet_volume_stats_available_bytes{namespace="alert-test",persistentvolumeclaim="parity-paradedb-1-wal"}
+        values: 10+0x20
+      - series: kubelet_volume_stats_capacity_bytes{namespace="alert-test",persistentvolumeclaim="parity-paradedb-1-wal"}
+        values: 100+0x20
+      - series: kubelet_volume_stats_available_bytes{namespace="alert-test",persistentvolumeclaim="parity-paradedb-1-tbs1"}
+        values: 19+0x20
+      - series: kubelet_volume_stats_capacity_bytes{namespace="alert-test",persistentvolumeclaim="parity-paradedb-1-tbs1"}
+        values: 100+0x20
+    alert_rule_test:
+      - eval_time: 4m
+        alertname: CNPGClusterLowDiskSpaceWarning
+        exp_alerts: []
+      - eval_time: 4m
+        alertname: CNPGClusterLowDiskSpaceCritical
+        exp_alerts: []
+      - eval_time: 10m
+        alertname: CNPGClusterLowDiskSpaceWarning
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              namespace: alert-test
+              cnpg_cluster: parity-paradedb
+              persistentvolumeclaim: parity-paradedb-1-wal
+            exp_annotations:
+              summary: ParadeDB CNPG Cluster is running out of disk space.
+              description:
+                ParadeDB CloudNativePG Cluster "alert-test/parity-paradedb" volume "parity-paradedb-1-wal"
+                is 90% full.
+              runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterLowDiskSpace.md
+          - exp_labels:
+              severity: warning
+              namespace: alert-test
+              cnpg_cluster: parity-paradedb
+              persistentvolumeclaim: parity-paradedb-1-tbs1
+            exp_annotations:
+              summary: ParadeDB CNPG Cluster is running out of disk space.
+              description:
+                ParadeDB CloudNativePG Cluster "alert-test/parity-paradedb" volume "parity-paradedb-1-tbs1"
+                is 81% full.
+              runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterLowDiskSpace.md
+      - eval_time: 10m
+        alertname: CNPGClusterLowDiskSpaceCritical
+        exp_alerts: []
+  - name: tablespace uses available capacity without pod-volume metadata
+    interval: 1m
+    input_series:
+      - series: kubelet_volume_stats_available_bytes{namespace="alert-test",persistentvolumeclaim="parity-paradedb-1-tbs1"}
+        values: 5+0x20
+      - series: kubelet_volume_stats_capacity_bytes{namespace="alert-test",persistentvolumeclaim="parity-paradedb-1-tbs1"}
+        values: 100+0x20
+      - series: kubelet_volume_stats_used_bytes{namespace="alert-test",persistentvolumeclaim="parity-paradedb-1-tbs1"}
+        values: 70+0x20
+    alert_rule_test:
+      - eval_time: 4m
+        alertname: CNPGClusterLowDiskSpaceWarning
+        exp_alerts: []
+      - eval_time: 4m
+        alertname: CNPGClusterLowDiskSpaceCritical
+        exp_alerts: []
+      - eval_time: 10m
+        alertname: CNPGClusterLowDiskSpaceWarning
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              namespace: alert-test
+              cnpg_cluster: parity-paradedb
+              persistentvolumeclaim: parity-paradedb-1-tbs1
+            exp_annotations:
+              summary: ParadeDB CNPG Cluster is running out of disk space.
+              description:
+                ParadeDB CloudNativePG Cluster "alert-test/parity-paradedb" volume "parity-paradedb-1-tbs1"
+                is 95% full.
+              runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterLowDiskSpace.md
+      - eval_time: 10m
+        alertname: CNPGClusterLowDiskSpaceCritical
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+              namespace: alert-test
+              cnpg_cluster: parity-paradedb
+              persistentvolumeclaim: parity-paradedb-1-tbs1
+            exp_annotations:
+              summary: ParadeDB CNPG Cluster is running out of disk space!
+              description:
+                ParadeDB CloudNativePG Cluster "alert-test/parity-paradedb" volume "parity-paradedb-1-tbs1"
+                is 95% full.
+              runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterLowDiskSpace.md
+  - name: healthy storage excludes other namespaces clusters and invalid suffixes
     interval: 1m
     input_series:
       - series: kubelet_volume_stats_available_bytes{namespace="alert-test",persistentvolumeclaim="parity-paradedb-1-wal"}
-        values: 50+0x40
+        values: 50+0x20
       - series: kubelet_volume_stats_capacity_bytes{namespace="alert-test",persistentvolumeclaim="parity-paradedb-1-wal"}
-        values: 100+0x40
+        values: 100+0x20
+      - series: kubelet_volume_stats_available_bytes{namespace="other",persistentvolumeclaim="parity-paradedb-1-wal"}
+        values: 0+0x20
+      - series: kubelet_volume_stats_capacity_bytes{namespace="other",persistentvolumeclaim="parity-paradedb-1-wal"}
+        values: 100+0x20
       - series: kubelet_volume_stats_available_bytes{namespace="alert-test",persistentvolumeclaim="other-1-wal"}
-        values: 0+0x40
+        values: 0+0x20
       - series: kubelet_volume_stats_capacity_bytes{namespace="alert-test",persistentvolumeclaim="other-1-wal"}
-        values: 100+0x40
+        values: 100+0x20
+      - series: kubelet_volume_stats_available_bytes{namespace="alert-test",persistentvolumeclaim="parity-paradedb-extra-1-wal"}
+        values: 0+0x20
+      - series: kubelet_volume_stats_capacity_bytes{namespace="alert-test",persistentvolumeclaim="parity-paradedb-extra-1-wal"}
+        values: 100+0x20
+      - series: kubelet_volume_stats_available_bytes{namespace="alert-test",persistentvolumeclaim="parity-paradedb-1-wal-extra"}
+        values: 0+0x20
+      - series: kubelet_volume_stats_capacity_bytes{namespace="alert-test",persistentvolumeclaim="parity-paradedb-1-wal-extra"}
+        values: 100+0x20
+      - series: kubelet_volume_stats_available_bytes{namespace="alert-test",persistentvolumeclaim="parity-paradedb-0-wal"}
+        values: 0+0x20
+      - series: kubelet_volume_stats_capacity_bytes{namespace="alert-test",persistentvolumeclaim="parity-paradedb-0-wal"}
+        values: 100+0x20
     alert_rule_test:
-      - eval_time: 20m
+      - eval_time: 4m
         alertname: CNPGClusterLowDiskSpaceWarning
         exp_alerts: []
-      - eval_time: 20m
+      - eval_time: 4m
+        alertname: CNPGClusterLowDiskSpaceCritical
+        exp_alerts: []
+      - eval_time: 10m
+        alertname: CNPGClusterLowDiskSpaceWarning
+        exp_alerts: []
+      - eval_time: 10m
         alertname: CNPGClusterLowDiskSpaceCritical
         exp_alerts: []

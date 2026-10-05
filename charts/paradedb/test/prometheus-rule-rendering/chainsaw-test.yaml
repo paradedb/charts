@@ -43,7 +43,7 @@ spec:
                 fi
               done
 
-              printf '%s\n' "$rendered" | grep -Fq 'persistentvolumeclaim=~"alerts-3-paradedb-([1-9][0-9]*)-wal"'
+              printf '%s\n' "$rendered" | grep -Fq 'persistentvolumeclaim=~"alerts-3-paradedb-([1-9][0-9]*)(-wal|-tbs.*)?"'
               printf '%s\n' "$rendered" | grep -Fq 'cnpg_pg_replication_in_recovery'
               printf '%s\n' "$rendered" | alert_rule CNPGClusterXIDWraparoundWarning | grep -Fq 'cnpg_pg_database_xid_age'
               printf '%s\n' "$rendered" | alert_rule CNPGClusterXIDWraparoundWarning | grep -Fq 'cnpg_pg_database_mxid_age'
