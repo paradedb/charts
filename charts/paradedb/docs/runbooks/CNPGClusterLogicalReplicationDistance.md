@@ -1,13 +1,16 @@
 # CNPGClusterLogicalReplicationDistance
 
-These alerts report the difference between the subscriber's `received_lsn` and
-`latest_end_lsn`. Warning fires above 1 GiB for five minutes; critical fires above
-4 GiB for two minutes, matching MCC's distance thresholds. Labels retain the pod,
-database, and subscription so same-named subscriptions remain distinct.
+## Description
 
-This is a received-versus-reported WAL-position gap, not the amount of unapplied
-work or a measurement of committed apply progress. Missing worker metrics cannot
-trigger these alerts; worker-down detection handles that case separately.
+These alerts report the subscriber's `received_lsn` minus `latest_end_lsn`.
+Warning fires above 1 GiB for five minutes; critical fires above 4 GiB for two
+minutes. Labels identify the pod, database, and subscription.
+
+## Impact
+
+A large WAL-position gap warrants investigation but does not measure unapplied
+work or committed apply progress. Missing worker metrics cannot trigger these
+alerts; check worker health separately.
 
 ## Diagnosis
 
@@ -22,5 +25,10 @@ FROM pg_stat_subscription;
 
 Check receipt age and worker health, and use the
 [logical replication error runbook](CNPGClusterLogicalReplicationErrors.md) to
-inspect apply/sync errors and subscriber logs. Do not skip transactions or
-resynchronize a subscription based on this position gap alone.
+inspect apply/sync errors and subscriber logs.
+
+## Mitigation
+
+Address any confirmed connection, worker, or apply errors found during diagnosis.
+Do not skip transactions or resynchronize a subscription based on this position
+gap alone.
