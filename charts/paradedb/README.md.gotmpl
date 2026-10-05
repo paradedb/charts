@@ -212,6 +212,8 @@ Alternatively, you can manually import the dashboard from the `monitoring` direc
 
 ### Metrics Configuration
 
+Placement and pooler alerts require kube-state-metrics pod, node, and deployment metrics. Zone-spread alerts also require the `topology.kubernetes.io/zone` node label, enabled with `--metric-labels-allowlist=nodes=[topology.kubernetes.io/zone]`. The primary-failing alert additionally requires the CNPG Cluster custom-resource metrics described below.
+
 We recommend enabling `kube-state-metrics` custom-resource monitoring with `monitoring/metrics-clusters_postgresql_cnpg_io.yaml`, which exports CNPG Cluster metrics and ScheduledBackup's next scheduled time. Grant kube-state-metrics list/watch access to `clusters` and `scheduledbackups` in `postgresql.cnpg.io` and `customresourcedefinitions` in `apiextensions.k8s.io`.
 
 ## Examples

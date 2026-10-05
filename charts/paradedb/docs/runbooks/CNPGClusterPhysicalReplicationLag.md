@@ -7,6 +7,8 @@ The `CNPGClusterPhysicalReplicationLagWarning` and `CNPGClusterPhysicalReplicati
 - **Warning level**: replication lag exceeds 60 seconds
 - **Critical level**: replication lag exceeds 600 seconds
 
+MCC uses a 90-minute warning and two-hour critical threshold for replica clusters whose designated primary is in recovery, to allow for object-store replication. Charts retains the thresholds above for all clusters.
+
 ## Impact
 
 Physical replication lag can cause the cluster replicas to become out of sync. Queries to the `-r` and `-ro` endpoints may return stale data. In the event of a failover, the data that has not yet been replicated from the primary to the replicas may be lost.
