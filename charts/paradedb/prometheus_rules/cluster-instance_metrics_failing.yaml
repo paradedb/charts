@@ -6,7 +6,7 @@ annotations:
   description: |-
     ParadeDB CNPG instance "{{ .namespace }}/{{ .labels.pod }}" is answering on its metrics endpoint, but its most recent collection ended in an error, so part of what it should be publishing is missing.
 
-    This is the counterpart to CNPGInstanceMetricsAbsent. There the exporter is unreachable and the gap is obvious. Here it responds normally and only the queries behind individual metrics fail, so nothing reports the instance as down.
+    This is the counterpart to CNPGInstanceMetricsAbsent. There scrapes fail or collector metrics are absent. Here it responds normally and only the queries behind individual metrics fail, so nothing reports the instance as down.
 
     The alerts that read the missing series have no samples to evaluate and cannot fire. Their silence means nothing for this instance while this is active.
 
