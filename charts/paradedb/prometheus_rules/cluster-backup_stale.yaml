@@ -15,7 +15,7 @@ annotations:
     This fires on the outcome regardless of cause, so it covers backups that are failing, a schedule that has stopped being reconciled, and backups that were switched off and forgotten.
   runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGBackupStale.md
 expr: |
-  time() - max(cnpg_collector_last_available_backup_timestamp{namespace="{{ .namespace }}",pod=~"{{ .podSelector }}"}) > {{ $hours }} * 3600
+  time() - max({__name__=~"cnpg_collector_last_available_backup_timestamp|barman_cloud_cloudnative_pg_io_last_available_backup_timestamp",namespace="{{ .namespace }}",pod=~"{{ .podSelector }}"}) > {{ $hours }} * 3600
 for: 15m
 labels:
   severity: critical
