@@ -13,9 +13,7 @@ data:
   custom-queries: |
     # Subscriber-side health, restricted to subscriptions owned by the scraped database.
     # A subscription can have multiple worker rows. Receipt age measures transport activity;
-    # received_lsn and latest_end_lsn do not establish committed apply progress. The legacy
-    # buffered_lag_bytes and apply_lag_seconds names remain for dashboard compatibility and must
-    # not be interpreted as unapplied bytes or time since a transaction was applied.
+    # received_lsn and latest_end_lsn do not establish committed apply progress.
     pg_stat_subscription:
       query: |
         SELECT current_database() AS datname
@@ -38,20 +36,10 @@ data:
              {{- end }}
              , ss.pid
              , CASE
-                 WHEN received_lsn IS NOT NULL AND latest_end_lsn IS NOT NULL
-                 THEN GREATEST(0, pg_wal_lsn_diff(received_lsn, latest_end_lsn))
-                 ELSE NULL
-               END AS buffered_lag_bytes
-             , CASE
                  WHEN last_msg_receipt_time IS NOT NULL
                  THEN EXTRACT(EPOCH FROM (NOW() - last_msg_receipt_time))
                  ELSE NULL
                END AS receipt_lag_seconds
-             , CASE
-                 WHEN latest_end_time IS NOT NULL
-                 THEN EXTRACT(EPOCH FROM (NOW() - latest_end_time))
-                 ELSE NULL
-               END AS apply_lag_seconds
         FROM pg_subscription s
         LEFT JOIN pg_stat_subscription ss ON s.oid = ss.subid
         {{- if ge $pgVersion 15 }}
@@ -109,14 +97,8 @@ data:
         - pid:
             description: Process ID of the subscription worker process
             usage: GAUGE
-        - buffered_lag_bytes:
-            description: Legacy name for the nonnegative received-versus-reported WAL position gap; not committed apply backlog
-            usage: GAUGE
         - receipt_lag_seconds:
             description: Seconds since last message receipt
-            usage: GAUGE
-        - apply_lag_seconds:
-            description: Legacy name for the age of latest_end_time; not time since a transaction was applied
             usage: GAUGE
 {{- end }}
 

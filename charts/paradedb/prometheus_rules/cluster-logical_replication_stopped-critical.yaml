@@ -1,5 +1,5 @@
 {{- $alert := "CNPGClusterLogicalReplicationWorkerDown" -}}
-{{- if and (not (has $alert .excludeRules)) (not (has "CNPGClusterLogicalReplicationStoppedCritical" .excludeRules)) -}}
+{{- if not (has $alert .excludeRules) -}}
 alert: {{ $alert }}
 annotations:
   summary: ParadeDB logical replication subscription has no apply worker

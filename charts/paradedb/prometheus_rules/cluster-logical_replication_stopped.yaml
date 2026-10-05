@@ -1,5 +1,5 @@
 {{- $alert := "CNPGClusterLogicalReplicationSubscriptionDisabled" -}}
-{{- if and (not (has $alert .excludeRules)) (not (has "CNPGClusterLogicalReplicationStopped" .excludeRules)) -}}
+{{- if not (has $alert .excludeRules) -}}
 alert: {{ $alert }}
 annotations:
   summary: ParadeDB logical replication subscription is disabled

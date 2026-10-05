@@ -9,7 +9,12 @@ Cloud and BYOC monitoring distinguish two conditions on the writable primary, se
 
 Neither condition requires receipt-age or WAL-position metrics, which can be absent when no worker runs. Physical standbys and replica-cluster primaries in recovery are excluded.
 
-These replace the Charts alerts `CNPGClusterLogicalReplicationStopped` and `CNPGClusterLogicalReplicationStoppedCritical`. Existing `excludeRules` entries for those names also exclude the corresponding new rule; update external routing and silences that match the old alert names.
+These replace the Charts alerts `CNPGClusterLogicalReplicationStopped` and `CNPGClusterLogicalReplicationStoppedCritical`. Update `cluster.monitoring.prometheusRule.excludeRules`, external routing, and silences to use the new alert names. The old names are no longer supported.
+
+| Previous alert | Replacement alert |
+| --- | --- |
+| `CNPGClusterLogicalReplicationStopped` | `CNPGClusterLogicalReplicationSubscriptionDisabled` |
+| `CNPGClusterLogicalReplicationStoppedCritical` | `CNPGClusterLogicalReplicationWorkerDown` |
 
 ## Impact
 
