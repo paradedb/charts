@@ -10,17 +10,20 @@ This is the only backup alert that fires when backups stop happening silently. `
 
 ## Impact
 
-Everything written since the last successful backup is outside the recovery window. If the cluster is lost while this alert is firing, recovery goes back to the timestamp in the alert body rather than to the last nightly run, and the gap grows for as long as the condition persists.
+The most recent base backup is older than expected, increasing recovery time and dependence on retained WAL. Verify the available backups and WAL before assessing recoverability.
 
 Where continuous WAL archiving is enabled, point-in-time recovery may still reach past the last base backup. Check that archiving is healthy before assuming the full window is lost, since the [`CNPGContinuousArchivingFailed`](./CNPGContinuousArchivingFailed.md) alert covers the case where it is not.
 
 ## Diagnosis
 
-- Find the cluster's recorded backup timestamps:
+- Check the backup timestamps in the monitoring system, scoped to the affected cluster:
 
-```bash
-kubectl get -n <namespace> cluster/paradedb -o 'jsonpath={.status.lastSuccessfulBackupByMethod}{"\n"}{.status.lastFailedBackup}{"\n"}'
+```promql
+barman_cloud_cloudnative_pg_io_last_available_backup_timestamp{namespace="<namespace>",pod=~"<cluster>-[1-9][0-9]*"}
+barman_cloud_cloudnative_pg_io_last_failed_backup_timestamp{namespace="<namespace>",pod=~"<cluster>-[1-9][0-9]*"}
 ```
+
+For built-in backups, use the equivalent `cnpg_collector_last_available_backup_timestamp` and `cnpg_collector_last_failed_backup_timestamp` metrics. Legacy Cluster-status timestamps do not update for plugin backups.
 
 - List recent Backup objects and their phases:
 
@@ -47,7 +50,10 @@ kubectl get -n <namespace> scheduledbackups -o wide
 To close the recovery gap immediately rather than waiting for the next scheduled run, trigger a backup by hand:
 
 ```bash
-kubectl cnpg backup paradedb -n <namespace>
+kubectl cnpg backup <cluster> -n <namespace> \
+  --method=plugin --plugin-name=barman-cloud.cloudnative-pg.io
 ```
+
+For built-in Barman backups, omit the plugin flags.
 
 If the cluster is genuinely not meant to be backed up, the alert is reporting the truth about a cluster it should not be watching. Scope the rule rather than silencing it, so the exemption is visible in code instead of living in a silence that outlives whoever created it.
