@@ -2,7 +2,7 @@
 {{- if not (has $alert .excludeRules) -}}
 alert: {{ $alert }}
 annotations:
-  summary: Multiple ParadeDB CNPG Cluster instances are in the same availability zone.
+  summary: ParadeDB CNPG Cluster has multiple instances in the same availability zone.
   description: |-
     ParadeDB CloudNativePG Cluster "{{ .namespace }}/{{ .cluster }}" has instances in the same availability zone.
 

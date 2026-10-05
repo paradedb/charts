@@ -2,7 +2,7 @@
 {{- if not (has $alert .excludeRules) -}}
 alert: {{ $alert }}
 annotations:
-  summary: ParadeDB CNPG metrics collector is failing its queries
+  summary: ParadeDB CNPG Cluster metrics collector is failing its queries
   description: |-
     ParadeDB CNPG instance "{{ .namespace }}/{{ .labels.pod }}" is answering on its metrics endpoint, but its most recent collection ended in an error, so part of what it should be publishing is missing.
 

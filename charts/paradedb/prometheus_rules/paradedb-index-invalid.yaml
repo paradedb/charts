@@ -2,7 +2,7 @@
 {{- if not (has $alert .excludeRules) -}}
 alert: {{ $alert }}
 annotations:
-  summary: ParadeDB cluster has {{ .value }} invalid indexes
+  summary: ParadeDB CNPG Cluster has {{ .value }} invalid indexes
   description: |-
     ParadeDB cluster "{{ .namespace }}/{{ .cluster }}" has {{ .value }} invalid or not-ready indexes across its databases on the writable primary.
 

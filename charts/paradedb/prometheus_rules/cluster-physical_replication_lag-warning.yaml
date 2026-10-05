@@ -2,7 +2,7 @@
 {{- if not (has $alert .excludeRules) -}}
 alert: {{ $alert }}
 annotations:
-  summary: CNPG Cluster high physical replication lag
+  summary: ParadeDB CNPG Cluster high physical replication lag
   description: |-
     CloudNativePG Cluster "{{ .namespace }}/{{ .cluster }}" is experiencing a high physical replication lag of {{ .value }}s.
 

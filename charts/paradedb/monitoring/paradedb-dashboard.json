@@ -2964,7 +2964,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "max(abs(cnpg_pg_stat_subscription_buffered_lag_bytes{namespace=\"$namespace\"}))",
+          "expr": "max(clamp_min(cnpg_pg_stat_subscription_received_lsn{namespace=\"$namespace\"} - cnpg_pg_stat_subscription_latest_end_lsn{namespace=\"$namespace\"}, 0))",
           "instant": false,
           "legendFormat": "LSN Distance",
           "range": true,
@@ -2972,7 +2972,8 @@
         }
       ],
       "title": "",
-      "type": "stat"
+      "type": "stat",
+      "description": " LSN distance is max(received_lsn - latest_end_lsn, 0), not unapplied bytes or committed apply progress."
     },
     {
       "datasource": {
@@ -3219,7 +3220,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "Seven-day rolling fraction of one-minute observations on the primary where both the reported LSN distance is below 500 MiB and message receipt age is below 120 seconds. Target: 99.9%. Missing observations are excluded; this is not a telemetry-availability SLO. Shows the lowest compliance across database/subscription pairs.",
+      "description": "Seven-day rolling fraction of one-minute observations on the primary where both the reported LSN distance is below 500 MiB and message receipt age is below 120 seconds. Target: 99.9%. Missing observations are excluded; this is not a telemetry-availability SLO. Shows the lowest compliance across database/subscription pairs. LSN distance is max(received_lsn - latest_end_lsn, 0), not unapplied bytes or committed apply progress.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -3290,7 +3291,7 @@
           "disableTextWrap": false,
           "editorMode": "code",
           "exemplar": false,
-          "expr": "min(avg_over_time((\nmin by (datname, subname) (\n  ((max by (pod, datname, subname) (abs(cnpg_pg_stat_subscription_buffered_lag_bytes{ namespace=\"$namespace\", job=\"$namespace/$cluster\", worker_type=\"apply\"})) < bool 524288000)\n  * on (pod, datname, subname) (max by (pod, datname, subname) (clamp_min(cnpg_pg_stat_subscription_receipt_lag_seconds{ namespace=\"$namespace\", job=\"$namespace/$cluster\", worker_type=\"apply\"}, 0)) < bool 120))\n  and on (pod) max by (pod) (label_replace(kube_customresource_primary_info{customresource_group=\"postgresql.cnpg.io\", customresource_kind=\"Cluster\",  namespace=\"$namespace\", cluster=\"$cluster\"} == 1, \"pod\", \"$1\", \"current_primary\", \"(.*)\"))\n)\n)[7d:1m]))",
+          "expr": "min(avg_over_time((\nmin by (datname, subname) (\n  ((max by (pod, datname, subname) (clamp_min(cnpg_pg_stat_subscription_received_lsn{ namespace=\"$namespace\", job=\"$namespace/$cluster\", worker_type=\"apply\"} - cnpg_pg_stat_subscription_latest_end_lsn{ namespace=\"$namespace\", job=\"$namespace/$cluster\", worker_type=\"apply\"}, 0)) < bool 524288000)\n  * on (pod, datname, subname) (max by (pod, datname, subname) (clamp_min(cnpg_pg_stat_subscription_receipt_lag_seconds{ namespace=\"$namespace\", job=\"$namespace/$cluster\", worker_type=\"apply\"}, 0)) < bool 120))\n  and on (pod) max by (pod) (label_replace(kube_customresource_primary_info{customresource_group=\"postgresql.cnpg.io\", customresource_kind=\"Cluster\",  namespace=\"$namespace\", cluster=\"$cluster\"} == 1, \"pod\", \"$1\", \"current_primary\", \"(.*)\"))\n)\n)[7d:1m]))",
           "fullMetaSearch": false,
           "hide": false,
           "includeNullMetadata": true,
@@ -4469,7 +4470,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "Current primary apply subscriptions, grouped by database and subscription name. Seven-day rolling fraction of one-minute observations on the primary where both the reported LSN distance is below 500 MiB and message receipt age is below 120 seconds. Target: 99.9%. Missing observations are excluded; this is not a telemetry-availability SLO.",
+      "description": "Current primary apply subscriptions, grouped by database and subscription name. Seven-day rolling fraction of one-minute observations on the primary where both the reported LSN distance is below 500 MiB and message receipt age is below 120 seconds. Target: 99.9%. Missing observations are excluded; this is not a telemetry-availability SLO. LSN distance is max(received_lsn - latest_end_lsn, 0), not unapplied bytes or committed apply progress.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -4678,7 +4679,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "max by (datname, subname) (max by (pod, datname, subname) (abs(cnpg_pg_stat_subscription_buffered_lag_bytes{ namespace=\"$namespace\", job=\"$namespace/$cluster\", worker_type=\"apply\"})) and on (pod) max by (pod) (label_replace(kube_customresource_primary_info{customresource_group=\"postgresql.cnpg.io\", customresource_kind=\"Cluster\",  namespace=\"$namespace\", cluster=\"$cluster\"} == 1, \"pod\", \"$1\", \"current_primary\", \"(.*)\")))",
+          "expr": "max by (datname, subname) (max by (pod, datname, subname) (clamp_min(cnpg_pg_stat_subscription_received_lsn{ namespace=\"$namespace\", job=\"$namespace/$cluster\", worker_type=\"apply\"} - cnpg_pg_stat_subscription_latest_end_lsn{ namespace=\"$namespace\", job=\"$namespace/$cluster\", worker_type=\"apply\"}, 0)) and on (pod) max by (pod) (label_replace(kube_customresource_primary_info{customresource_group=\"postgresql.cnpg.io\", customresource_kind=\"Cluster\",  namespace=\"$namespace\", cluster=\"$cluster\"} == 1, \"pod\", \"$1\", \"current_primary\", \"(.*)\")))",
           "format": "table",
           "hide": false,
           "instant": true,
@@ -4693,7 +4694,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "avg_over_time((\nmin by (datname, subname) (\n  ((max by (pod, datname, subname) (abs(cnpg_pg_stat_subscription_buffered_lag_bytes{ namespace=\"$namespace\", job=\"$namespace/$cluster\", worker_type=\"apply\"})) < bool 524288000)\n  * on (pod, datname, subname) (max by (pod, datname, subname) (clamp_min(cnpg_pg_stat_subscription_receipt_lag_seconds{ namespace=\"$namespace\", job=\"$namespace/$cluster\", worker_type=\"apply\"}, 0)) < bool 120))\n  and on (pod) max by (pod) (label_replace(kube_customresource_primary_info{customresource_group=\"postgresql.cnpg.io\", customresource_kind=\"Cluster\",  namespace=\"$namespace\", cluster=\"$cluster\"} == 1, \"pod\", \"$1\", \"current_primary\", \"(.*)\"))\n)\n)[7d:1m])",
+          "expr": "avg_over_time((\nmin by (datname, subname) (\n  ((max by (pod, datname, subname) (clamp_min(cnpg_pg_stat_subscription_received_lsn{ namespace=\"$namespace\", job=\"$namespace/$cluster\", worker_type=\"apply\"} - cnpg_pg_stat_subscription_latest_end_lsn{ namespace=\"$namespace\", job=\"$namespace/$cluster\", worker_type=\"apply\"}, 0)) < bool 524288000)\n  * on (pod, datname, subname) (max by (pod, datname, subname) (clamp_min(cnpg_pg_stat_subscription_receipt_lag_seconds{ namespace=\"$namespace\", job=\"$namespace/$cluster\", worker_type=\"apply\"}, 0)) < bool 120))\n  and on (pod) max by (pod) (label_replace(kube_customresource_primary_info{customresource_group=\"postgresql.cnpg.io\", customresource_kind=\"Cluster\",  namespace=\"$namespace\", cluster=\"$cluster\"} == 1, \"pod\", \"$1\", \"current_primary\", \"(.*)\"))\n)\n)[7d:1m])",
           "format": "table",
           "hide": false,
           "instant": true,
@@ -4788,7 +4789,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "This shows the LSN distance for each Logical Replication Subscription based on data from `pg_stat_subscription`. Note that in case of replication lag, this value can show LSN distance as 0 when the subscription has not received any new data in a while. Check Last Message Receipt Age to account for that.",
+      "description": "This shows the LSN distance for each Logical Replication Subscription based on data from `pg_stat_subscription`. Note that in case of replication lag, this value can show LSN distance as 0 when the subscription has not received any new data in a while. Check Last Message Receipt Age to account for that. LSN distance is max(received_lsn - latest_end_lsn, 0), not unapplied bytes or committed apply progress.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -4865,7 +4866,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "max by (subname,worker_type)(max_over_time(cnpg_pg_stat_subscription_buffered_lag_bytes{namespace=\"$namespace\"}[$__rate_interval]))",
+          "expr": "max by (subname,worker_type)(max_over_time(clamp_min(cnpg_pg_stat_subscription_received_lsn{namespace=\"$namespace\"} - cnpg_pg_stat_subscription_latest_end_lsn{namespace=\"$namespace\"}, 0)[$__rate_interval:$__interval]))",
           "legendFormat": "{{subname}}",
           "range": true,
           "refId": "A"
@@ -4879,7 +4880,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "This shows the LSN rate of change for each Logical Replication Subscription based on data from `pg_stat_subscription`. Note that in case of replication lag, this value can show LSN distance as 0 when the subscription has not received any new data in a while. Check Last Message Receipt Age to account for that.",
+      "description": "This shows the LSN rate of change for each Logical Replication Subscription based on data from `pg_stat_subscription`. Note that in case of replication lag, this value can show LSN distance as 0 when the subscription has not received any new data in a while. Check Last Message Receipt Age to account for that. LSN distance is max(received_lsn - latest_end_lsn, 0), not unapplied bytes or committed apply progress.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -4956,7 +4957,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "avg by (subname,worker_type)(deriv(cnpg_pg_stat_subscription_buffered_lag_bytes{namespace=\"$namespace\",job=\"$namespace/$cluster\"}[$__rate_interval]))",
+          "expr": "avg by (subname,worker_type)(deriv(clamp_min(cnpg_pg_stat_subscription_received_lsn{namespace=\"$namespace\",job=\"$namespace/$cluster\"} - cnpg_pg_stat_subscription_latest_end_lsn{namespace=\"$namespace\",job=\"$namespace/$cluster\"}, 0)[$__rate_interval:$__interval]))",
           "legendFormat": "{{subname}} ({{type}})",
           "range": true,
           "refId": "A"
@@ -5069,7 +5070,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "Seven-day rolling fraction of one-minute observations on the primary where both the reported LSN distance is below 500 MiB and message receipt age is below 120 seconds. Target: 99.9%. Missing observations are excluded; this is not a telemetry-availability SLO.",
+      "description": "Seven-day rolling fraction of one-minute observations on the primary where both the reported LSN distance is below 500 MiB and message receipt age is below 120 seconds. Target: 99.9%. Missing observations are excluded; this is not a telemetry-availability SLO. LSN distance is max(received_lsn - latest_end_lsn, 0), not unapplied bytes or committed apply progress.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -5154,7 +5155,7 @@
           "disableTextWrap": false,
           "editorMode": "code",
           "exemplar": false,
-          "expr": "avg_over_time((\nmin by (datname, subname) (\n  ((max by (pod, datname, subname) (abs(cnpg_pg_stat_subscription_buffered_lag_bytes{ namespace=\"$namespace\", job=\"$namespace/$cluster\", worker_type=\"apply\"})) < bool 524288000)\n  * on (pod, datname, subname) (max by (pod, datname, subname) (clamp_min(cnpg_pg_stat_subscription_receipt_lag_seconds{ namespace=\"$namespace\", job=\"$namespace/$cluster\", worker_type=\"apply\"}, 0)) < bool 120))\n  and on (pod) max by (pod) (label_replace(kube_customresource_primary_info{customresource_group=\"postgresql.cnpg.io\", customresource_kind=\"Cluster\",  namespace=\"$namespace\", cluster=\"$cluster\"} == 1, \"pod\", \"$1\", \"current_primary\", \"(.*)\"))\n)\n)[7d:1m])",
+          "expr": "avg_over_time((\nmin by (datname, subname) (\n  ((max by (pod, datname, subname) (clamp_min(cnpg_pg_stat_subscription_received_lsn{ namespace=\"$namespace\", job=\"$namespace/$cluster\", worker_type=\"apply\"} - cnpg_pg_stat_subscription_latest_end_lsn{ namespace=\"$namespace\", job=\"$namespace/$cluster\", worker_type=\"apply\"}, 0)) < bool 524288000)\n  * on (pod, datname, subname) (max by (pod, datname, subname) (clamp_min(cnpg_pg_stat_subscription_receipt_lag_seconds{ namespace=\"$namespace\", job=\"$namespace/$cluster\", worker_type=\"apply\"}, 0)) < bool 120))\n  and on (pod) max by (pod) (label_replace(kube_customresource_primary_info{customresource_group=\"postgresql.cnpg.io\", customresource_kind=\"Cluster\",  namespace=\"$namespace\", cluster=\"$cluster\"} == 1, \"pod\", \"$1\", \"current_primary\", \"(.*)\"))\n)\n)[7d:1m])",
           "fullMetaSearch": false,
           "hide": false,
           "includeNullMetadata": true,

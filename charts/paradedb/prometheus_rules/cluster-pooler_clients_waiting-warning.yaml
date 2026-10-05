@@ -2,7 +2,7 @@
 {{- if not (has $alert .excludeRules) -}}
 alert: {{ $alert }}
 annotations:
-  summary: Clients are waiting for PgBouncer server connections
+  summary: ParadeDB CNPG Cluster has clients waiting for PgBouncer server connections
   description: |-
     PgBouncer pod "{{ .labels.pod }}" for cluster "{{ .namespace }}/{{ .cluster }}" has
     {{ .value }} clients waiting for a server connection. The queue has persisted for at
