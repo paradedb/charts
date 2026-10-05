@@ -2,15 +2,15 @@
 
 ## Description
 
-The `CNPGClusterOffline` alert is triggered when no CloudNativePG instances are ready.
+The `CNPGClusterOffline` alert indicates no ready instances or missing collector metrics across the cluster, depending on the configured alert rule. Confirm database availability directly; missing metrics can also indicate an exporter or scrape failure.
 
 ## Impact
 
-When the cluster is offline, applications cannot access the database, resulting in a full service disruption.
+A database outage disrupts application traffic. An exporter or scrape outage leaves the cluster unmonitored while PostgreSQL may remain available.
 
 ## Diagnosis
 
-To investigate why the cluster is offline:
+Check application connectivity and the monitoring targets, then inspect the cluster:
 
 - Get the status of the CloudNativePG cluster instances:
 
