@@ -129,6 +129,14 @@ spec:
                 printf '%s\n' "$rule" | grep -Fq 'max by (namespace, persistentvolumeclaim)'
               done
 
+              printf '%s\n' "$rendered" | alert_rule CNPGClusterOffline | grep -Fq 'count(cnpg_collector_up'
+              printf '%s\n' "$rendered" | alert_rule CNPGClusterOffline | grep -Fq 'for: 5m'
+              offline_excluded="$(render 3 --set 'cluster.monitoring.prometheusRule.excludeRules[0]=CNPGClusterOffline')"
+              if printf '%s\n' "$offline_excluded" | grep -Fq -- '- alert: CNPGClusterOffline'; then
+                echo "excluded offline alert must not render"
+                exit 1
+              fi
+
               one_instance="$(render 1)"
               if printf '%s\n' "$one_instance" | grep -Fq 'CNPGClusterHA'; then
                 echo "single-instance clusters must not render HA alerts"
