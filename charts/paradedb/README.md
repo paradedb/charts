@@ -210,12 +210,6 @@ The comprehensive dashboard includes monitoring for:
 
 Alternatively, you can manually import the dashboard from the `monitoring` directory.
 
-### Logical replication monitoring upgrade
-
-Logical replication alerts now distinguish disabled subscriptions from missing apply workers. Update alert exclusions, notification routing, and silences using the [alert-name migration table](docs/runbooks/CNPGClusterLogicalReplicationStopped.md). Old alert names are no longer supported.
-
-The misleading `cnpg_pg_stat_subscription_buffered_lag_bytes` and `cnpg_pg_stat_subscription_apply_lag_seconds` metrics have been removed. The bundled dashboard derives LSN distance from `received_lsn` and `latest_end_lsn`; update custom dashboards using the removed metrics. LSN distance measures the received-versus-reported position gap, not committed apply progress. See the [receipt-age runbook](docs/runbooks/CNPGClusterLogicalReplicationLagging.md).
-
 ### Metrics Configuration
 
 Additionally, we recommend enabling the `kube-state-metrics` CRD monitoring and adding the CNPG metrics. The configuration can be found in `monitoring/metrics-clusters_postgresql_cnpg_io.yaml`.
