@@ -2,7 +2,7 @@
 {{- if not (has $alert .excludeRules) -}}
 alert: {{ $alert }}
 annotations:
-  summary: PostgreSQL replication slot is retaining too much WAL
+  summary: ParadeDB CNPG Cluster has a replication slot retaining too much WAL
   description: |-
     Replication slot "{{ .labels.slot_name }}" ({{ .labels.slot_type }}) on primary
     "{{ .namespace }}/{{ .cluster }}/{{ .labels.pod }}" is retaining

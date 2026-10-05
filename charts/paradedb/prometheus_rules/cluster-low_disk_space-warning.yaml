@@ -2,7 +2,7 @@
 {{- if not (has $alert .excludeRules) -}}
 alert: {{ $alert }}
 annotations:
-  summary: ParadeDB Instance is running out of disk space.
+  summary: ParadeDB CNPG Cluster is running out of disk space.
   description: |-
     ParadeDB CloudNativePG Cluster "{{ .namespace }}/{{ .cluster }}" is running low on disk space. Check attached PVCs. Current disk space usage is {{ .valuePercent }} of the total capacity.
   runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterLowDiskSpace.md

@@ -2,7 +2,7 @@
 {{- if not (has $alert .excludeRules) -}}
 alert: {{ $alert }}
 annotations:
-  summary: PgBouncer has no available instances
+  summary: ParadeDB CNPG Cluster has no available PgBouncer instances
   description: |-
     Pooler "{{ .labels.deployment }}" for cluster "{{ .namespace }}/{{ .cluster }}" has no
     available PgBouncer instances. Customer connections through this endpoint will fail.

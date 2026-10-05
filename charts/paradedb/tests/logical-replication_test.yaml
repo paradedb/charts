@@ -24,7 +24,7 @@ tests:
               cluster: db
               pod: db-1
             exp_annotations:
-              summary: ParadeDB logical replication subscription is disabled
+              summary: ParadeDB CNPG Cluster logical replication subscription is disabled
               runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterLogicalReplicationStopped.md
               description: |-
                 CloudNativePG Cluster "customer-acme/db" subscription "sub1" is disabled and is replicating nothing.
@@ -63,7 +63,7 @@ tests:
               cluster: db
               pod: db-1
             exp_annotations:
-              summary: ParadeDB logical replication subscription has no apply worker
+              summary: ParadeDB CNPG Cluster logical replication subscription has no apply worker
               runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterLogicalReplicationStopped.md
               description: |-
                 CloudNativePG Cluster "customer-acme/db" subscription "sub1" is enabled but has no apply worker running.
@@ -175,7 +175,7 @@ tests:
               cluster: db
               pod: db-1
             exp_annotations:
-              summary: ParadeDB logical replication subscription has no apply worker
+              summary: ParadeDB CNPG Cluster logical replication subscription has no apply worker
               runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterLogicalReplicationStopped.md
               description: |-
                 CloudNativePG Cluster "customer-acme/db" subscription "sub1" is enabled but has no apply worker running.
@@ -203,7 +203,7 @@ tests:
               cluster: db
               pod: db-1
             exp_annotations:
-              summary: ParadeDB Logical replication lag critical
+              summary: ParadeDB CNPG Cluster logical replication lag critical
               runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterLogicalReplicationLagging.md
               description: |
                 CloudNativePG Cluster "customer-acme/db" has critical logical replication lag of 400s.
@@ -236,7 +236,7 @@ tests:
               cluster: db
               pod: db-1
             exp_annotations:
-              summary: ParadeDB Logical replication lag critical
+              summary: ParadeDB CNPG Cluster logical replication lag critical
               runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterLogicalReplicationLagging.md
               description: |
                 CloudNativePG Cluster "customer-acme/db" has critical logical replication lag of 1200s.
@@ -271,7 +271,7 @@ tests:
               cluster: db
               pod: db-1
             exp_annotations:
-              summary: ParadeDB Logical replication lag critical
+              summary: ParadeDB CNPG Cluster logical replication lag critical
               runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterLogicalReplicationLagging.md
               description: |
                 CloudNativePG Cluster "customer-acme/db" has critical logical replication lag of 400s.
@@ -305,7 +305,7 @@ tests:
               subname: sub1
               cluster: db
             exp_annotations:
-              summary: ParadeDB logical replication errors detected
+              summary: ParadeDB CNPG Cluster logical replication errors detected
               runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterLogicalReplicationErrors.md
               description: |-
                 CloudNativePG Cluster "customer-acme/db" subscription "sub1" has recorded 5 errors in the last 5 minutes.
@@ -323,7 +323,7 @@ tests:
               subname: sub1
               cluster: db
             exp_annotations:
-              summary: ParadeDB logical replication errors critical
+              summary: ParadeDB CNPG Cluster logical replication errors critical
               runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterLogicalReplicationErrors.md
               description: |-
                 CloudNativePG Cluster "customer-acme/db" subscription "sub1" has recorded 5 errors in the last 5 minutes.
@@ -354,7 +354,7 @@ tests:
               cluster: db
               pod: db-1
             exp_annotations:
-              summary: ParadeDB Logical replication lag warning
+              summary: ParadeDB CNPG Cluster logical replication lag warning
               runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterLogicalReplicationLagging.md
               description: |
                 CloudNativePG Cluster "customer-acme/db" has logical replication lag of 120s.
@@ -402,7 +402,7 @@ tests:
               pod: db-1
               datname: broken
             exp_annotations:
-              summary: ParadeDB logical replication subscription has no apply worker
+              summary: ParadeDB CNPG Cluster logical replication subscription has no apply worker
               runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterLogicalReplicationStopped.md
               description: |-
                 CloudNativePG Cluster "customer-acme/db" subscription "sub1" is enabled but has no apply worker running.
@@ -449,7 +449,7 @@ tests:
               pod: db-1
               datname: broken
             exp_annotations:
-              summary: ParadeDB logical replication subscription is disabled
+              summary: ParadeDB CNPG Cluster logical replication subscription is disabled
               runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterLogicalReplicationStopped.md
               description: |-
                 CloudNativePG Cluster "customer-acme/db" subscription "sub1" is disabled and is replicating nothing.
@@ -491,7 +491,7 @@ tests:
               pod: db-1
               datname: broken
             exp_annotations:
-              summary: ParadeDB Logical replication lag critical
+              summary: ParadeDB CNPG Cluster logical replication lag critical
               runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterLogicalReplicationLagging.md
               description: |
                 CloudNativePG Cluster "customer-acme/db" has critical logical replication lag of 1200s.

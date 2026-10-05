@@ -2,7 +2,7 @@
 {{- if not (has $alert .excludeRules) -}}
 alert: {{ $alert }}
 annotations:
-  summary: PostgreSQL database is approaching transaction ID wraparound
+  summary: ParadeDB CNPG Cluster has a database approaching transaction ID wraparound
   description: |-
     Database "{{ .labels.datname }}" in cluster "{{ .namespace }}/{{ .cluster }}" has a
     {{ .labels.age_kind }} age of {{ .valueHuman }}. PostgreSQL can stop accepting writes at

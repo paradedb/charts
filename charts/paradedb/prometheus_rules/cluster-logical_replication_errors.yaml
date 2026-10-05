@@ -2,7 +2,7 @@
 {{- if not (has $alert .excludeRules) -}}
 alert: {{ $alert }}
 annotations:
-  summary: ParadeDB logical replication errors detected
+  summary: ParadeDB CNPG Cluster logical replication errors detected
   description: |-
     CloudNativePG Cluster "{{ .namespace }}/{{ .cluster }}" subscription "{{ .labels.subname }}" has recorded {{ .value }} errors in the last 5 minutes.
 

@@ -2,7 +2,7 @@
 {{- if not (has $alert .excludeRules) -}}
 alert: {{ $alert }}
 annotations:
-  summary: ParadeDB Instance is approaching the maximum number of connections.
+  summary: ParadeDB CNPG Cluster has an instance approaching its maximum number of connections.
   description: |-
     ParadeDB CloudNativePG Cluster "{{ .namespace }}/{{ .cluster }}" instance {{ .labels.pod }} is using {{ .valuePercent }} of the maximum number of connections.
   runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterHighConnections.md

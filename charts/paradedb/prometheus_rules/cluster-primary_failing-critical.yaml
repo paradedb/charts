@@ -2,7 +2,7 @@
 {{- if not (has $alert .excludeRules) -}}
 alert: {{ $alert }}
 annotations:
-  summary: CloudNativePG primary recovery is not completing
+  summary: ParadeDB CNPG Cluster primary recovery is not completing
   description: |-
     Cluster "{{ .namespace }}/{{ .cluster }}" has reported a failing primary for more than
     five minutes and has not recovered. Current primary: "{{ .labels.current_primary }}";
