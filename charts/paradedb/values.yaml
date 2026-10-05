@@ -371,6 +371,8 @@ cluster:
       # Applied to samples before ingestion.
       metricRelabelings: []
     prometheusRule:
+      # -- Maximum successful backup age in hours before alerting. Use the backup interval plus grace (for example, 170 for weekly backups).
+      backupStaleAfterHours: 26
       # -- Whether to enable the PrometheusRule automated alerts
       enabled: true
       # -- Exclude specified rules

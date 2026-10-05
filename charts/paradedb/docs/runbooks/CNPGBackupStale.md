@@ -2,9 +2,9 @@
 
 ## Description
 
-The `CNPGBackupStale` alert is triggered when a CloudNativePG cluster's most recent successful backup is more than 26 hours old.
+The `CNPGBackupStale` alert is triggered when a CloudNativePG cluster's most recent successful backup is older than the configured maximum age.
 
-Backups are scheduled nightly, so 26 hours is one missed run plus two hours of grace. The alert does not distinguish why the backup is old: it fires whether backups have been failing, whether the ScheduledBackup stopped being reconciled, or whether backups were switched off and nobody noticed.
+The default is 26 hours for nightly backups. In Charts, set `cluster.monitoring.prometheusRule.backupStaleAfterHours` to the backup interval plus grace, for example `170` for weekly backups. The alert does not distinguish why the backup is old: it fires whether backups have been failing, whether the ScheduledBackup stopped being reconciled, or whether backups were switched off and nobody noticed.
 
 This is the only backup alert that fires when backups stop happening silently. `CNPGBackupFailed` needs a failure to report, and a backup that is never attempted never fails.
 
