@@ -49,7 +49,7 @@ If the intended index itself is missing or unusable, recover its exact definitio
 DROP INDEX CONCURRENTLY <schema>.<index_name>;
 CREATE INDEX CONCURRENTLY <index_name>
 ON <schema>.<table_name>
-USING paradedb (<key_column>, ...);
+USING paradedb (<indexed_columns>);
 ```
 
 Recover the exact original definition with `pg_get_indexdef(indexrelid)` before dropping the index. Schedule the rebuild with enough time and capacity to finish, and do not cancel it unless leaving another invalid index is acceptable.
