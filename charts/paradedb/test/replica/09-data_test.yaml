@@ -33,13 +33,14 @@ spec:
            DB_URI=$(echo $DB_URI | sed "s|/\*|/|" )
            DB_URI=$(echo $DB_URI | sed "s|$REPLICA_PASSWORD|$SOURCE_PASSWORD|" )
            echo "DB_URI: $DB_URI"
-           test "$(psql "${DB_URI}mygooddb" -t -c 'SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = $$mygoodtable$$)' --csv -q)" = "t"
-           RESULT=$(psql "${DB_URI}paradedb" -t) <<-EOSQL
+           test "$(psql -v ON_ERROR_STOP=1 "${DB_URI}mygooddb" -t -c 'SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = $$mygoodtable$$)' --csv -q)" = "t"
+           RESULT=$(psql -v ON_ERROR_STOP=1 "${DB_URI}paradedb" -t <<-EOSQL
              SELECT description
              FROM mock_items_paradedb_enterprise
              WHERE description @@@ '"bluetooth speaker"~1'
              LIMIT 1;
            EOSQL
+           )
            echo -$RESULT-
            if [ "$RESULT" = " Bluetooth-enabled speaker" ]; then
              echo "Test for description search on replicas passed."
@@ -48,9 +49,10 @@ spec:
              exit 1
            fi
 
-           SIZE_RESULT=$(psql "${DB_URI}paradedb" -t) <<-EOSQL
+           SIZE_RESULT=$(psql -v ON_ERROR_STOP=1 "${DB_URI}paradedb" -t <<-EOSQL
              SELECT pg_size_pretty(pg_relation_size('search_idx_paradedb_enterprise'));
            EOSQL
+           )
            echo -$SIZE_RESULT-
            if [ "$SIZE_RESULT" != " 0 bytes" ]; then
              echo "Test for index size on replicas passed."

@@ -18,14 +18,16 @@ spec:
         command: ['sh', '-c']
         args:
           - |
+            set -e
             apk --no-cache add postgresql-client
             DB_URI="${DB_URI/paradedb-ncc-1701-d-rw/paradedb-ncc-1701-d-ro}"
-            RESULT=$(psql "$DB_URI" -t) <<-EOSQL
+            RESULT=$(psql -v ON_ERROR_STOP=1 "$DB_URI" -t <<-EOSQL
               SELECT description
               FROM mock_items_paradedb_enterprise
               WHERE description @@@ '"bluetooth speaker"~1'
               LIMIT 1;
             EOSQL
+            )
             echo -$RESULT-
             if [ "$RESULT" = " Bluetooth-enabled speaker" ]; then
               echo "Test for description search on replicas passed."
@@ -34,9 +36,10 @@ spec:
               exit 1
             fi
 
-            SIZE_RESULT=$(psql "$DB_URI" -t) <<-EOSQL
+            SIZE_RESULT=$(psql -v ON_ERROR_STOP=1 "$DB_URI" -t <<-EOSQL
               SELECT pg_size_pretty(pg_relation_size('search_idx_paradedb_enterprise'));
             EOSQL
+            )
             echo -$SIZE_RESULT-
             if [ "$SIZE_RESULT" != " 0 bytes" ]; then
               echo "Test for index size on replicas passed."

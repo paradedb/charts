@@ -18,15 +18,18 @@ spec:
         command: ['sh', '-c']
         args:
           - |
+            set -e
             apk --no-cache add postgresql-client
-            PG_SEARCH_VERSION=$(psql "$DB_URI" -t) <<-EOSQL
+            PG_SEARCH_VERSION=$(psql -v ON_ERROR_STOP=1 "$DB_URI" -t <<-EOSQL
               SELECT version FROM paradedb.version_info();
             EOSQL
+            )
             echo $PG_SEARCH_VERSION
             test "$PG_SEARCH_VERSION" = " 0.19.11"
 
-            EXTVERSION=$(psql "$DB_URI" -t) <<-EOSQL
+            EXTVERSION=$(psql -v ON_ERROR_STOP=1 "$DB_URI" -t <<-EOSQL
               SELECT extversion FROM pg_extension WHERE extname = 'pg_search';
             EOSQL
+            )
             echo $EXTVERSION
             test "$EXTVERSION" = " 0.19.11"

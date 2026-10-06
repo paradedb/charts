@@ -18,12 +18,14 @@ spec:
         command: ['sh', '-c']
         args:
           - |
+            set -e
             apk --no-cache add postgresql-client
-            RESULT=$(psql "$DB_URI" -t) <<-EOSQL
+            RESULT=$(psql -v ON_ERROR_STOP=1 "$DB_URI" -t <<-EOSQL
               SELECT description
               FROM mock_items_paradedb_objectstore_backup_restore
               WHERE description @@@ '"bluetooth speaker"~1'
               LIMIT 1;
             EOSQL
+            )
             echo -$RESULT-
             test "$RESULT" = " Bluetooth-enabled speaker"

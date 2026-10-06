@@ -27,9 +27,9 @@ spec:
          - |
            set -e
            apk --no-cache add postgresql-client
-           psql "$DB_URI" -c "CREATE DATABASE mygooddb;"
-           psql "$DB_URI/mygooddb" -c "CREATE TABLE mygoodtable (id serial PRIMARY KEY);"
-           psql "$DB_URI/paradedb" <<-EOSQL
+           psql -v ON_ERROR_STOP=1 "$DB_URI" -c "CREATE DATABASE mygooddb;"
+           psql -v ON_ERROR_STOP=1 "$DB_URI/mygooddb" -c "CREATE TABLE mygoodtable (id serial PRIMARY KEY);"
+           psql -v ON_ERROR_STOP=1 "$DB_URI/paradedb" <<-EOSQL
              CALL paradedb.create_paradedb_test_table(
                schema_name => 'public',
                table_name => 'mock_items_paradedb_enterprise'
@@ -37,12 +37,13 @@ spec:
              CREATE INDEX search_idx_paradedb_enterprise ON mock_items_paradedb_enterprise
              USING paradedb (id, description, category, rating, in_stock, created_at, metadata, weight_range);
            EOSQL
-           RESULT=$(psql "$DB_URI/paradedb" -t) <<-EOSQL
+           RESULT=$(psql -v ON_ERROR_STOP=1 "$DB_URI/paradedb" -t <<-EOSQL
              SELECT description
              FROM mock_items_paradedb_enterprise
              WHERE description @@@ '"bluetooth speaker"~1'
              LIMIT 1;
            EOSQL
+           )
            echo -$RESULT-
            if [ "$RESULT" = " Bluetooth-enabled speaker" ]; then
              echo "Test for description search passed."
