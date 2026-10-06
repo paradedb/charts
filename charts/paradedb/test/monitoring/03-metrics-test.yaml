@@ -159,7 +159,7 @@ spec:
               sleep 1
             done
             [ "$locked" = true ]
-            PGAPPNAME=monitoring-build PGOPTIONS='-c statement_timeout=120000' psql "$DB_URI" -v ON_ERROR_STOP=1 -c "CREATE INDEX CONCURRENTLY active_search_idx ON active_items USING paradedb (id, description) WITH (key_field='id');" &
+            PGAPPNAME=monitoring-build PGOPTIONS='-c statement_timeout=120000' psql "$DB_URI" -v ON_ERROR_STOP=1 -c "CREATE INDEX CONCURRENTLY active_search_idx ON active_items USING paradedb (id, description);" &
             builder=$!
             # CNPG caches query results for 30 seconds; allow a full refresh.
             observed=false

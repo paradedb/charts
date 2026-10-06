@@ -382,8 +382,7 @@ cluster:
       additionalLabels: {}
         # alert_email: "true"
         # environment: staging
-    # -- Whether the default queries should be injected.
-    # Set it to true if you don't want to inject default queries into the cluster.
+    # -- Whether to disable default monitoring queries.
     disableDefaultQueries: false
     # -- Custom Prometheus metrics
     # Will be stored in the ConfigMap

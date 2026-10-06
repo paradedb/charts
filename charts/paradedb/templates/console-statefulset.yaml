@@ -40,14 +40,14 @@ spec:
       terminationGracePeriodSeconds: 2
       containers:
         - name: console
-          image: ubuntu:latest
+          image: ubuntu:24.04
           command: [ "sh" ]
           args:
             - "-c"
             - |
-              apt update
-              apt install -y postgresql-client
-              apt install -y screen curl wget jq unzip gzip nano vim util-linux less htop
+              set -e
+              apt-get update
+              apt-get install -y postgresql-client screen curl wget jq unzip gzip nano vim util-linux less htop
               cat <<EOF > /root/.bashrc
               echo -e "\nHere are some examples for connecting and running queries on the cluster:"
               echo '  nohup psql "$DB_SUPERUSER_URI/<db-name>" -c "SELECT 1;" > command.log 2>&1 &'

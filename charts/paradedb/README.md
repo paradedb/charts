@@ -1,6 +1,6 @@
 # ParadeDB Helm Chart
 
-[ParadeDB](https://github.com/paradedb/paradedb) adds Elastic-quality full-text search, vector retrieval, and aggregations to Postgres with the `pg_search` extension. Your application data and your search engine live in one database, with no second system to deploy and nothing to sync.
+[ParadeDB](https://github.com/paradedb/paradedb) is one Postgres for full-text search, vector search, and analytics. Your application data and your search engine live in one database, with no second system to deploy and nothing to sync.
 
 The ParadeDB Helm Chart is based on the official [CloudNativePG Helm Chart](https://cloudnative-pg.io/). CloudNativePG is a Kubernetes operator that manages the full lifecycle of a highly available PostgreSQL database cluster with a primary/standby architecture using Postgres streaming (physical) replication.
 
@@ -289,7 +289,7 @@ refer to the [CloudNativePG Documentation](https://cloudnative-pg.io/documentati
 | cluster.logLevel | string | `"info"` | The instances' log level, one of the following values: error, warning, info (default), debug, trace |
 | cluster.monitoring.customQueries | list | `[]` | Custom Prometheus metrics Will be stored in the ConfigMap |
 | cluster.monitoring.customQueriesSecret | list | `[]` | The list of secrets containing the custom queries |
-| cluster.monitoring.disableDefaultQueries | bool | `false` | Whether the default queries should be injected. Set it to true if you don't want to inject default queries into the cluster. |
+| cluster.monitoring.disableDefaultQueries | bool | `false` | Whether to disable default monitoring queries. |
 | cluster.monitoring.enabled | bool | `false` | Whether to enable monitoring |
 | cluster.monitoring.instrumentation.logicalReplication | bool | `true` | Enable logical replication metrics |
 | cluster.monitoring.instrumentation.paradedbIndex | bool | `true` | Enable ParadeDB index metrics |
