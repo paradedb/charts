@@ -40,7 +40,7 @@ spec:
       terminationGracePeriodSeconds: 2
       containers:
         - name: console
-          image: ubuntu:24.04
+          image: ubuntu:latest
           command: [ "sh" ]
           args:
             - "-c"
