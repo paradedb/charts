@@ -6,7 +6,7 @@ The `ParadeDBIndexInvalid` alert is triggered when the writable primary reports 
 
 This commonly happens when `CREATE INDEX CONCURRENTLY` or `REINDEX CONCURRENTLY` fails or is cancelled. PostgreSQL leaves the incomplete index behind, consuming storage even though the planner will not use it. Queries can silently fall back to a sequential scan and become much slower without returning an application error.
 
-The catalog-only `cnpg_paradedb_invalid_indexes_count` metric reports the count per database, including zero. Indexes reported as actively building in `pg_stat_progress_create_index` are excluded, including builds waiting for locks or validation. Failed or cancelled builds are counted once their progress entry disappears. `cnpg_paradedb_index_health_is_valid` and `cnpg_paradedb_index_health_is_ready` identify the individual indexes. MCC Customer Overview shows the cluster total under **ParadeDB Indexes**. These metrics do not open index storage.
+The catalog-only `cnpg_paradedb_invalid_indexes_count` metric reports the count per database, including zero. Indexes reported as actively building in `pg_stat_progress_create_index` are excluded, including builds waiting for locks or validation. Failed or cancelled builds are counted once their progress entry disappears. `cnpg_paradedb_index_health_is_valid` and `cnpg_paradedb_index_health_is_ready` identify the individual indexes. These metrics do not open index storage.
 
 ## Impact
 
@@ -49,8 +49,7 @@ If the intended index itself is missing or unusable, recover its exact definitio
 DROP INDEX CONCURRENTLY <schema>.<index_name>;
 CREATE INDEX CONCURRENTLY <index_name>
 ON <schema>.<table_name>
-USING paradedb (...)
-WITH (key_field = '<key_column>');
+USING paradedb (<indexed_columns>);
 ```
 
 Recover the exact original definition with `pg_get_indexdef(indexrelid)` before dropping the index. Schedule the rebuild with enough time and capacity to finish, and do not cancel it unless leaving another invalid index is acceptable.
