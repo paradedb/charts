@@ -1,0 +1,272 @@
+rule_files:
+- rules.generated.yaml
+evaluation_interval: 1m
+tests:
+- name: indexing without commits does not page
+  interval: 1m
+  input_series:
+  - series: cnpg_pg_replication_lag{namespace="customer-acme",pod="db-2"}
+    values: 8432+0x20
+  - series: cnpg_pg_stat_replication_replay_lag_seconds{namespace="customer-acme",pod="db-1",application_name="db-2",usename="streaming_replica"}
+    values: 10+0x20
+  - series: cnpg_pg_stat_replication_replay_diff_bytes{namespace="customer-acme",pod="db-1",application_name="db-2",usename="streaming_replica"}
+    values: 8024+0x20
+  alert_rule_test:
+  - eval_time: 4m
+    alertname: CNPGClusterPhysicalReplicationBacklogCritical
+    exp_alerts: []
+  - eval_time: 4m
+    alertname: CNPGClusterPhysicalReplicationBacklogWarning
+    exp_alerts: []
+  - eval_time: 4m
+    alertname: CNPGClusterPhysicalReplicationLagCritical
+    exp_alerts: []
+  - eval_time: 4m
+    alertname: CNPGClusterPhysicalReplicationLagWarning
+    exp_alerts: []
+  - eval_time: 10m
+    alertname: CNPGClusterPhysicalReplicationBacklogCritical
+    exp_alerts: []
+  - eval_time: 10m
+    alertname: CNPGClusterPhysicalReplicationBacklogWarning
+    exp_alerts: []
+  - eval_time: 10m
+    alertname: CNPGClusterPhysicalReplicationLagCritical
+    exp_alerts: []
+  - eval_time: 10m
+    alertname: CNPGClusterPhysicalReplicationLagWarning
+    exp_alerts: []
+- name: genuine latency still pages
+  interval: 1m
+  input_series:
+  - series: cnpg_pg_stat_replication_replay_lag_seconds{namespace="customer-acme",pod="db-1",application_name="db-2",usename="streaming_replica"}
+    values: 900+0x20
+  alert_rule_test:
+  - eval_time: 4m
+    alertname: CNPGClusterPhysicalReplicationBacklogCritical
+    exp_alerts: []
+  - eval_time: 4m
+    alertname: CNPGClusterPhysicalReplicationBacklogWarning
+    exp_alerts: []
+  - eval_time: 4m
+    alertname: CNPGClusterPhysicalReplicationLagCritical
+    exp_alerts: []
+  - eval_time: 4m
+    alertname: CNPGClusterPhysicalReplicationLagWarning
+    exp_alerts: []
+  - eval_time: 10m
+    alertname: CNPGClusterPhysicalReplicationBacklogCritical
+    exp_alerts: []
+  - eval_time: 10m
+    alertname: CNPGClusterPhysicalReplicationBacklogWarning
+    exp_alerts: []
+  - eval_time: 10m
+    alertname: CNPGClusterPhysicalReplicationLagCritical
+    exp_alerts:
+    - exp_labels:
+        cnpg_cluster: db
+        namespace: customer-acme
+        severity: critical
+      exp_annotations:
+        description: 'CloudNativePG Cluster "customer-acme/db" is experiencing a very high physical replication
+          lag of 900s.
+
+
+          High replication lag indicates network issues, busy instances, slow queries or suboptimal configuration.'
+        runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterPhysicalReplicationLag.md
+        summary: ParadeDB CNPG Cluster very high physical replication lag
+  - eval_time: 10m
+    alertname: CNPGClusterPhysicalReplicationLagWarning
+    exp_alerts:
+    - exp_labels:
+        cnpg_cluster: db
+        namespace: customer-acme
+        severity: warning
+      exp_annotations:
+        description: 'CloudNativePG Cluster "customer-acme/db" is experiencing a high physical replication lag of
+          900s.
+
+
+          High replication lag indicates network issues, busy instances, slow queries or suboptimal configuration.'
+        runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterPhysicalReplicationLag.md
+        summary: ParadeDB CNPG Cluster high physical replication lag
+- name: backlog pages with zero latency
+  interval: 1m
+  input_series:
+  - series: cnpg_pg_stat_replication_replay_lag_seconds{namespace="customer-acme",pod="db-1",application_name="db-2",usename="streaming_replica"}
+    values: 0+0x20
+  - series: cnpg_pg_stat_replication_replay_diff_bytes{namespace="customer-acme",pod="db-1",application_name="db-2",usename="streaming_replica"}
+    values: 11811160064+0x20
+  alert_rule_test:
+  - eval_time: 4m
+    alertname: CNPGClusterPhysicalReplicationBacklogCritical
+    exp_alerts: []
+  - eval_time: 4m
+    alertname: CNPGClusterPhysicalReplicationBacklogWarning
+    exp_alerts: []
+  - eval_time: 4m
+    alertname: CNPGClusterPhysicalReplicationLagCritical
+    exp_alerts: []
+  - eval_time: 4m
+    alertname: CNPGClusterPhysicalReplicationLagWarning
+    exp_alerts: []
+  - eval_time: 10m
+    alertname: CNPGClusterPhysicalReplicationBacklogCritical
+    exp_alerts:
+    - exp_labels:
+        cnpg_cluster: db
+        namespace: customer-acme
+        severity: critical
+        pod: db-2
+      exp_annotations:
+        description: 'CloudNativePG Cluster "customer-acme/db" standby "db-2" has 11 GiB of unreplayed WAL.
+
+
+          Check replay progress, disk and network throughput, and recovery conflicts. Replay latency can remain
+          low or unavailable while WAL accumulates.'
+        runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterPhysicalReplicationLag.md
+        summary: ParadeDB CNPG Cluster physical replication WAL backlog critical
+  - eval_time: 10m
+    alertname: CNPGClusterPhysicalReplicationBacklogWarning
+    exp_alerts:
+    - exp_labels:
+        cnpg_cluster: db
+        namespace: customer-acme
+        severity: warning
+        pod: db-2
+      exp_annotations:
+        description: 'CloudNativePG Cluster "customer-acme/db" standby "db-2" has 11 GiB of unreplayed WAL.
+
+
+          Check replay progress, disk and network throughput, and recovery conflicts. Replay latency can remain
+          low or unavailable while WAL accumulates.'
+        runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterPhysicalReplicationLag.md
+        summary: ParadeDB CNPG Cluster physical replication WAL backlog warning
+  - eval_time: 10m
+    alertname: CNPGClusterPhysicalReplicationLagCritical
+    exp_alerts: []
+  - eval_time: 10m
+    alertname: CNPGClusterPhysicalReplicationLagWarning
+    exp_alerts: []
+- name: logical sender and other namespace do not page
+  interval: 1m
+  input_series:
+  - series: cnpg_pg_stat_replication_replay_lag_seconds{namespace="customer-acme",pod="db-1",application_name="db-2",usename="logical_replication"}
+    values: 900+0x20
+  - series: cnpg_pg_stat_replication_replay_diff_bytes{namespace="other",pod="db-1",application_name="db-2",usename="streaming_replica"}
+    values: 11811160064+0x20
+  alert_rule_test:
+  - eval_time: 4m
+    alertname: CNPGClusterPhysicalReplicationBacklogCritical
+    exp_alerts: []
+  - eval_time: 4m
+    alertname: CNPGClusterPhysicalReplicationBacklogWarning
+    exp_alerts: []
+  - eval_time: 4m
+    alertname: CNPGClusterPhysicalReplicationLagCritical
+    exp_alerts: []
+  - eval_time: 4m
+    alertname: CNPGClusterPhysicalReplicationLagWarning
+    exp_alerts: []
+  - eval_time: 10m
+    alertname: CNPGClusterPhysicalReplicationBacklogCritical
+    exp_alerts: []
+  - eval_time: 10m
+    alertname: CNPGClusterPhysicalReplicationBacklogWarning
+    exp_alerts: []
+  - eval_time: 10m
+    alertname: CNPGClusterPhysicalReplicationLagCritical
+    exp_alerts: []
+  - eval_time: 10m
+    alertname: CNPGClusterPhysicalReplicationLagWarning
+    exp_alerts: []
+- name: archive-only replica retains previous checks
+  interval: 1m
+  input_series:
+  - series: cnpg_collector_replica_mode{namespace="customer-acme",pod="db-1"}
+    values: 1+0x20
+  - series: cnpg_pg_replication_lag{namespace="customer-acme",pod="db-1"}
+    values: 900+0x20
+  alert_rule_test:
+  - eval_time: 4m
+    alertname: CNPGClusterPhysicalReplicationBacklogCritical
+    exp_alerts: []
+  - eval_time: 4m
+    alertname: CNPGClusterPhysicalReplicationBacklogWarning
+    exp_alerts: []
+  - eval_time: 4m
+    alertname: CNPGClusterPhysicalReplicationLagCritical
+    exp_alerts: []
+  - eval_time: 4m
+    alertname: CNPGClusterPhysicalReplicationLagWarning
+    exp_alerts: []
+  - eval_time: 10m
+    alertname: CNPGClusterPhysicalReplicationBacklogCritical
+    exp_alerts: []
+  - eval_time: 10m
+    alertname: CNPGClusterPhysicalReplicationBacklogWarning
+    exp_alerts: []
+  - eval_time: 10m
+    alertname: CNPGClusterPhysicalReplicationLagCritical
+    exp_alerts:
+    - exp_labels:
+        cnpg_cluster: db
+        namespace: customer-acme
+        severity: critical
+      exp_annotations:
+        description: 'CloudNativePG Cluster "customer-acme/db" is experiencing a very high physical replication
+          lag of 900s.
+
+
+          High replication lag indicates network issues, busy instances, slow queries or suboptimal configuration.'
+        runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterPhysicalReplicationLag.md
+        summary: ParadeDB CNPG Cluster very high physical replication lag
+  - eval_time: 10m
+    alertname: CNPGClusterPhysicalReplicationLagWarning
+    exp_alerts:
+    - exp_labels:
+        cnpg_cluster: db
+        namespace: customer-acme
+        severity: warning
+      exp_annotations:
+        description: 'CloudNativePG Cluster "customer-acme/db" is experiencing a high physical replication lag of
+          900s.
+
+
+          High replication lag indicates network issues, busy instances, slow queries or suboptimal configuration.'
+        runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterPhysicalReplicationLag.md
+        summary: ParadeDB CNPG Cluster high physical replication lag
+- name: dedicated streaming standby does not fall back to transaction age
+  interval: 1m
+  input_series:
+  - series: cnpg_collector_replica_mode{namespace="customer-acme",pod="db-1"}
+    values: 1+0x20
+  - series: cnpg_pg_replication_lag{namespace="customer-acme",pod="db-2"}
+    values: 8432+0x20
+  - series: cnpg_pg_stat_replication_replay_lag_seconds{namespace="customer-acme",pod="db-1",application_name="db-2",usename="streaming_replica"}
+    values: 10+0x20
+  alert_rule_test:
+  - eval_time: 4m
+    alertname: CNPGClusterPhysicalReplicationBacklogCritical
+    exp_alerts: []
+  - eval_time: 4m
+    alertname: CNPGClusterPhysicalReplicationBacklogWarning
+    exp_alerts: []
+  - eval_time: 4m
+    alertname: CNPGClusterPhysicalReplicationLagCritical
+    exp_alerts: []
+  - eval_time: 4m
+    alertname: CNPGClusterPhysicalReplicationLagWarning
+    exp_alerts: []
+  - eval_time: 10m
+    alertname: CNPGClusterPhysicalReplicationBacklogCritical
+    exp_alerts: []
+  - eval_time: 10m
+    alertname: CNPGClusterPhysicalReplicationBacklogWarning
+    exp_alerts: []
+  - eval_time: 10m
+    alertname: CNPGClusterPhysicalReplicationLagCritical
+    exp_alerts: []
+  - eval_time: 10m
+    alertname: CNPGClusterPhysicalReplicationLagWarning
+    exp_alerts: []
