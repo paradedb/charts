@@ -2,23 +2,32 @@
 
 ## Description
 
-The `CNPGClusterPhysicalReplicationLagWarning` and `CNPGClusterPhysicalReplicationLagCritical` alerts are triggered when the standby replicas fall too far behind the primary instance. Physical replication lag measures that distance in time.
+For connected streaming replicas, `CNPGClusterPhysicalReplicationLagWarning` and `CNPGClusterPhysicalReplicationLagCritical` use `cnpg_pg_stat_replication_replay_lag_seconds`, the primary's measurement of time taken to acknowledge recent WAL replay:
 
-- **Warning level**: replication lag exceeds 60 seconds
-- **Critical level**: replication lag exceeds 600 seconds
+- **Warning**: above 60 seconds for five minutes.
+- **Critical**: above 600 seconds for five minutes.
+
+`CNPGClusterPhysicalReplicationBacklogWarning` and `CNPGClusterPhysicalReplicationBacklogCritical` separately monitor `cnpg_pg_stat_replication_replay_diff_bytes`:
+
+- **Warning**: above 1 GiB of unreplayed WAL for five minutes.
+- **Critical**: above 10 GiB of unreplayed WAL for five minutes.
+
+Sender metrics are exported on the primary, with the standby named by `application_name`. Backlog alerts map that label to the standby `pod`. CNPG's `streaming_replica` user distinguishes physical connections from logical ones.
+
+Replay latency measures acknowledgment of recent WAL, not catch-up time. PostgreSQL makes it NULL after the standby catches up and the connection becomes idle; CNPG exports that NULL as zero. A stalled standby can have substantial backlog despite low or unavailable latency, so inspect both measurements. Missing connection metrics are not proof of health; also check HA and missing-exporter alerts.
+
+For archive-only instances in replica mode without a corresponding sender metric, the chart retains its existing `cnpg_pg_replication_lag` check. This is a transaction-age heuristic: [CNPG's SQL](https://github.com/cloudnative-pg/cloudnative-pg/blob/v1.30.1/config/manager/default-monitoring.yaml#L110) returns the age of the last replayed transaction commit/abort whenever received and replayed WAL positions differ. During indexing without other commits it can show hours of apparent lag despite fast replay. Confirm WAL positions and progress before treating it as a replication failure. MCC applies its separate 90/120-minute allowances to dedicated replica clusters.
 
 ## Impact
 
-Physical replication lag can cause the cluster replicas to become out of sync. Queries to the `-r` and `-ro` endpoints may return stale data. In the event of a failover, the data that has not yet been replicated from the primary to the replicas may be lost.
-
-At the warning level, the staleness is usually tolerable for read-heavy workloads. At the critical level, a failover carries a significant risk of data loss.
+A genuine replay backlog can make read-replica queries stale. Failover data-loss risk depends on which WAL has reached durable storage on the promoted standby, not solely on replay latency or unreplayed bytes. WAL received and flushed but not yet replayed can still be recovered.
 
 ## Diagnosis
 
 Check replication status in the [CloudNativePG Grafana Dashboard](https://grafana.com/grafana/dashboards/20417-cloudnativepg/) or by running:
 
 ```bash
-kubectl exec -n <namespace> -it services/paradedb-rw -- psql -c "SELECT * FROM pg_stat_replication;"
+kubectl exec -n <namespace> -it services/paradedb-rw -- psql -c "SELECT application_name, state, replay_lag, pg_wal_lsn_diff(pg_current_wal_lsn(), replay_lsn) AS replay_backlog_bytes, pg_wal_lsn_diff(pg_current_wal_lsn(), flush_lsn) AS unflushed_bytes FROM pg_stat_replication;"
 ```
 
 High physical replication lag can be caused by a number of factors:

@@ -1,0 +1,26 @@
+{{- $alert := "CNPGClusterPhysicalReplicationBacklogCritical" -}}
+{{- if not (has $alert .excludeRules) -}}
+alert: {{ $alert }}
+annotations:
+  summary: ParadeDB CNPG Cluster physical replication WAL backlog critical
+  description: |-
+    CloudNativePG Cluster "{{ .namespace }}/{{ .cluster }}" standby "{{ .labels.pod }}" has {{ .value }} GiB of unreplayed WAL.
+
+    Check replay progress, disk and network throughput, and recovery conflicts. Replay latency can remain low or unavailable while WAL accumulates.
+  runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterPhysicalReplicationLag.md
+expr: |
+  max by (pod) (
+    label_replace(
+      cnpg_pg_stat_replication_replay_diff_bytes{namespace="{{ .namespace }}", pod=~"{{ .podSelector }}", usename="streaming_replica", application_name=~"{{ .podSelector }}"},
+      "pod", "$1", "application_name", "(.+)"
+    )
+  ) / 1073741824 > 10
+for: 5m
+labels:
+  severity: critical
+  namespace: {{ .namespace }}
+  cnpg_cluster: {{ .cluster }}
+{{- range $key, $val := .additionalLabels }}
+  {{ $key }}: {{ $val | toString | quote }}
+{{- end }}
+{{- end -}}

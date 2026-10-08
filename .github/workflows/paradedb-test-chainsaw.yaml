@@ -9,6 +9,36 @@ on:
 permissions: read-all
 
 jobs:
+  test-alert-rules:
+    name: Unit Test Physical Replication Alerts
+    runs-on: ubuntu-26.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Install Helm
+        uses: azure/setup-helm@v5
+      - name: Install Test Tools
+        run: |
+          curl -fsSL https://github.com/VictoriaMetrics/VictoriaMetrics/releases/download/v1.148.0/vmutils-linux-amd64-v1.148.0.tar.gz \
+            | tar xz vmalert-tool-prod
+          pip install pyyaml
+      - name: Render Alert Rules
+        run: |
+          helm template db charts/paradedb --namespace customer-acme \
+            --set fullnameOverride=db --set cluster.instances=3 \
+            --set cluster.monitoring.enabled=true \
+            --set cluster.monitoring.prometheusRule.enabled=true \
+            --show-only templates/prometheus-rule.yaml > /tmp/alert-rules.yaml
+          python3 - <<'PYTHON'
+          import pathlib
+          import yaml
+          rules = yaml.safe_load(pathlib.Path("/tmp/alert-rules.yaml").read_text())["spec"]
+          pathlib.Path("charts/paradedb/tests/rules.generated.yaml").write_text(yaml.safe_dump(rules))
+          PYTHON
+      - name: Test Alert Rules
+        working-directory: charts/paradedb/tests
+        run: ${{ github.workspace }}/vmalert-tool-prod unittest --disableAlertgroupLabel --files=physical-replication_test.yaml
+
   test-list:
     runs-on: ubuntu-26.04
     outputs:
