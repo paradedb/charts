@@ -4,7 +4,7 @@
 # it has to survive templating: a `with` guard treats 0 as empty, drops the key,
 # and the CRD default silently puts it back at 180.
 # Same non-runnable image as 01 — this only verifies spec propagation.
-type: postgresql
+type: paradedb
 mode: standalone
 
 cluster:

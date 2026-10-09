@@ -1,6 +1,6 @@
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
-  name: zero-smart-shutdown-timeout-cluster
+  name: zero-smart-shutdown-timeout-paradedb
 spec:
   smartShutdownTimeout: 0

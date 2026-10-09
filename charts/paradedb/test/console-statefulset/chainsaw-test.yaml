@@ -8,7 +8,8 @@ spec:
   timeouts:
     apply: 1s
     assert: 10s
-    cleanup: 1m
+    # Allow the operator to complete database shutdown during namespace teardown.
+    cleanup: 5m
     exec: 5m
   steps:
     - name: Install a cluster with a console enabled
@@ -37,4 +38,4 @@ spec:
       try:
         - script:
             content: |
-              helm uninstall --namespace $NAMESPACE console-test
+              helm uninstall --namespace $NAMESPACE --wait --timeout 5m console-test
