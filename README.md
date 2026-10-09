@@ -34,6 +34,8 @@
 
 # ParadeDB Helm Chart
 
+<!-- Temporary CI smoke test for the dev upstream-main rebase. -->
+
 [ParadeDB](https://github.com/paradedb/paradedb) is one Postgres for full-text search, vector search, and analytics. Your application data and your search engine live in one database, with no second system to deploy and nothing to sync.
 
 The ParadeDB Helm Chart is based on the official [CloudNativePG Helm Chart](https://cloudnative-pg.io/). CloudNativePG is a Kubernetes operator that manages the full lifecycle of a highly available PostgreSQL database cluster with a primary/standby architecture using Postgres streaming (physical) replication.
