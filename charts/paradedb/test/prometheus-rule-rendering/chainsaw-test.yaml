@@ -102,6 +102,24 @@ spec:
               printf '%s\n' "$rendered" | alert_rule CNPGClusterLogicalReplicationDistanceHigh | grep -Fq 'for: 5m'
               printf '%s\n' "$rendered" | alert_rule CNPGClusterLogicalReplicationDistanceCritical | grep -Fq '/ 1024^3 > 4'
               printf '%s\n' "$rendered" | alert_rule CNPGClusterLogicalReplicationDistanceCritical | grep -Fq 'for: 2m'
+              for severity in Warning Critical; do
+                threshold=1
+                if [ "$severity" = Critical ]; then threshold=10; fi
+                alert="CNPGClusterPhysicalReplicationBacklog$severity"
+                physical="$(printf '%s\n' "$rendered" | alert_rule "$alert")"
+                printf '%s\n' "$physical" | grep -Fq 'cnpg_pg_stat_replication_replay_diff_bytes'
+                printf '%s\n' "$physical" | grep -Fq "/ 1073741824 > $threshold"
+                printf '%s\n' "$physical" | grep -Fq 'for: 5m'
+                if printf '%s\n' "$physical" | grep -Fq 'cnpg_pg_replication_lag'; then
+                  echo "physical backlog must not fall back to transaction age"
+                  exit 1
+                fi
+                physical_excluded="$(render 3 --set "cluster.monitoring.prometheusRule.excludeRules[0]=$alert")"
+                if printf '%s\n' "$physical_excluded" | grep -Fq -- "- alert: $alert"; then
+                  echo "excluded physical backlog alert must not render"
+                  exit 1
+                fi
+              done
               printf '%s\n' "$rendered" | alert_rule CNPGBackupStale | grep -Fq '> 26 * 3600'
               printf '%s\n' "$rendered" | alert_rule CNPGBackupStale | grep -Fq 'cnpg_collector_last_available_backup_timestamp|barman_cloud_cloudnative_pg_io_last_available_backup_timestamp'
               printf '%s\n' "$rendered" | alert_rule CNPGBackupStale | grep -Fq '} > 0)'
