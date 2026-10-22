@@ -430,7 +430,7 @@
             },
             "disableDefaultQueries": {
               "default": false,
-              "description": "Disable CNPG's default SQL metrics. This leaves custom queries enabled but removes metrics used by built-in dashboards and alerts.",
+              "description": "Whether to disable default monitoring queries.",
               "type": "boolean"
             },
             "enabled": {

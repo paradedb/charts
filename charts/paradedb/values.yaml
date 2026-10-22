@@ -401,7 +401,7 @@ cluster:
       additionalLabels: {}
         # alert_email: "true"
         # environment: staging
-    # -- Disable CNPG's default SQL metrics. This leaves custom queries enabled but removes metrics used by built-in dashboards and alerts.
+    # -- Whether to disable default monitoring queries.
     disableDefaultQueries: false
     # -- Custom Prometheus metrics
     # Will be stored in the ConfigMap
