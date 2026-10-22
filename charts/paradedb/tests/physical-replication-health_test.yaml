@@ -9,9 +9,9 @@ tests:
     values: 0+0x30
   - series: cnpg_paradedb_physical_replication_replay_lsn{namespace="customer-acme",job="customer-acme/db",pod="db-2"}
     values: 100+0x30
-  - series: cnpg_paradedb_physical_replication_receiver_up{namespace="customer-acme",job="customer-acme/db",pod="db-2"}
+  - series: cnpg_pg_replication_is_wal_receiver_up{namespace="customer-acme",job="customer-acme/db",pod="db-2"}
     values: 1+0x30
-  - series: cnpg_paradedb_physical_replication_in_recovery{namespace="customer-acme",job="customer-acme/db",pod="db-2"}
+  - series: cnpg_pg_replication_in_recovery{namespace="customer-acme",job="customer-acme/db",pod="db-2"}
     values: 1+0x30
   alert_rule_test:
   - eval_time: 7m
@@ -21,9 +21,9 @@ tests:
     alertname: CNPGClusterPhysicalReplicationDisconnectedWarning
     exp_alerts: []
   metricsql_expr_test:
-  - expr: "(((max by (namespace, pod) (cnpg_paradedb_physical_replication_receiver_up{namespace=\"\
+  - expr: "(((max by (namespace, pod) (cnpg_pg_replication_is_wal_receiver_up{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}) == 0) and on (namespace, pod)\
-      \ (max by (namespace, pod) (cnpg_paradedb_physical_replication_in_recovery{namespace=\"\
+      \ (max by (namespace, pod) (cnpg_pg_replication_in_recovery{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}) == 1)) * 0 + 3)\n  or on (namespace,\
       \ pod) (((((max by (namespace, pod) (label_replace(cnpg_pg_stat_replication_replay_diff_bytes{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\", usename=\"streaming_replica\",\
@@ -39,16 +39,16 @@ tests:
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}[5m])) == 0\n  and on (namespace,\
       \ pod) max by (namespace, pod) (count_over_time(cnpg_paradedb_physical_replication_replay_lsn{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}[5m])) >= 5\n  and on (namespace,\
-      \ pod) max by (namespace, pod) (cnpg_paradedb_physical_replication_receiver_up{namespace=\"\
+      \ pod) max by (namespace, pod) (cnpg_pg_replication_is_wal_receiver_up{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}) == 1\n  and on (namespace, pod)\
-      \ (max by (namespace, pod) (cnpg_paradedb_physical_replication_in_recovery{namespace=\"\
+      \ (max by (namespace, pod) (cnpg_pg_replication_in_recovery{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}) == 1)) * 0 + 2)\n  or on (namespace,\
       \ pod) ((((max by (namespace, pod) (label_replace(cnpg_pg_stat_replication_replay_diff_bytes{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\", usename=\"streaming_replica\",\
       \ application_name=~\"db-([1-9][0-9]*)$\"}, \"pod\", \"$1\", \"application_name\"\
       , \"(.+)\"))) or on (namespace, pod) (max by (namespace, pod) (cnpg_paradedb_physical_replication_pending_bytes{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}))) > 0) and on (namespace, pod)\
-      \ (max by (namespace, pod) (cnpg_paradedb_physical_replication_receiver_up{namespace=\"\
+      \ (max by (namespace, pod) (cnpg_pg_replication_is_wal_receiver_up{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}) == 1) and on (namespace, pod)\
       \ ((max by (namespace, pod) (label_replace(cnpg_pg_stat_replication_replay_diff_bytes{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\", usename=\"streaming_replica\",\
@@ -60,14 +60,14 @@ tests:
       \ application_name=~\"db-([1-9][0-9]*)$\"}, \"pod\", \"$1\", \"application_name\"\
       , \"(.+)\"))) or on (namespace, pod) (max by (namespace, pod) (cnpg_paradedb_physical_replication_pending_bytes{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}))) == 0) and on (namespace, pod)\
-      \ (max by (namespace, pod) (cnpg_paradedb_physical_replication_receiver_up{namespace=\"\
+      \ (max by (namespace, pod) (cnpg_pg_replication_is_wal_receiver_up{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}) == 1) and on (namespace, pod)\
       \ ((max by (namespace, pod) (label_replace(cnpg_pg_stat_replication_replay_diff_bytes{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\", usename=\"streaming_replica\",\
       \ application_name=~\"db-([1-9][0-9]*)$\"}, \"pod\", \"$1\", \"application_name\"\
       , \"(.+)\"))) or on (namespace, pod) (max by (namespace, pod) (cnpg_paradedb_physical_replication_pending_bytes{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"})))) * 0\n  or on (namespace, pod)\
-      \ ((max by (namespace, pod) (cnpg_paradedb_physical_replication_in_recovery{namespace=\"\
+      \ ((max by (namespace, pod) (cnpg_pg_replication_in_recovery{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}) == 1) * 0 + 4)"
     eval_time: 7m
     exp_samples:
@@ -80,9 +80,9 @@ tests:
     values: 8+0x30
   - series: cnpg_paradedb_physical_replication_replay_lsn{namespace="customer-acme",job="customer-acme/db",pod="db-2"}
     values: 100+0x30
-  - series: cnpg_paradedb_physical_replication_receiver_up{namespace="customer-acme",job="customer-acme/db",pod="db-2"}
+  - series: cnpg_pg_replication_is_wal_receiver_up{namespace="customer-acme",job="customer-acme/db",pod="db-2"}
     values: 1+0x30
-  - series: cnpg_paradedb_physical_replication_in_recovery{namespace="customer-acme",job="customer-acme/db",pod="db-2"}
+  - series: cnpg_pg_replication_in_recovery{namespace="customer-acme",job="customer-acme/db",pod="db-2"}
     values: 1+0x30
   alert_rule_test:
   - eval_time: 7m
@@ -103,9 +103,9 @@ tests:
     alertname: CNPGClusterPhysicalReplicationDisconnectedWarning
     exp_alerts: []
   metricsql_expr_test:
-  - expr: "(((max by (namespace, pod) (cnpg_paradedb_physical_replication_receiver_up{namespace=\"\
+  - expr: "(((max by (namespace, pod) (cnpg_pg_replication_is_wal_receiver_up{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}) == 0) and on (namespace, pod)\
-      \ (max by (namespace, pod) (cnpg_paradedb_physical_replication_in_recovery{namespace=\"\
+      \ (max by (namespace, pod) (cnpg_pg_replication_in_recovery{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}) == 1)) * 0 + 3)\n  or on (namespace,\
       \ pod) (((((max by (namespace, pod) (label_replace(cnpg_pg_stat_replication_replay_diff_bytes{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\", usename=\"streaming_replica\",\
@@ -121,16 +121,16 @@ tests:
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}[5m])) == 0\n  and on (namespace,\
       \ pod) max by (namespace, pod) (count_over_time(cnpg_paradedb_physical_replication_replay_lsn{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}[5m])) >= 5\n  and on (namespace,\
-      \ pod) max by (namespace, pod) (cnpg_paradedb_physical_replication_receiver_up{namespace=\"\
+      \ pod) max by (namespace, pod) (cnpg_pg_replication_is_wal_receiver_up{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}) == 1\n  and on (namespace, pod)\
-      \ (max by (namespace, pod) (cnpg_paradedb_physical_replication_in_recovery{namespace=\"\
+      \ (max by (namespace, pod) (cnpg_pg_replication_in_recovery{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}) == 1)) * 0 + 2)\n  or on (namespace,\
       \ pod) ((((max by (namespace, pod) (label_replace(cnpg_pg_stat_replication_replay_diff_bytes{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\", usename=\"streaming_replica\",\
       \ application_name=~\"db-([1-9][0-9]*)$\"}, \"pod\", \"$1\", \"application_name\"\
       , \"(.+)\"))) or on (namespace, pod) (max by (namespace, pod) (cnpg_paradedb_physical_replication_pending_bytes{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}))) > 0) and on (namespace, pod)\
-      \ (max by (namespace, pod) (cnpg_paradedb_physical_replication_receiver_up{namespace=\"\
+      \ (max by (namespace, pod) (cnpg_pg_replication_is_wal_receiver_up{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}) == 1) and on (namespace, pod)\
       \ ((max by (namespace, pod) (label_replace(cnpg_pg_stat_replication_replay_diff_bytes{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\", usename=\"streaming_replica\",\
@@ -142,14 +142,14 @@ tests:
       \ application_name=~\"db-([1-9][0-9]*)$\"}, \"pod\", \"$1\", \"application_name\"\
       , \"(.+)\"))) or on (namespace, pod) (max by (namespace, pod) (cnpg_paradedb_physical_replication_pending_bytes{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}))) == 0) and on (namespace, pod)\
-      \ (max by (namespace, pod) (cnpg_paradedb_physical_replication_receiver_up{namespace=\"\
+      \ (max by (namespace, pod) (cnpg_pg_replication_is_wal_receiver_up{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}) == 1) and on (namespace, pod)\
       \ ((max by (namespace, pod) (label_replace(cnpg_pg_stat_replication_replay_diff_bytes{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\", usename=\"streaming_replica\",\
       \ application_name=~\"db-([1-9][0-9]*)$\"}, \"pod\", \"$1\", \"application_name\"\
       , \"(.+)\"))) or on (namespace, pod) (max by (namespace, pod) (cnpg_paradedb_physical_replication_pending_bytes{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"})))) * 0\n  or on (namespace, pod)\
-      \ ((max by (namespace, pod) (cnpg_paradedb_physical_replication_in_recovery{namespace=\"\
+      \ ((max by (namespace, pod) (cnpg_pg_replication_in_recovery{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}) == 1) * 0 + 4)"
     eval_time: 7m
     exp_samples:
@@ -162,9 +162,9 @@ tests:
     values: 8+8x30
   - series: cnpg_paradedb_physical_replication_replay_lsn{namespace="customer-acme",job="customer-acme/db",pod="db-2"}
     values: 100+1x30
-  - series: cnpg_paradedb_physical_replication_receiver_up{namespace="customer-acme",job="customer-acme/db",pod="db-2"}
+  - series: cnpg_pg_replication_is_wal_receiver_up{namespace="customer-acme",job="customer-acme/db",pod="db-2"}
     values: 1+0x30
-  - series: cnpg_paradedb_physical_replication_in_recovery{namespace="customer-acme",job="customer-acme/db",pod="db-2"}
+  - series: cnpg_pg_replication_in_recovery{namespace="customer-acme",job="customer-acme/db",pod="db-2"}
     values: 1+0x30
   alert_rule_test:
   - eval_time: 7m
@@ -174,9 +174,9 @@ tests:
     alertname: CNPGClusterPhysicalReplicationDisconnectedWarning
     exp_alerts: []
   metricsql_expr_test:
-  - expr: "(((max by (namespace, pod) (cnpg_paradedb_physical_replication_receiver_up{namespace=\"\
+  - expr: "(((max by (namespace, pod) (cnpg_pg_replication_is_wal_receiver_up{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}) == 0) and on (namespace, pod)\
-      \ (max by (namespace, pod) (cnpg_paradedb_physical_replication_in_recovery{namespace=\"\
+      \ (max by (namespace, pod) (cnpg_pg_replication_in_recovery{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}) == 1)) * 0 + 3)\n  or on (namespace,\
       \ pod) (((((max by (namespace, pod) (label_replace(cnpg_pg_stat_replication_replay_diff_bytes{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\", usename=\"streaming_replica\",\
@@ -192,16 +192,16 @@ tests:
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}[5m])) == 0\n  and on (namespace,\
       \ pod) max by (namespace, pod) (count_over_time(cnpg_paradedb_physical_replication_replay_lsn{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}[5m])) >= 5\n  and on (namespace,\
-      \ pod) max by (namespace, pod) (cnpg_paradedb_physical_replication_receiver_up{namespace=\"\
+      \ pod) max by (namespace, pod) (cnpg_pg_replication_is_wal_receiver_up{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}) == 1\n  and on (namespace, pod)\
-      \ (max by (namespace, pod) (cnpg_paradedb_physical_replication_in_recovery{namespace=\"\
+      \ (max by (namespace, pod) (cnpg_pg_replication_in_recovery{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}) == 1)) * 0 + 2)\n  or on (namespace,\
       \ pod) ((((max by (namespace, pod) (label_replace(cnpg_pg_stat_replication_replay_diff_bytes{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\", usename=\"streaming_replica\",\
       \ application_name=~\"db-([1-9][0-9]*)$\"}, \"pod\", \"$1\", \"application_name\"\
       , \"(.+)\"))) or on (namespace, pod) (max by (namespace, pod) (cnpg_paradedb_physical_replication_pending_bytes{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}))) > 0) and on (namespace, pod)\
-      \ (max by (namespace, pod) (cnpg_paradedb_physical_replication_receiver_up{namespace=\"\
+      \ (max by (namespace, pod) (cnpg_pg_replication_is_wal_receiver_up{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}) == 1) and on (namespace, pod)\
       \ ((max by (namespace, pod) (label_replace(cnpg_pg_stat_replication_replay_diff_bytes{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\", usename=\"streaming_replica\",\
@@ -213,14 +213,14 @@ tests:
       \ application_name=~\"db-([1-9][0-9]*)$\"}, \"pod\", \"$1\", \"application_name\"\
       , \"(.+)\"))) or on (namespace, pod) (max by (namespace, pod) (cnpg_paradedb_physical_replication_pending_bytes{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}))) == 0) and on (namespace, pod)\
-      \ (max by (namespace, pod) (cnpg_paradedb_physical_replication_receiver_up{namespace=\"\
+      \ (max by (namespace, pod) (cnpg_pg_replication_is_wal_receiver_up{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}) == 1) and on (namespace, pod)\
       \ ((max by (namespace, pod) (label_replace(cnpg_pg_stat_replication_replay_diff_bytes{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\", usename=\"streaming_replica\",\
       \ application_name=~\"db-([1-9][0-9]*)$\"}, \"pod\", \"$1\", \"application_name\"\
       , \"(.+)\"))) or on (namespace, pod) (max by (namespace, pod) (cnpg_paradedb_physical_replication_pending_bytes{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"})))) * 0\n  or on (namespace, pod)\
-      \ ((max by (namespace, pod) (cnpg_paradedb_physical_replication_in_recovery{namespace=\"\
+      \ ((max by (namespace, pod) (cnpg_pg_replication_in_recovery{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}) == 1) * 0 + 4)"
     eval_time: 7m
     exp_samples:
@@ -233,9 +233,9 @@ tests:
     values: 0+0x30
   - series: cnpg_paradedb_physical_replication_replay_lsn{namespace="customer-acme",job="customer-acme/db",pod="db-2"}
     values: 100+0x30
-  - series: cnpg_paradedb_physical_replication_receiver_up{namespace="customer-acme",job="customer-acme/db",pod="db-2"}
+  - series: cnpg_pg_replication_is_wal_receiver_up{namespace="customer-acme",job="customer-acme/db",pod="db-2"}
     values: 1+0x30
-  - series: cnpg_paradedb_physical_replication_in_recovery{namespace="customer-acme",job="customer-acme/db",pod="db-2"}
+  - series: cnpg_pg_replication_in_recovery{namespace="customer-acme",job="customer-acme/db",pod="db-2"}
     values: 1+0x30
   - series: cnpg_pg_stat_replication_replay_diff_bytes{namespace="customer-acme",job="customer-acme/db",pod="db-1",application_name="db-2",usename="streaming_replica"}
     values: 8+0x30
@@ -258,9 +258,9 @@ tests:
     alertname: CNPGClusterPhysicalReplicationDisconnectedWarning
     exp_alerts: []
   metricsql_expr_test:
-  - expr: "(((max by (namespace, pod) (cnpg_paradedb_physical_replication_receiver_up{namespace=\"\
+  - expr: "(((max by (namespace, pod) (cnpg_pg_replication_is_wal_receiver_up{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}) == 0) and on (namespace, pod)\
-      \ (max by (namespace, pod) (cnpg_paradedb_physical_replication_in_recovery{namespace=\"\
+      \ (max by (namespace, pod) (cnpg_pg_replication_in_recovery{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}) == 1)) * 0 + 3)\n  or on (namespace,\
       \ pod) (((((max by (namespace, pod) (label_replace(cnpg_pg_stat_replication_replay_diff_bytes{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\", usename=\"streaming_replica\",\
@@ -276,16 +276,16 @@ tests:
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}[5m])) == 0\n  and on (namespace,\
       \ pod) max by (namespace, pod) (count_over_time(cnpg_paradedb_physical_replication_replay_lsn{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}[5m])) >= 5\n  and on (namespace,\
-      \ pod) max by (namespace, pod) (cnpg_paradedb_physical_replication_receiver_up{namespace=\"\
+      \ pod) max by (namespace, pod) (cnpg_pg_replication_is_wal_receiver_up{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}) == 1\n  and on (namespace, pod)\
-      \ (max by (namespace, pod) (cnpg_paradedb_physical_replication_in_recovery{namespace=\"\
+      \ (max by (namespace, pod) (cnpg_pg_replication_in_recovery{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}) == 1)) * 0 + 2)\n  or on (namespace,\
       \ pod) ((((max by (namespace, pod) (label_replace(cnpg_pg_stat_replication_replay_diff_bytes{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\", usename=\"streaming_replica\",\
       \ application_name=~\"db-([1-9][0-9]*)$\"}, \"pod\", \"$1\", \"application_name\"\
       , \"(.+)\"))) or on (namespace, pod) (max by (namespace, pod) (cnpg_paradedb_physical_replication_pending_bytes{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}))) > 0) and on (namespace, pod)\
-      \ (max by (namespace, pod) (cnpg_paradedb_physical_replication_receiver_up{namespace=\"\
+      \ (max by (namespace, pod) (cnpg_pg_replication_is_wal_receiver_up{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}) == 1) and on (namespace, pod)\
       \ ((max by (namespace, pod) (label_replace(cnpg_pg_stat_replication_replay_diff_bytes{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\", usename=\"streaming_replica\",\
@@ -297,14 +297,14 @@ tests:
       \ application_name=~\"db-([1-9][0-9]*)$\"}, \"pod\", \"$1\", \"application_name\"\
       , \"(.+)\"))) or on (namespace, pod) (max by (namespace, pod) (cnpg_paradedb_physical_replication_pending_bytes{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}))) == 0) and on (namespace, pod)\
-      \ (max by (namespace, pod) (cnpg_paradedb_physical_replication_receiver_up{namespace=\"\
+      \ (max by (namespace, pod) (cnpg_pg_replication_is_wal_receiver_up{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}) == 1) and on (namespace, pod)\
       \ ((max by (namespace, pod) (label_replace(cnpg_pg_stat_replication_replay_diff_bytes{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\", usename=\"streaming_replica\",\
       \ application_name=~\"db-([1-9][0-9]*)$\"}, \"pod\", \"$1\", \"application_name\"\
       , \"(.+)\"))) or on (namespace, pod) (max by (namespace, pod) (cnpg_paradedb_physical_replication_pending_bytes{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"})))) * 0\n  or on (namespace, pod)\
-      \ ((max by (namespace, pod) (cnpg_paradedb_physical_replication_in_recovery{namespace=\"\
+      \ ((max by (namespace, pod) (cnpg_pg_replication_in_recovery{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}) == 1) * 0 + 4)"
     eval_time: 7m
     exp_samples:
@@ -317,9 +317,9 @@ tests:
     values: 8+0x30
   - series: cnpg_paradedb_physical_replication_replay_lsn{namespace="customer-acme",job="customer-acme/db",pod="db-2"}
     values: 100+0x30
-  - series: cnpg_paradedb_physical_replication_receiver_up{namespace="customer-acme",job="customer-acme/db",pod="db-2"}
+  - series: cnpg_pg_replication_is_wal_receiver_up{namespace="customer-acme",job="customer-acme/db",pod="db-2"}
     values: 0+0x30
-  - series: cnpg_paradedb_physical_replication_in_recovery{namespace="customer-acme",job="customer-acme/db",pod="db-2"}
+  - series: cnpg_pg_replication_in_recovery{namespace="customer-acme",job="customer-acme/db",pod="db-2"}
     values: 1+0x30
   alert_rule_test:
   - eval_time: 7m
@@ -335,14 +335,14 @@ tests:
         cnpg_cluster: db
       exp_annotations:
         summary: ParadeDB physical replication disconnected
-        description: Physical replica "customer-acme/db-2" has no streaming WAL receiver.
+        description: Physical replica "customer-acme/db-2" has no WAL receiver.
           Check the upstream connection and PostgreSQL logs. Archive recovery may
           still be running.
         runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterPhysicalReplicationLag.md
   metricsql_expr_test:
-  - expr: "(((max by (namespace, pod) (cnpg_paradedb_physical_replication_receiver_up{namespace=\"\
+  - expr: "(((max by (namespace, pod) (cnpg_pg_replication_is_wal_receiver_up{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}) == 0) and on (namespace, pod)\
-      \ (max by (namespace, pod) (cnpg_paradedb_physical_replication_in_recovery{namespace=\"\
+      \ (max by (namespace, pod) (cnpg_pg_replication_in_recovery{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}) == 1)) * 0 + 3)\n  or on (namespace,\
       \ pod) (((((max by (namespace, pod) (label_replace(cnpg_pg_stat_replication_replay_diff_bytes{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\", usename=\"streaming_replica\",\
@@ -358,16 +358,16 @@ tests:
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}[5m])) == 0\n  and on (namespace,\
       \ pod) max by (namespace, pod) (count_over_time(cnpg_paradedb_physical_replication_replay_lsn{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}[5m])) >= 5\n  and on (namespace,\
-      \ pod) max by (namespace, pod) (cnpg_paradedb_physical_replication_receiver_up{namespace=\"\
+      \ pod) max by (namespace, pod) (cnpg_pg_replication_is_wal_receiver_up{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}) == 1\n  and on (namespace, pod)\
-      \ (max by (namespace, pod) (cnpg_paradedb_physical_replication_in_recovery{namespace=\"\
+      \ (max by (namespace, pod) (cnpg_pg_replication_in_recovery{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}) == 1)) * 0 + 2)\n  or on (namespace,\
       \ pod) ((((max by (namespace, pod) (label_replace(cnpg_pg_stat_replication_replay_diff_bytes{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\", usename=\"streaming_replica\",\
       \ application_name=~\"db-([1-9][0-9]*)$\"}, \"pod\", \"$1\", \"application_name\"\
       , \"(.+)\"))) or on (namespace, pod) (max by (namespace, pod) (cnpg_paradedb_physical_replication_pending_bytes{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}))) > 0) and on (namespace, pod)\
-      \ (max by (namespace, pod) (cnpg_paradedb_physical_replication_receiver_up{namespace=\"\
+      \ (max by (namespace, pod) (cnpg_pg_replication_is_wal_receiver_up{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}) == 1) and on (namespace, pod)\
       \ ((max by (namespace, pod) (label_replace(cnpg_pg_stat_replication_replay_diff_bytes{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\", usename=\"streaming_replica\",\
@@ -379,14 +379,14 @@ tests:
       \ application_name=~\"db-([1-9][0-9]*)$\"}, \"pod\", \"$1\", \"application_name\"\
       , \"(.+)\"))) or on (namespace, pod) (max by (namespace, pod) (cnpg_paradedb_physical_replication_pending_bytes{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}))) == 0) and on (namespace, pod)\
-      \ (max by (namespace, pod) (cnpg_paradedb_physical_replication_receiver_up{namespace=\"\
+      \ (max by (namespace, pod) (cnpg_pg_replication_is_wal_receiver_up{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}) == 1) and on (namespace, pod)\
       \ ((max by (namespace, pod) (label_replace(cnpg_pg_stat_replication_replay_diff_bytes{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\", usename=\"streaming_replica\",\
       \ application_name=~\"db-([1-9][0-9]*)$\"}, \"pod\", \"$1\", \"application_name\"\
       , \"(.+)\"))) or on (namespace, pod) (max by (namespace, pod) (cnpg_paradedb_physical_replication_pending_bytes{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"})))) * 0\n  or on (namespace, pod)\
-      \ ((max by (namespace, pod) (cnpg_paradedb_physical_replication_in_recovery{namespace=\"\
+      \ ((max by (namespace, pod) (cnpg_pg_replication_in_recovery{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}) == 1) * 0 + 4)"
     eval_time: 7m
     exp_samples:
@@ -399,9 +399,9 @@ tests:
     values: 8+0x30
   - series: cnpg_paradedb_physical_replication_replay_lsn{namespace="customer-acme",job="customer-acme/db",pod="db-2"}
     values: 100+0x30
-  - series: cnpg_paradedb_physical_replication_receiver_up{namespace="customer-acme",job="customer-acme/db",pod="db-2"}
+  - series: cnpg_pg_replication_is_wal_receiver_up{namespace="customer-acme",job="customer-acme/db",pod="db-2"}
     values: 0+0x30
-  - series: cnpg_paradedb_physical_replication_in_recovery{namespace="customer-acme",job="customer-acme/db",pod="db-2"}
+  - series: cnpg_pg_replication_in_recovery{namespace="customer-acme",job="customer-acme/db",pod="db-2"}
     values: 0+0x30
   alert_rule_test:
   - eval_time: 7m
@@ -415,9 +415,9 @@ tests:
   input_series:
   - series: cnpg_paradedb_physical_replication_pending_bytes{namespace="customer-acme",job="customer-acme/db",pod="db-2"}
     values: 8+0x30
-  - series: cnpg_paradedb_physical_replication_receiver_up{namespace="customer-acme",job="customer-acme/db",pod="db-2"}
+  - series: cnpg_pg_replication_is_wal_receiver_up{namespace="customer-acme",job="customer-acme/db",pod="db-2"}
     values: 1+0x30
-  - series: cnpg_paradedb_physical_replication_in_recovery{namespace="customer-acme",job="customer-acme/db",pod="db-2"}
+  - series: cnpg_pg_replication_in_recovery{namespace="customer-acme",job="customer-acme/db",pod="db-2"}
     values: 1+0x30
   alert_rule_test:
   - eval_time: 7m
@@ -427,9 +427,9 @@ tests:
     alertname: CNPGClusterPhysicalReplicationDisconnectedWarning
     exp_alerts: []
   metricsql_expr_test:
-  - expr: "(((max by (namespace, pod) (cnpg_paradedb_physical_replication_receiver_up{namespace=\"\
+  - expr: "(((max by (namespace, pod) (cnpg_pg_replication_is_wal_receiver_up{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}) == 0) and on (namespace, pod)\
-      \ (max by (namespace, pod) (cnpg_paradedb_physical_replication_in_recovery{namespace=\"\
+      \ (max by (namespace, pod) (cnpg_pg_replication_in_recovery{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}) == 1)) * 0 + 3)\n  or on (namespace,\
       \ pod) (((((max by (namespace, pod) (label_replace(cnpg_pg_stat_replication_replay_diff_bytes{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\", usename=\"streaming_replica\",\
@@ -445,16 +445,16 @@ tests:
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}[5m])) == 0\n  and on (namespace,\
       \ pod) max by (namespace, pod) (count_over_time(cnpg_paradedb_physical_replication_replay_lsn{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}[5m])) >= 5\n  and on (namespace,\
-      \ pod) max by (namespace, pod) (cnpg_paradedb_physical_replication_receiver_up{namespace=\"\
+      \ pod) max by (namespace, pod) (cnpg_pg_replication_is_wal_receiver_up{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}) == 1\n  and on (namespace, pod)\
-      \ (max by (namespace, pod) (cnpg_paradedb_physical_replication_in_recovery{namespace=\"\
+      \ (max by (namespace, pod) (cnpg_pg_replication_in_recovery{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}) == 1)) * 0 + 2)\n  or on (namespace,\
       \ pod) ((((max by (namespace, pod) (label_replace(cnpg_pg_stat_replication_replay_diff_bytes{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\", usename=\"streaming_replica\",\
       \ application_name=~\"db-([1-9][0-9]*)$\"}, \"pod\", \"$1\", \"application_name\"\
       , \"(.+)\"))) or on (namespace, pod) (max by (namespace, pod) (cnpg_paradedb_physical_replication_pending_bytes{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}))) > 0) and on (namespace, pod)\
-      \ (max by (namespace, pod) (cnpg_paradedb_physical_replication_receiver_up{namespace=\"\
+      \ (max by (namespace, pod) (cnpg_pg_replication_is_wal_receiver_up{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}) == 1) and on (namespace, pod)\
       \ ((max by (namespace, pod) (label_replace(cnpg_pg_stat_replication_replay_diff_bytes{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\", usename=\"streaming_replica\",\
@@ -466,14 +466,14 @@ tests:
       \ application_name=~\"db-([1-9][0-9]*)$\"}, \"pod\", \"$1\", \"application_name\"\
       , \"(.+)\"))) or on (namespace, pod) (max by (namespace, pod) (cnpg_paradedb_physical_replication_pending_bytes{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}))) == 0) and on (namespace, pod)\
-      \ (max by (namespace, pod) (cnpg_paradedb_physical_replication_receiver_up{namespace=\"\
+      \ (max by (namespace, pod) (cnpg_pg_replication_is_wal_receiver_up{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}) == 1) and on (namespace, pod)\
       \ ((max by (namespace, pod) (label_replace(cnpg_pg_stat_replication_replay_diff_bytes{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\", usename=\"streaming_replica\",\
       \ application_name=~\"db-([1-9][0-9]*)$\"}, \"pod\", \"$1\", \"application_name\"\
       , \"(.+)\"))) or on (namespace, pod) (max by (namespace, pod) (cnpg_paradedb_physical_replication_pending_bytes{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"})))) * 0\n  or on (namespace, pod)\
-      \ ((max by (namespace, pod) (cnpg_paradedb_physical_replication_in_recovery{namespace=\"\
+      \ ((max by (namespace, pod) (cnpg_pg_replication_in_recovery{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}) == 1) * 0 + 4)"
     eval_time: 7m
     exp_samples:
@@ -486,7 +486,7 @@ tests:
     values: 8+0x30
   - series: cnpg_paradedb_physical_replication_replay_lsn{namespace="customer-acme",job="customer-acme/db",pod="db-2"}
     values: 100+0x30
-  - series: cnpg_paradedb_physical_replication_in_recovery{namespace="customer-acme",job="customer-acme/db",pod="db-2"}
+  - series: cnpg_pg_replication_in_recovery{namespace="customer-acme",job="customer-acme/db",pod="db-2"}
     values: 1+0x30
   alert_rule_test:
   - eval_time: 7m
@@ -496,9 +496,9 @@ tests:
     alertname: CNPGClusterPhysicalReplicationDisconnectedWarning
     exp_alerts: []
   metricsql_expr_test:
-  - expr: "(((max by (namespace, pod) (cnpg_paradedb_physical_replication_receiver_up{namespace=\"\
+  - expr: "(((max by (namespace, pod) (cnpg_pg_replication_is_wal_receiver_up{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}) == 0) and on (namespace, pod)\
-      \ (max by (namespace, pod) (cnpg_paradedb_physical_replication_in_recovery{namespace=\"\
+      \ (max by (namespace, pod) (cnpg_pg_replication_in_recovery{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}) == 1)) * 0 + 3)\n  or on (namespace,\
       \ pod) (((((max by (namespace, pod) (label_replace(cnpg_pg_stat_replication_replay_diff_bytes{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\", usename=\"streaming_replica\",\
@@ -514,16 +514,16 @@ tests:
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}[5m])) == 0\n  and on (namespace,\
       \ pod) max by (namespace, pod) (count_over_time(cnpg_paradedb_physical_replication_replay_lsn{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}[5m])) >= 5\n  and on (namespace,\
-      \ pod) max by (namespace, pod) (cnpg_paradedb_physical_replication_receiver_up{namespace=\"\
+      \ pod) max by (namespace, pod) (cnpg_pg_replication_is_wal_receiver_up{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}) == 1\n  and on (namespace, pod)\
-      \ (max by (namespace, pod) (cnpg_paradedb_physical_replication_in_recovery{namespace=\"\
+      \ (max by (namespace, pod) (cnpg_pg_replication_in_recovery{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}) == 1)) * 0 + 2)\n  or on (namespace,\
       \ pod) ((((max by (namespace, pod) (label_replace(cnpg_pg_stat_replication_replay_diff_bytes{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\", usename=\"streaming_replica\",\
       \ application_name=~\"db-([1-9][0-9]*)$\"}, \"pod\", \"$1\", \"application_name\"\
       , \"(.+)\"))) or on (namespace, pod) (max by (namespace, pod) (cnpg_paradedb_physical_replication_pending_bytes{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}))) > 0) and on (namespace, pod)\
-      \ (max by (namespace, pod) (cnpg_paradedb_physical_replication_receiver_up{namespace=\"\
+      \ (max by (namespace, pod) (cnpg_pg_replication_is_wal_receiver_up{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}) == 1) and on (namespace, pod)\
       \ ((max by (namespace, pod) (label_replace(cnpg_pg_stat_replication_replay_diff_bytes{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\", usename=\"streaming_replica\",\
@@ -535,14 +535,14 @@ tests:
       \ application_name=~\"db-([1-9][0-9]*)$\"}, \"pod\", \"$1\", \"application_name\"\
       , \"(.+)\"))) or on (namespace, pod) (max by (namespace, pod) (cnpg_paradedb_physical_replication_pending_bytes{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}))) == 0) and on (namespace, pod)\
-      \ (max by (namespace, pod) (cnpg_paradedb_physical_replication_receiver_up{namespace=\"\
+      \ (max by (namespace, pod) (cnpg_pg_replication_is_wal_receiver_up{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}) == 1) and on (namespace, pod)\
       \ ((max by (namespace, pod) (label_replace(cnpg_pg_stat_replication_replay_diff_bytes{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\", usename=\"streaming_replica\",\
       \ application_name=~\"db-([1-9][0-9]*)$\"}, \"pod\", \"$1\", \"application_name\"\
       , \"(.+)\"))) or on (namespace, pod) (max by (namespace, pod) (cnpg_paradedb_physical_replication_pending_bytes{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"})))) * 0\n  or on (namespace, pod)\
-      \ ((max by (namespace, pod) (cnpg_paradedb_physical_replication_in_recovery{namespace=\"\
+      \ ((max by (namespace, pod) (cnpg_pg_replication_in_recovery{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}) == 1) * 0 + 4)"
     eval_time: 7m
     exp_samples:
@@ -555,9 +555,9 @@ tests:
     values: 0+0x6 8+0x23
   - series: cnpg_paradedb_physical_replication_replay_lsn{namespace="customer-acme",job="customer-acme/db",pod="db-2"}
     values: 100+0x30
-  - series: cnpg_paradedb_physical_replication_receiver_up{namespace="customer-acme",job="customer-acme/db",pod="db-2"}
+  - series: cnpg_pg_replication_is_wal_receiver_up{namespace="customer-acme",job="customer-acme/db",pod="db-2"}
     values: 1+0x30
-  - series: cnpg_paradedb_physical_replication_in_recovery{namespace="customer-acme",job="customer-acme/db",pod="db-2"}
+  - series: cnpg_pg_replication_in_recovery{namespace="customer-acme",job="customer-acme/db",pod="db-2"}
     values: 1+0x30
   alert_rule_test:
   - eval_time: 8m
@@ -567,9 +567,9 @@ tests:
     alertname: CNPGClusterPhysicalReplicationDisconnectedWarning
     exp_alerts: []
   metricsql_expr_test:
-  - expr: "(((max by (namespace, pod) (cnpg_paradedb_physical_replication_receiver_up{namespace=\"\
+  - expr: "(((max by (namespace, pod) (cnpg_pg_replication_is_wal_receiver_up{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}) == 0) and on (namespace, pod)\
-      \ (max by (namespace, pod) (cnpg_paradedb_physical_replication_in_recovery{namespace=\"\
+      \ (max by (namespace, pod) (cnpg_pg_replication_in_recovery{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}) == 1)) * 0 + 3)\n  or on (namespace,\
       \ pod) (((((max by (namespace, pod) (label_replace(cnpg_pg_stat_replication_replay_diff_bytes{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\", usename=\"streaming_replica\",\
@@ -585,16 +585,16 @@ tests:
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}[5m])) == 0\n  and on (namespace,\
       \ pod) max by (namespace, pod) (count_over_time(cnpg_paradedb_physical_replication_replay_lsn{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}[5m])) >= 5\n  and on (namespace,\
-      \ pod) max by (namespace, pod) (cnpg_paradedb_physical_replication_receiver_up{namespace=\"\
+      \ pod) max by (namespace, pod) (cnpg_pg_replication_is_wal_receiver_up{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}) == 1\n  and on (namespace, pod)\
-      \ (max by (namespace, pod) (cnpg_paradedb_physical_replication_in_recovery{namespace=\"\
+      \ (max by (namespace, pod) (cnpg_pg_replication_in_recovery{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}) == 1)) * 0 + 2)\n  or on (namespace,\
       \ pod) ((((max by (namespace, pod) (label_replace(cnpg_pg_stat_replication_replay_diff_bytes{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\", usename=\"streaming_replica\",\
       \ application_name=~\"db-([1-9][0-9]*)$\"}, \"pod\", \"$1\", \"application_name\"\
       , \"(.+)\"))) or on (namespace, pod) (max by (namespace, pod) (cnpg_paradedb_physical_replication_pending_bytes{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}))) > 0) and on (namespace, pod)\
-      \ (max by (namespace, pod) (cnpg_paradedb_physical_replication_receiver_up{namespace=\"\
+      \ (max by (namespace, pod) (cnpg_pg_replication_is_wal_receiver_up{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}) == 1) and on (namespace, pod)\
       \ ((max by (namespace, pod) (label_replace(cnpg_pg_stat_replication_replay_diff_bytes{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\", usename=\"streaming_replica\",\
@@ -606,14 +606,14 @@ tests:
       \ application_name=~\"db-([1-9][0-9]*)$\"}, \"pod\", \"$1\", \"application_name\"\
       , \"(.+)\"))) or on (namespace, pod) (max by (namespace, pod) (cnpg_paradedb_physical_replication_pending_bytes{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}))) == 0) and on (namespace, pod)\
-      \ (max by (namespace, pod) (cnpg_paradedb_physical_replication_receiver_up{namespace=\"\
+      \ (max by (namespace, pod) (cnpg_pg_replication_is_wal_receiver_up{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}) == 1) and on (namespace, pod)\
       \ ((max by (namespace, pod) (label_replace(cnpg_pg_stat_replication_replay_diff_bytes{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\", usename=\"streaming_replica\",\
       \ application_name=~\"db-([1-9][0-9]*)$\"}, \"pod\", \"$1\", \"application_name\"\
       , \"(.+)\"))) or on (namespace, pod) (max by (namespace, pod) (cnpg_paradedb_physical_replication_pending_bytes{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"})))) * 0\n  or on (namespace, pod)\
-      \ ((max by (namespace, pod) (cnpg_paradedb_physical_replication_in_recovery{namespace=\"\
+      \ ((max by (namespace, pod) (cnpg_pg_replication_in_recovery{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}) == 1) * 0 + 4)"
     eval_time: 8m
     exp_samples:
@@ -626,9 +626,9 @@ tests:
     values: 8+0x30
   - series: cnpg_paradedb_physical_replication_replay_lsn{namespace="customer-acme",job="customer-acme/db",pod="db-2"}
     values: 100+0x8 101+1x21
-  - series: cnpg_paradedb_physical_replication_receiver_up{namespace="customer-acme",job="customer-acme/db",pod="db-2"}
+  - series: cnpg_pg_replication_is_wal_receiver_up{namespace="customer-acme",job="customer-acme/db",pod="db-2"}
     values: 1+0x30
-  - series: cnpg_paradedb_physical_replication_in_recovery{namespace="customer-acme",job="customer-acme/db",pod="db-2"}
+  - series: cnpg_pg_replication_in_recovery{namespace="customer-acme",job="customer-acme/db",pod="db-2"}
     values: 1+0x30
   alert_rule_test:
   - eval_time: 10m
@@ -638,9 +638,9 @@ tests:
     alertname: CNPGClusterPhysicalReplicationDisconnectedWarning
     exp_alerts: []
   metricsql_expr_test:
-  - expr: "(((max by (namespace, pod) (cnpg_paradedb_physical_replication_receiver_up{namespace=\"\
+  - expr: "(((max by (namespace, pod) (cnpg_pg_replication_is_wal_receiver_up{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}) == 0) and on (namespace, pod)\
-      \ (max by (namespace, pod) (cnpg_paradedb_physical_replication_in_recovery{namespace=\"\
+      \ (max by (namespace, pod) (cnpg_pg_replication_in_recovery{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}) == 1)) * 0 + 3)\n  or on (namespace,\
       \ pod) (((((max by (namespace, pod) (label_replace(cnpg_pg_stat_replication_replay_diff_bytes{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\", usename=\"streaming_replica\",\
@@ -656,16 +656,16 @@ tests:
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}[5m])) == 0\n  and on (namespace,\
       \ pod) max by (namespace, pod) (count_over_time(cnpg_paradedb_physical_replication_replay_lsn{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}[5m])) >= 5\n  and on (namespace,\
-      \ pod) max by (namespace, pod) (cnpg_paradedb_physical_replication_receiver_up{namespace=\"\
+      \ pod) max by (namespace, pod) (cnpg_pg_replication_is_wal_receiver_up{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}) == 1\n  and on (namespace, pod)\
-      \ (max by (namespace, pod) (cnpg_paradedb_physical_replication_in_recovery{namespace=\"\
+      \ (max by (namespace, pod) (cnpg_pg_replication_in_recovery{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}) == 1)) * 0 + 2)\n  or on (namespace,\
       \ pod) ((((max by (namespace, pod) (label_replace(cnpg_pg_stat_replication_replay_diff_bytes{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\", usename=\"streaming_replica\",\
       \ application_name=~\"db-([1-9][0-9]*)$\"}, \"pod\", \"$1\", \"application_name\"\
       , \"(.+)\"))) or on (namespace, pod) (max by (namespace, pod) (cnpg_paradedb_physical_replication_pending_bytes{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}))) > 0) and on (namespace, pod)\
-      \ (max by (namespace, pod) (cnpg_paradedb_physical_replication_receiver_up{namespace=\"\
+      \ (max by (namespace, pod) (cnpg_pg_replication_is_wal_receiver_up{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}) == 1) and on (namespace, pod)\
       \ ((max by (namespace, pod) (label_replace(cnpg_pg_stat_replication_replay_diff_bytes{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\", usename=\"streaming_replica\",\
@@ -677,14 +677,14 @@ tests:
       \ application_name=~\"db-([1-9][0-9]*)$\"}, \"pod\", \"$1\", \"application_name\"\
       , \"(.+)\"))) or on (namespace, pod) (max by (namespace, pod) (cnpg_paradedb_physical_replication_pending_bytes{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}))) == 0) and on (namespace, pod)\
-      \ (max by (namespace, pod) (cnpg_paradedb_physical_replication_receiver_up{namespace=\"\
+      \ (max by (namespace, pod) (cnpg_pg_replication_is_wal_receiver_up{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}) == 1) and on (namespace, pod)\
       \ ((max by (namespace, pod) (label_replace(cnpg_pg_stat_replication_replay_diff_bytes{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\", usename=\"streaming_replica\",\
       \ application_name=~\"db-([1-9][0-9]*)$\"}, \"pod\", \"$1\", \"application_name\"\
       , \"(.+)\"))) or on (namespace, pod) (max by (namespace, pod) (cnpg_paradedb_physical_replication_pending_bytes{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"})))) * 0\n  or on (namespace, pod)\
-      \ ((max by (namespace, pod) (cnpg_paradedb_physical_replication_in_recovery{namespace=\"\
+      \ ((max by (namespace, pod) (cnpg_pg_replication_in_recovery{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}) == 1) * 0 + 4)"
     eval_time: 10m
     exp_samples:
@@ -697,9 +697,9 @@ tests:
     values: 8+0x8 0+0x21
   - series: cnpg_paradedb_physical_replication_replay_lsn{namespace="customer-acme",job="customer-acme/db",pod="db-2"}
     values: 100+0x30
-  - series: cnpg_paradedb_physical_replication_receiver_up{namespace="customer-acme",job="customer-acme/db",pod="db-2"}
+  - series: cnpg_pg_replication_is_wal_receiver_up{namespace="customer-acme",job="customer-acme/db",pod="db-2"}
     values: 1+0x30
-  - series: cnpg_paradedb_physical_replication_in_recovery{namespace="customer-acme",job="customer-acme/db",pod="db-2"}
+  - series: cnpg_pg_replication_in_recovery{namespace="customer-acme",job="customer-acme/db",pod="db-2"}
     values: 1+0x30
   alert_rule_test:
   - eval_time: 10m
@@ -709,9 +709,9 @@ tests:
     alertname: CNPGClusterPhysicalReplicationDisconnectedWarning
     exp_alerts: []
   metricsql_expr_test:
-  - expr: "(((max by (namespace, pod) (cnpg_paradedb_physical_replication_receiver_up{namespace=\"\
+  - expr: "(((max by (namespace, pod) (cnpg_pg_replication_is_wal_receiver_up{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}) == 0) and on (namespace, pod)\
-      \ (max by (namespace, pod) (cnpg_paradedb_physical_replication_in_recovery{namespace=\"\
+      \ (max by (namespace, pod) (cnpg_pg_replication_in_recovery{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}) == 1)) * 0 + 3)\n  or on (namespace,\
       \ pod) (((((max by (namespace, pod) (label_replace(cnpg_pg_stat_replication_replay_diff_bytes{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\", usename=\"streaming_replica\",\
@@ -727,16 +727,16 @@ tests:
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}[5m])) == 0\n  and on (namespace,\
       \ pod) max by (namespace, pod) (count_over_time(cnpg_paradedb_physical_replication_replay_lsn{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}[5m])) >= 5\n  and on (namespace,\
-      \ pod) max by (namespace, pod) (cnpg_paradedb_physical_replication_receiver_up{namespace=\"\
+      \ pod) max by (namespace, pod) (cnpg_pg_replication_is_wal_receiver_up{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}) == 1\n  and on (namespace, pod)\
-      \ (max by (namespace, pod) (cnpg_paradedb_physical_replication_in_recovery{namespace=\"\
+      \ (max by (namespace, pod) (cnpg_pg_replication_in_recovery{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}) == 1)) * 0 + 2)\n  or on (namespace,\
       \ pod) ((((max by (namespace, pod) (label_replace(cnpg_pg_stat_replication_replay_diff_bytes{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\", usename=\"streaming_replica\",\
       \ application_name=~\"db-([1-9][0-9]*)$\"}, \"pod\", \"$1\", \"application_name\"\
       , \"(.+)\"))) or on (namespace, pod) (max by (namespace, pod) (cnpg_paradedb_physical_replication_pending_bytes{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}))) > 0) and on (namespace, pod)\
-      \ (max by (namespace, pod) (cnpg_paradedb_physical_replication_receiver_up{namespace=\"\
+      \ (max by (namespace, pod) (cnpg_pg_replication_is_wal_receiver_up{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}) == 1) and on (namespace, pod)\
       \ ((max by (namespace, pod) (label_replace(cnpg_pg_stat_replication_replay_diff_bytes{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\", usename=\"streaming_replica\",\
@@ -748,14 +748,14 @@ tests:
       \ application_name=~\"db-([1-9][0-9]*)$\"}, \"pod\", \"$1\", \"application_name\"\
       , \"(.+)\"))) or on (namespace, pod) (max by (namespace, pod) (cnpg_paradedb_physical_replication_pending_bytes{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}))) == 0) and on (namespace, pod)\
-      \ (max by (namespace, pod) (cnpg_paradedb_physical_replication_receiver_up{namespace=\"\
+      \ (max by (namespace, pod) (cnpg_pg_replication_is_wal_receiver_up{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}) == 1) and on (namespace, pod)\
       \ ((max by (namespace, pod) (label_replace(cnpg_pg_stat_replication_replay_diff_bytes{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\", usename=\"streaming_replica\",\
       \ application_name=~\"db-([1-9][0-9]*)$\"}, \"pod\", \"$1\", \"application_name\"\
       , \"(.+)\"))) or on (namespace, pod) (max by (namespace, pod) (cnpg_paradedb_physical_replication_pending_bytes{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"})))) * 0\n  or on (namespace, pod)\
-      \ ((max by (namespace, pod) (cnpg_paradedb_physical_replication_in_recovery{namespace=\"\
+      \ ((max by (namespace, pod) (cnpg_pg_replication_in_recovery{namespace=\"\
       customer-acme\", pod=~\"db-([1-9][0-9]*)$\"}) == 1) * 0 + 4)"
     eval_time: 10m
     exp_samples:
@@ -768,9 +768,9 @@ tests:
     values: 8+0x30
   - series: cnpg_paradedb_physical_replication_replay_lsn{namespace="customer-acme",job="customer-acme/db",pod="db-2"}
     values: 100+0x30
-  - series: cnpg_paradedb_physical_replication_receiver_up{namespace="customer-acme",job="customer-acme/db",pod="db-2"}
+  - series: cnpg_pg_replication_is_wal_receiver_up{namespace="customer-acme",job="customer-acme/db",pod="db-2"}
     values: 0+0x30
-  - series: cnpg_paradedb_physical_replication_in_recovery{namespace="customer-acme",job="customer-acme/db",pod="db-2"}
+  - series: cnpg_pg_replication_in_recovery{namespace="customer-acme",job="customer-acme/db",pod="db-2"}
     values: 1+0x8 0+0x21
   alert_rule_test:
   - eval_time: 10m
@@ -786,9 +786,9 @@ tests:
     values: 0+0x30
   - series: cnpg_paradedb_physical_replication_replay_lsn{namespace="customer-acme",job="customer-acme/db",pod="db-2"}
     values: 100+0x30
-  - series: cnpg_paradedb_physical_replication_receiver_up{namespace="customer-acme",job="customer-acme/db",pod="db-2"}
+  - series: cnpg_pg_replication_is_wal_receiver_up{namespace="customer-acme",job="customer-acme/db",pod="db-2"}
     values: 1+0x30
-  - series: cnpg_paradedb_physical_replication_in_recovery{namespace="customer-acme",job="customer-acme/db",pod="db-2"}
+  - series: cnpg_pg_replication_in_recovery{namespace="customer-acme",job="customer-acme/db",pod="db-2"}
     values: 1+0x30
   - series: cnpg_pg_stat_replication_replay_diff_bytes{namespace="customer-acme",job="customer-acme/db",pod="db-1",application_name="db-3",usename="streaming_replica"}
     values: 8+0x30
@@ -806,9 +806,9 @@ tests:
     values: 8+0x30
   - series: cnpg_paradedb_physical_replication_replay_lsn{namespace="customer-acme",job="customer-acme/db",pod="db-2"}
     values: 100+0x30
-  - series: cnpg_paradedb_physical_replication_receiver_up{namespace="customer-acme",job="customer-acme/db",pod="db-2"}
+  - series: cnpg_pg_replication_is_wal_receiver_up{namespace="customer-acme",job="customer-acme/db",pod="db-2"}
     values: 1+0x30
-  - series: cnpg_paradedb_physical_replication_in_recovery{namespace="customer-acme",job="customer-acme/db",pod="db-2"}
+  - series: cnpg_pg_replication_in_recovery{namespace="customer-acme",job="customer-acme/db",pod="db-2"}
     values: 1+0x30
   alert_rule_test:
   - eval_time: 17m
@@ -852,9 +852,9 @@ tests:
     values: 8+0x30
   - series: cnpg_paradedb_physical_replication_replay_lsn{namespace="customer-acme",job="customer-acme/db",pod="db-2"}
     values: 100+0x30
-  - series: cnpg_paradedb_physical_replication_receiver_up{namespace="customer-acme",job="customer-acme/db",pod="db-2"}
+  - series: cnpg_pg_replication_is_wal_receiver_up{namespace="customer-acme",job="customer-acme/db",pod="db-2"}
     values: 0+0x30
-  - series: cnpg_paradedb_physical_replication_in_recovery{namespace="customer-acme",job="customer-acme/db",pod="db-2"}
+  - series: cnpg_pg_replication_in_recovery{namespace="customer-acme",job="customer-acme/db",pod="db-2"}
     values: 1+0x30
   alert_rule_test:
   - eval_time: 17m
@@ -870,7 +870,7 @@ tests:
         cnpg_cluster: db
       exp_annotations:
         summary: ParadeDB physical replication disconnected
-        description: Physical replica "customer-acme/db-2" has no streaming WAL receiver.
+        description: Physical replica "customer-acme/db-2" has no WAL receiver.
           Check the upstream connection and PostgreSQL logs. Archive recovery may
           still be running.
         runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterPhysicalReplicationLag.md
@@ -887,7 +887,7 @@ tests:
         cnpg_cluster: db
       exp_annotations:
         summary: ParadeDB physical replication disconnected
-        description: Physical replica "customer-acme/db-2" has no streaming WAL receiver.
+        description: Physical replica "customer-acme/db-2" has no WAL receiver.
           Check the upstream connection and PostgreSQL logs. Archive recovery may
           still be running.
         runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterPhysicalReplicationLag.md
@@ -898,9 +898,9 @@ tests:
     values: 8+0x150
   - series: cnpg_paradedb_physical_replication_replay_lsn{namespace="customer-acme",job="customer-acme/db",pod="db-2"}
     values: 100+0x150
-  - series: cnpg_paradedb_physical_replication_receiver_up{namespace="customer-acme",job="customer-acme/db",pod="db-2"}
+  - series: cnpg_pg_replication_is_wal_receiver_up{namespace="customer-acme",job="customer-acme/db",pod="db-2"}
     values: 1+0x150
-  - series: cnpg_paradedb_physical_replication_in_recovery{namespace="customer-acme",job="customer-acme/db",pod="db-2"}
+  - series: cnpg_pg_replication_in_recovery{namespace="customer-acme",job="customer-acme/db",pod="db-2"}
     values: 1+0x150
   - series: cnpg_pg_replication_in_recovery{namespace="customer-acme",job="customer-acme/db",pod="db-1"}
     values: 1+0x150
