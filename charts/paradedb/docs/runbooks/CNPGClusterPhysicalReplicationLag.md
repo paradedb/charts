@@ -97,16 +97,10 @@ If you decide to go this route, start by creating a new storage class. Storage c
 kubectl delete -n <namespace> pod/<pod-name> pvc/<pod-name> pvc/<pod-name>-wal
 ```
 
-## Replay stalls and disconnects
+## Connection status
 
-The status indicator shows Connected, WAL pending, Stalled, Disconnected, or Unknown. Connected means the receiver is connected with no observed pending WAL. It is not a guarantee of data freshness. The two main graphs remain replay latency and WAL replay backlog.
+The status indicator shows Connected, WAL pending, Disconnected, or Unknown using CNPG's default metrics. WAL pending does not imply that replay has stopped. Missing metrics remain unknown.
 
-A stalled replica has pending WAL and no change in its replay position for five minutes. This catches small stalled backlogs even when the recent replay-latency measurement is low. Warning and critical alerts use five-minute and fifteen-minute no-progress windows, followed by a one-minute hold. Dedicated replica clusters retain their 90-minute warning and two-hour critical allowance for stalls as well as latency. The status indicator still shows a five-minute stall so operators can see it before the alert threshold.
+A replica with no WAL receiver warns after five minutes and alerts critically after fifteen minutes. Check upstream reachability, authentication, replication slots, and PostgreSQL logs. The replica may still be replaying archived WAL.
 
-A replica with no WAL receiver warns after five minutes and alerts critically after fifteen minutes. This describes the streaming connection, not data loss. The replica may still be replaying archived WAL. These thresholds also apply to dedicated replicas.
-
-The extra query adds only instance-wide replay position and locally received pending bytes. Recovery and WAL receiver health come from CNPG's default queries. Disabling those queries leaves custom metrics enabled but removes metrics used by the built-in dashboards and alerts. Pending work uses upstream replay backlog when available and falls back to locally received pending bytes. That fallback cannot see WAL that the upstream has not sent. No heartbeat or transaction-age metric is used.
-
-Missing position samples do not establish a stall. Missing receiver telemetry does not establish a disconnect. Keep the existing exporter, instance-health, and HA alerts enabled to cover missing telemetry. A new replica needs enough samples to fill the no-progress window before a stall can fire.
-
-For a stalled replica, compare the replay position over time and check recovery conflicts, disk latency, replay pause settings, and the PostgreSQL logs. If the receiver is disconnected, check upstream reachability, authentication, replication slots, and archive recovery before restarting anything.
+These alerts do not detect an exact duration without replay progress. Small stalled backlogs can remain below the byte thresholds while recent replay latency stays low. We track adding replay-position metrics to CNPG's default queries in https://github.com/paradedb/cloud/issues/630. This chart adds no custom physical replication query.
