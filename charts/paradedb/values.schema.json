@@ -430,8 +430,7 @@
             },
             "disableDefaultQueries": {
               "default": false,
-              "description": "Must remain false. CNPG default queries are required for monitoring.",
-              "enum": [false],
+              "description": "Disable CNPG's default SQL metrics. This leaves custom queries enabled but removes metrics used by built-in dashboards and alerts.",
               "type": "boolean"
             },
             "enabled": {
