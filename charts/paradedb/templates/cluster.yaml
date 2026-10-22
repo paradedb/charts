@@ -1,6 +1,3 @@
-{{- if .Values.cluster.monitoring.disableDefaultQueries -}}
-{{- fail "CNPG default monitoring queries are required. Set cluster.monitoring.disableDefaultQueries=false." -}}
-{{- end -}}
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
