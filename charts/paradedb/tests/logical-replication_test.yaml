@@ -311,7 +311,8 @@ tests:
                 CloudNativePG Cluster "customer-acme/db" subscription "sub1" has recorded 5 errors in the last 5 minutes.
 
                 Counts both apply errors during normal replication and sync errors during initial table sync.
-                Errors here mean rows are failing to land on the subscriber, which diverges it from the publisher.
+                Check the subscriber logs for the cause and verify committed replication progress.
+                Errors may be transient; this alert alone does not establish persistent divergence.
       - eval_time: 10m
         alertname: CNPGClusterLogicalReplicationErrorsCritical
         exp_alerts:
@@ -328,11 +329,11 @@ tests:
               description: |-
                 CloudNativePG Cluster "customer-acme/db" subscription "sub1" has recorded 5 errors in the last 5 minutes.
 
-                At this rate the subscription is not making progress and is unlikely to recover without
-                intervention. The subscriber is diverging from the publisher for as long as it continues.
+                Repeated apply or initial table sync errors can delay replication. Check the subscriber logs
+                for the cause and verify committed replication progress.
 
-                Check the subscriber logs for the failing statement, since a persistent apply error is normally a
-                conflict the worker retries forever.
+                This alert counts errors; it does not establish that replication has stopped or cannot recover
+                without intervention.
       - eval_time: 10m
         alertname: CNPGClusterLogicalReplicationLagging
         exp_alerts: []
