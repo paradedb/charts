@@ -14,7 +14,7 @@ spec:
   monitoring:
       tls:
         enabled: true
-      disableDefaultQueries: true
+      disableDefaultQueries: false
       customQueriesConfigMap:
         - name: monitoring-paradedb-monitoring-physical-replication
           key: custom-queries

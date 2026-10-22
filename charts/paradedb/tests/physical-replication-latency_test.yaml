@@ -32,8 +32,8 @@ tests:
         cnpg_cluster: db
       exp_annotations:
         summary: ParadeDB physical replica replay latency warning
-        description: Physical replica "customer-acme/db-2" has 61s of replay latency and unreplayed WAL.
-          Check replay progress, disk, network, and recovery conflicts.
+        description: Physical replica "customer-acme/db-2" has 61s of replay latency
+          and unreplayed WAL. Check replay progress, disk, network, and recovery conflicts.
         runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterPhysicalReplicationLag.md
   - eval_time: 10m
     alertname: CNPGClusterPhysicalReplicationLagCritical
@@ -74,8 +74,8 @@ tests:
         cnpg_cluster: db
       exp_annotations:
         summary: ParadeDB physical replica replay latency warning
-        description: Physical replica "customer-acme/db-2" has 601s of replay latency and unreplayed WAL.
-          Check replay progress, disk, network, and recovery conflicts.
+        description: Physical replica "customer-acme/db-2" has 601s of replay latency
+          and unreplayed WAL. Check replay progress, disk, network, and recovery conflicts.
         runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterPhysicalReplicationLag.md
   - eval_time: 10m
     alertname: CNPGClusterPhysicalReplicationLagCritical
@@ -87,8 +87,8 @@ tests:
         cnpg_cluster: db
       exp_annotations:
         summary: ParadeDB physical replica replay latency critical
-        description: Physical replica "customer-acme/db-2" has 601s of replay latency and unreplayed WAL.
-          Check replay progress, disk, network, and recovery conflicts.
+        description: Physical replica "customer-acme/db-2" has 601s of replay latency
+          and unreplayed WAL. Check replay progress, disk, network, and recovery conflicts.
         runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterPhysicalReplicationLag.md
   - eval_time: 10m
     alertname: CNPGClusterPhysicalReplicationBacklogWarning
@@ -220,8 +220,8 @@ tests:
         cnpg_cluster: db
       exp_annotations:
         summary: ParadeDB physical replica replay latency warning
-        description: Physical replica "customer-acme/db-2" has 600s of replay latency and unreplayed WAL.
-          Check replay progress, disk, network, and recovery conflicts.
+        description: Physical replica "customer-acme/db-2" has 600s of replay latency
+          and unreplayed WAL. Check replay progress, disk, network, and recovery conflicts.
         runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterPhysicalReplicationLag.md
   - eval_time: 10m
     alertname: CNPGClusterPhysicalReplicationLagCritical
@@ -268,8 +268,8 @@ tests:
         cnpg_cluster: db
       exp_annotations:
         summary: ParadeDB physical replica WAL backlog warning
-        description: Physical replica "customer-acme/db-2" has 2 GiB of unreplayed WAL. Check WAL ingestion,
-          replay progress, disk, network, and recovery conflicts.
+        description: Physical replica "customer-acme/db-2" has 2 GiB of unreplayed
+          WAL. Check WAL ingestion, replay progress, disk, network, and recovery conflicts.
         runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterPhysicalReplicationLag.md
   - eval_time: 10m
     alertname: CNPGClusterPhysicalReplicationBacklogCritical
@@ -308,8 +308,8 @@ tests:
         cnpg_cluster: db
       exp_annotations:
         summary: ParadeDB physical replica WAL backlog warning
-        description: Physical replica "customer-acme/db-2" has 11 GiB of unreplayed WAL. Check WAL ingestion,
-          replay progress, disk, network, and recovery conflicts.
+        description: Physical replica "customer-acme/db-2" has 11 GiB of unreplayed
+          WAL. Check WAL ingestion, replay progress, disk, network, and recovery conflicts.
         runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterPhysicalReplicationLag.md
   - eval_time: 10m
     alertname: CNPGClusterPhysicalReplicationBacklogCritical
@@ -321,8 +321,8 @@ tests:
         cnpg_cluster: db
       exp_annotations:
         summary: ParadeDB physical replica WAL backlog critical
-        description: Physical replica "customer-acme/db-2" has 11 GiB of unreplayed WAL. Check WAL ingestion,
-          replay progress, disk, network, and recovery conflicts.
+        description: Physical replica "customer-acme/db-2" has 11 GiB of unreplayed
+          WAL. Check WAL ingestion, replay progress, disk, network, and recovery conflicts.
         runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterPhysicalReplicationLag.md
 - name: different replicas cannot satisfy each others gate
   interval: 1m
@@ -494,8 +494,8 @@ tests:
         cnpg_cluster: db
       exp_annotations:
         summary: ParadeDB physical replica replay latency warning
-        description: Physical replica "customer-acme/db-2" has 5401s of replay latency and unreplayed
-          WAL. Check replay progress, disk, network, and recovery conflicts.
+        description: Physical replica "customer-acme/db-2" has 5401s of replay latency
+          and unreplayed WAL. Check replay progress, disk, network, and recovery conflicts.
         runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterPhysicalReplicationLag.md
   - eval_time: 10m
     alertname: CNPGClusterPhysicalReplicationLagCritical
@@ -540,8 +540,8 @@ tests:
         cnpg_cluster: db
       exp_annotations:
         summary: ParadeDB physical replica replay latency warning
-        description: Physical replica "customer-acme/db-2" has 7200s of replay latency and unreplayed
-          WAL. Check replay progress, disk, network, and recovery conflicts.
+        description: Physical replica "customer-acme/db-2" has 7200s of replay latency
+          and unreplayed WAL. Check replay progress, disk, network, and recovery conflicts.
         runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterPhysicalReplicationLag.md
   - eval_time: 10m
     alertname: CNPGClusterPhysicalReplicationLagCritical
@@ -586,8 +586,8 @@ tests:
         cnpg_cluster: db
       exp_annotations:
         summary: ParadeDB physical replica replay latency warning
-        description: Physical replica "customer-acme/db-2" has 7201s of replay latency and unreplayed
-          WAL. Check replay progress, disk, network, and recovery conflicts.
+        description: Physical replica "customer-acme/db-2" has 7201s of replay latency
+          and unreplayed WAL. Check replay progress, disk, network, and recovery conflicts.
         runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterPhysicalReplicationLag.md
   - eval_time: 10m
     alertname: CNPGClusterPhysicalReplicationLagCritical
@@ -599,8 +599,8 @@ tests:
         cnpg_cluster: db
       exp_annotations:
         summary: ParadeDB physical replica replay latency critical
-        description: Physical replica "customer-acme/db-2" has 7201s of replay latency and unreplayed
-          WAL. Check replay progress, disk, network, and recovery conflicts.
+        description: Physical replica "customer-acme/db-2" has 7201s of replay latency
+          and unreplayed WAL. Check replay progress, disk, network, and recovery conflicts.
         runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterPhysicalReplicationLag.md
   - eval_time: 10m
     alertname: CNPGClusterPhysicalReplicationBacklogWarning
@@ -648,49 +648,13 @@ tests:
         cnpg_cluster: db
       exp_annotations:
         summary: ParadeDB physical replica WAL backlog warning
-        description: Physical replica "customer-acme/db-2" has 2 GiB of unreplayed WAL. Check WAL ingestion,
-          replay progress, disk, network, and recovery conflicts.
+        description: Physical replica "customer-acme/db-2" has 2 GiB of unreplayed
+          WAL. Check WAL ingestion, replay progress, disk, network, and recovery conflicts.
         runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterPhysicalReplicationLag.md
   - eval_time: 10m
     alertname: CNPGClusterPhysicalReplicationBacklogCritical
     exp_alerts: []
-- name: fallback recovery metric identifies a dedicated replica
-  interval: 1m
-  input_series:
-  - series: cnpg_pg_stat_replication_replay_lag_seconds{namespace="customer-acme",job="customer-acme/db",pod="db-1",application_name="db-2",usename="streaming_replica"}
-    values: 601+0x20
-  - series: cnpg_pg_stat_replication_replay_diff_bytes{namespace="customer-acme",job="customer-acme/db",pod="db-1",application_name="db-2",usename="streaming_replica"}
-    values: 1+0x20
-  - series: kube_customresource_primary_info{namespace="customer-acme",cluster="db",current_primary="db-1",customresource_group="postgresql.cnpg.io",customresource_kind="Cluster"}
-    values: 1+0x20
-  - series: cnpg_paradedb_physical_replication_in_recovery{namespace="customer-acme",pod="db-1"}
-    values: 1+0x20
-  alert_rule_test:
-  - eval_time: 4m
-    alertname: CNPGClusterPhysicalReplicationLagWarning
-    exp_alerts: []
-  - eval_time: 4m
-    alertname: CNPGClusterPhysicalReplicationLagCritical
-    exp_alerts: []
-  - eval_time: 4m
-    alertname: CNPGClusterPhysicalReplicationBacklogWarning
-    exp_alerts: []
-  - eval_time: 4m
-    alertname: CNPGClusterPhysicalReplicationBacklogCritical
-    exp_alerts: []
-  - eval_time: 10m
-    alertname: CNPGClusterPhysicalReplicationLagWarning
-    exp_alerts: []
-  - eval_time: 10m
-    alertname: CNPGClusterPhysicalReplicationLagCritical
-    exp_alerts: []
-  - eval_time: 10m
-    alertname: CNPGClusterPhysicalReplicationBacklogWarning
-    exp_alerts: []
-  - eval_time: 10m
-    alertname: CNPGClusterPhysicalReplicationBacklogCritical
-    exp_alerts: []
-- name: default recovery metric takes precedence over fallback
+- name: writable primary uses ordinary latency thresholds
   interval: 1m
   input_series:
   - series: cnpg_pg_stat_replication_replay_lag_seconds{namespace="customer-acme",job="customer-acme/db",pod="db-1",application_name="db-2",usename="streaming_replica"}
@@ -701,8 +665,6 @@ tests:
     values: 1+0x20
   - series: cnpg_pg_replication_in_recovery{namespace="customer-acme",pod="db-1"}
     values: 0+0x20
-  - series: cnpg_paradedb_physical_replication_in_recovery{namespace="customer-acme",pod="db-1"}
-    values: 1+0x20
   alert_rule_test:
   - eval_time: 4m
     alertname: CNPGClusterPhysicalReplicationLagWarning
@@ -726,8 +688,8 @@ tests:
         cnpg_cluster: db
       exp_annotations:
         summary: ParadeDB physical replica replay latency warning
-        description: Physical replica "customer-acme/db-2" has 601s of replay latency and unreplayed WAL.
-          Check replay progress, disk, network, and recovery conflicts.
+        description: Physical replica "customer-acme/db-2" has 601s of replay latency
+          and unreplayed WAL. Check replay progress, disk, network, and recovery conflicts.
         runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterPhysicalReplicationLag.md
   - eval_time: 10m
     alertname: CNPGClusterPhysicalReplicationLagCritical
@@ -739,8 +701,8 @@ tests:
         cnpg_cluster: db
       exp_annotations:
         summary: ParadeDB physical replica replay latency critical
-        description: Physical replica "customer-acme/db-2" has 601s of replay latency and unreplayed WAL.
-          Check replay progress, disk, network, and recovery conflicts.
+        description: Physical replica "customer-acme/db-2" has 601s of replay latency
+          and unreplayed WAL. Check replay progress, disk, network, and recovery conflicts.
         runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterPhysicalReplicationLag.md
   - eval_time: 10m
     alertname: CNPGClusterPhysicalReplicationBacklogWarning
@@ -778,8 +740,8 @@ tests:
         cnpg_cluster: db
       exp_annotations:
         summary: ParadeDB physical replica replay latency warning
-        description: Physical replica "customer-acme/db-2" has 61s of replay latency and unreplayed WAL.
-          Check replay progress, disk, network, and recovery conflicts.
+        description: Physical replica "customer-acme/db-2" has 61s of replay latency
+          and unreplayed WAL. Check replay progress, disk, network, and recovery conflicts.
         runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterPhysicalReplicationLag.md
   - eval_time: 10m
     alertname: CNPGClusterPhysicalReplicationLagCritical
@@ -832,8 +794,8 @@ tests:
         cnpg_cluster: db
       exp_annotations:
         summary: ParadeDB physical replica replay latency warning
-        description: Physical replica "customer-acme/db-2" has 61s of replay latency and unreplayed WAL.
-          Check replay progress, disk, network, and recovery conflicts.
+        description: Physical replica "customer-acme/db-2" has 61s of replay latency
+          and unreplayed WAL. Check replay progress, disk, network, and recovery conflicts.
         runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterPhysicalReplicationLag.md
   - eval_time: 10m
     alertname: CNPGClusterPhysicalReplicationLagCritical

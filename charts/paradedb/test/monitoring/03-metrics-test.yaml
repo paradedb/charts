@@ -71,10 +71,10 @@ spec:
               exit 1
             fi
 
-            # These gauges are instance-wide, even with default queries disabled.
+            # Recovery and receiver health come from CNPG default queries.
             scrape > /tmp/physical-metrics.txt
-            grep -E '^cnpg_paradedb_physical_replication_in_recovery(\{[^}]*\})? 0$' /tmp/physical-metrics.txt
-            grep -E '^cnpg_paradedb_physical_replication_receiver_up(\{[^}]*\})? 0$' /tmp/physical-metrics.txt
+            grep -E '^cnpg_pg_replication_in_recovery(\{[^}]*\})? 0$' /tmp/physical-metrics.txt
+            grep -E '^cnpg_pg_replication_is_wal_receiver_up(\{[^}]*\})? 0$' /tmp/physical-metrics.txt
 
             echo "pg_stat_subscription_received_lsn"
             scrape | grep pg_stat_subscription_received_lsn
