@@ -1,0 +1,18 @@
+{{- $alert := "CNPGClusterPhysicalReplicationDisconnectedWarning" -}}
+{{- if not (has $alert .excludeRules) -}}
+alert: CNPGClusterPhysicalReplicationDisconnectedWarning
+annotations:
+  summary: ParadeDB physical replication disconnected
+  description: 'Physical replica "{{ .namespace }}/{{ .labels.pod }}" has no streaming WAL receiver. Check the upstream connection and PostgreSQL logs. Archive recovery may still be running.'
+  runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterPhysicalReplicationLag.md
+expr: |
+  (max by (namespace, pod) (cnpg_paradedb_physical_replication_receiver_up{namespace="{{ .namespace }}", pod=~"{{ .podSelector }}"}) == 0) and on (namespace, pod) (max by (namespace, pod) (cnpg_paradedb_physical_replication_in_recovery{namespace="{{ .namespace }}", pod=~"{{ .podSelector }}"}) == 1)
+for: 5m
+labels:
+  severity: warning
+  namespace: {{ .namespace }}
+  cnpg_cluster: {{ .cluster }}
+{{- range $key, $val := .additionalLabels }}
+  {{ $key }}: {{ $val | toString | quote }}
+{{- end }}
+{{- end -}}
