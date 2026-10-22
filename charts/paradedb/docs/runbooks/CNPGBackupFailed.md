@@ -2,7 +2,7 @@
 
 ## Description
 
-The `CNPGBackupFailed` alert is triggered when a CloudNativePG cluster's most recent backup attempt failed, meaning the last failed backup timestamp is newer than the last successful backup timestamp, or a failure exists with no prior success. Plugin timestamps come from the `barman_cloud_cloudnative_pg_io_*` metrics; built-in backups use legacy sources. The alert clears on its own once a backup succeeds.
+The `CNPGBackupFailed` alert is triggered when a CloudNativePG cluster's most recent backup attempt failed, meaning the last failed backup timestamp is newer than the last successful backup timestamp, or a failure exists with no prior success. Plugin timestamps come from the `barman_cloud_cloudnative_pg_io_*` metrics. Built-in backups use legacy sources. The alert clears on its own once a backup succeeds.
 
 ## Impact
 

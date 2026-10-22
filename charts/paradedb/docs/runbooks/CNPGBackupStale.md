@@ -33,7 +33,7 @@ kubectl get -n <namespace> backups --sort-by=.status.startedAt -o wide
 
 Three cases produce this alert, and they need different responses:
 
-- Backups are failing, so recent Backup objects exist in a failed phase. `CNPGBackupFailed` should also be firing; treat that as the primary alert.
+- Backups are failing, so recent Backup objects exist in a failed phase. Check `CNPGBackupFailed` first if it is also firing.
 - Backups are not being attempted, so there are no recent Backup objects at all. Check the ScheduledBackup, and see [`CNPGScheduledBackupStalled`](./CNPGScheduledBackupStalled.md) for the case where the operator has stopped advancing the schedule.
 - Backups are not configured, so the cluster has no `backup` section or no ScheduledBackup exists. The timestamp is then a leftover from whenever backups were last enabled.
 

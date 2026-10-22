@@ -21,7 +21,7 @@ These are all `expr > threshold` rules, so once the exporter goes silent there a
 
 The alert labels carry the `namespace`, `cluster` and `pod`.
 
-- Confirm the pod is up. `Running` and `Ready` identify the pod to investigate; they do not prove the database or replication is healthy:
+- Confirm the pod is up. Check database and replication health even if the pod is `Running` and `Ready`:
 
 ```bash
 kubectl get -n <namespace> pods -l "cnpg.io/podRole=instance" -o wide
@@ -34,7 +34,7 @@ kubectl describe -n <namespace> pod/<instance-pod-name>
 kubectl exec -n <namespace> -it pod/<instance-pod-name> -- curl -sS --max-time 5 http://localhost:9187/metrics | grep cnpg_collector_up
 ```
 
-A timeout or missing `cnpg_collector_up` confirms a metrics problem; inspect the endpoint and logs to determine its cause.
+A timeout or missing `cnpg_collector_up` indicates a metrics problem. Check the endpoint and logs for the cause.
 
 - Look for a blocked backend. The exporter runs SQL on the local instance, so a stuck collector query shows up in `pg_stat_activity`:
 

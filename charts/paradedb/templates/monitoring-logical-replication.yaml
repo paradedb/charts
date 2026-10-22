@@ -12,8 +12,8 @@ metadata:
 data:
   custom-queries: |
     # Subscriber-side health, restricted to subscriptions owned by the scraped database.
-    # A subscription can have multiple worker rows. Receipt age measures transport activity;
-    # received_lsn and latest_end_lsn do not establish committed apply progress.
+    # A subscription can have multiple worker rows. Receipt age measures transport activity.
+    # The received_lsn and latest_end_lsn values do not track committed apply progress.
     pg_stat_subscription:
       query: |
         SELECT current_database() AS datname

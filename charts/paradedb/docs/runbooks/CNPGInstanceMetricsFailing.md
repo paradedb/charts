@@ -4,11 +4,11 @@
 
 The `CNPGInstanceMetricsFailing` alert is triggered when a CloudNativePG instance's metrics collector reports that its most recent collection ended in an error for 15 minutes. The delay is long enough to ride out a single failed collection cycle, a restart or a failover, so when the alert fires the failure is persistent rather than transient.
 
-This is the counterpart to `CNPGInstanceMetricsAbsent`. That alert covers an exporter that has stopped responding, which is visible from outside. This one covers an exporter that responds normally while the queries behind individual metrics fail, which is not.
+The exporter can still respond while its queries fail. `CNPGInstanceMetricsAbsent` covers failed scrapes and missing collector metrics.
 
 ## Impact
 
-The instance keeps serving queries. The risk is in the series that stop being published, because the alerts that read them are all `expr > threshold` rules: with no samples to evaluate they produce nothing rather than firing. They fail open, silently.
+The instance may keep serving queries while some metrics are missing. Alerts that depend on those metrics may not fire. Check database and replication health directly.
 
 Which alerts go blind depends on which queries are failing. If the collector cannot reach the application database, every default per-database query fails at once and that includes:
 
@@ -22,7 +22,7 @@ A standby in this state has previously replayed nothing for two months without a
 
 The alert labels carry the `namespace`, `cluster` and `pod`.
 
-- Confirm the collector is up but erroring. `cnpg_collector_up` reads 1 while the current collection reports an error, which is the whole signature. `cnpg_collector_last_collection_error` covers collector failures; `cnpg_errors_total > 0` covers SQL failures in the latest collection. Despite its name, `cnpg_errors_total` resets every collection; do not apply `rate()` or `increase()`. `cnpg_last_error` can remain set after recovery, so it is not used by the alert:
+- Check the collector error metrics. `cnpg_collector_up` reads 1 while the current collection reports an error. `cnpg_collector_last_collection_error` covers collector failures. `cnpg_errors_total > 0` covers SQL failures in the latest collection. The `cnpg_errors_total` metric resets every collection, so do not apply `rate()` or `increase()`. The alert excludes `cnpg_last_error` because it can stay set after recovery:
 
 ```bash
 kubectl exec -n <namespace> -it pod/<instance-pod-name> -- curl -sS --max-time 5 http://localhost:9187/metrics | grep -E "cnpg_collector_up|cnpg_collector_last_collection_error|cnpg_errors_total"
@@ -49,7 +49,7 @@ A line naming a `targetDatabase` the cluster does not have is the common case:
 - Check what the application database is actually called. The collector queries the name the cluster declares in its bootstrap section, and a cluster bootstrapped without one gets `app` by default:
 
 ```bash
-# Whichever of the three the cluster bootstrapped with; a replica cluster uses recovery or pg_basebackup.
+# Check the bootstrap method. A replica cluster uses recovery or pg_basebackup.
 kubectl get -n <namespace> cluster/<cluster-name> -o jsonpath='{.spec.bootstrap}'
 kubectl exec -n <namespace> -it pod/<instance-pod-name> -- psql -lqt | cut -d '|' -f 1
 ```

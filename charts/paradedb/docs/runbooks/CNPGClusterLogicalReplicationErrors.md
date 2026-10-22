@@ -11,7 +11,9 @@ Both count apply errors, raised when applying changes received from the publishe
 
 ## Impact
 
-PostgreSQL stops applying changes when it hits a conflict and retries the same transaction, so the subscription makes no progress until the conflict is resolved. The subscriber's data diverges from the publisher, and the publisher retains WAL for the subscription's replication slot in the meantime.
+Apply and initial sync errors can delay replication. Some errors clear on retry. Persistent conflicts can block replication until they are fixed.
+
+Check the subscriber logs and confirm that transactions are being applied. A worker can keep receiving messages while it fails to apply them.
 
 ## Diagnosis
 
@@ -26,7 +28,8 @@ SELECT
     COALESCE(sss.sync_error_count, 0) AS sync_error_count,
     sss.stats_reset
 FROM pg_subscription s
-LEFT JOIN pg_stat_subscription_stats sss ON s.oid = sss.subid;
+LEFT JOIN pg_stat_subscription_stats sss ON s.oid = sss.subid
+WHERE s.subdbid = (SELECT oid FROM pg_database WHERE datname = current_database());
 "
 ```
 
@@ -61,12 +64,13 @@ kubectl exec -n <namespace> -it services/<publisher-cluster-name>-rw -- psql -c 
 kubectl exec -n <namespace> -it services/paradedb-rw -- psql -c "\d+ <table>"
 ```
 
-Whatever the logs show usually comes down to one of the following:
+Possible causes include:
 
 - Rows written directly on the subscriber that collide with replicated rows, giving unique or foreign key violations
 - Schema drift between publisher and subscriber, giving missing column or type errors
 - A table that does not exist on the subscriber, which fails during initial sync
 - Insufficient privileges for the subscription owner on the target tables
+- Transient connection failures or extension errors in the apply worker
 
 ## Mitigation
 

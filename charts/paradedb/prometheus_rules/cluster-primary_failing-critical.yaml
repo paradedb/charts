@@ -5,7 +5,7 @@ annotations:
   summary: ParadeDB CNPG Cluster primary recovery is not completing
   description: |-
     Cluster "{{ .namespace }}/{{ .cluster }}" has reported a failing primary for more than
-    five minutes and has not recovered. Current primary: "{{ .labels.current_primary }}";
+    five minutes and has not recovered. Current primary: "{{ .labels.current_primary }}".
     target primary: "{{ .labels.target_primary }}".
   runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterPrimaryFailing.md
 expr: |

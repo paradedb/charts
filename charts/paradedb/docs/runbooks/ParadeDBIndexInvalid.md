@@ -2,7 +2,7 @@
 
 ## Description
 
-The `ParadeDBIndexInvalid` alert is triggered when the writable primary reports one or more invalid or not-ready ParadeDB indexes for five minutes. The notification reports their total across databases; instances in recovery are excluded, including the designated leader of a dedicated replica cluster.
+The `ParadeDBIndexInvalid` alert is triggered when the writable primary reports one or more invalid or not-ready ParadeDB indexes for five minutes. The notification reports their total across databases. Instances in recovery are excluded, including the leader of a dedicated replica cluster.
 
 This commonly happens when `CREATE INDEX CONCURRENTLY` or `REINDEX CONCURRENTLY` fails or is cancelled. PostgreSQL leaves the incomplete index behind, consuming storage even though the planner will not use it. Queries can silently fall back to a sequential scan and become much slower without returning an application error.
 
@@ -41,7 +41,7 @@ Check PostgreSQL logs and recent deployment or maintenance activity to determine
 
 ## Mitigation
 
-For a failed concurrent reindex, first check whether the original or replacement index is already valid. An invalid `_ccnew` leftover may only need removal; do not drop the valid index or automatically start another rebuild.
+For a failed concurrent reindex, first check whether the original or replacement index is already valid. An invalid `_ccnew` leftover may only need removal. Keep the valid index and check whether another rebuild is needed.
 
 If the intended index itself is missing or unusable, recover its exact definition and plan a rebuild. For example:
 

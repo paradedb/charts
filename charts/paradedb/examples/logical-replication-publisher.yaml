@@ -1,4 +1,4 @@
-# Declarative logical replication — publisher side.
+# Declarative logical replication on the publisher.
 #
 # A ParadeDB cluster that publishes its changes so a subscriber can consume them (for example, a
 # near-zero-downtime migration where ParadeDB is the source, or feeding another system downstream).

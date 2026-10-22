@@ -2,7 +2,7 @@
 
 ## Description
 
-The `CNPGClusterOffline` alert indicates no ready instances or missing collector metrics across the cluster, depending on the configured alert rule. Confirm database availability directly; missing metrics can also indicate an exporter or scrape failure.
+The `CNPGClusterOffline` alert indicates no ready instances or missing collector metrics across the cluster, depending on the configured alert rule. Check database availability directly. Missing metrics can also indicate an exporter or scrape failure.
 
 ## Impact
 

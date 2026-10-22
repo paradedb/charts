@@ -1,11 +1,11 @@
-# Declarative logical replication — subscriber side.
+# Declarative logical replication on the subscriber.
 #
 # A ParadeDB cluster that continuously replicates from an existing "publisher" Postgres via a CNPG
 # Subscription, so you can sync first and cut over once caught up (near-zero-downtime migration into
-# ParadeDB). The publisher can be any reachable Postgres; to pair this with the ParadeDB publisher in
+# ParadeDB). The publisher can be any reachable Postgres. To pair this with the ParadeDB publisher in
 # logical-replication-publisher.yaml, point `host` at that cluster's `-rw` service.
 #
-# Note: logical replication copies data, not schema — the target tables must already exist on this
+# Note: logical replication copies data, not schema. The target tables must already exist on this
 # subscriber before the initial sync.
 type: paradedb
 mode: standalone

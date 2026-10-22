@@ -9,7 +9,7 @@ The `CNPGClusterLogicalReplicationLagging` and `CNPGClusterLogicalReplicationLag
 
 Both use `cnpg_pg_stat_subscription_receipt_lag_seconds`, with `time() - cnpg_pg_stat_subscription_last_msg_receipt_time` as a fallback for exporters without the derived metric. Receipt age measures transport activity, not committed apply progress.
 
-The misleading `buffered_lag_bytes` and `apply_lag_seconds` metrics have been removed. Dashboard LSN distance is calculated as `max(received_lsn - latest_end_lsn, 0)` from the raw positions; it does not establish unapplied backlog or committed apply progress.
+The exporter no longer publishes `buffered_lag_bytes` or `apply_lag_seconds`. The dashboard calculates LSN distance as `max(received_lsn - latest_end_lsn, 0)`. Check committed apply progress separately.
 
 ## Impact
 

@@ -6,7 +6,7 @@ The alert fires when the `pg_search` extension catalog version on the writable p
 
 ## Impact
 
-Calls into `pg_search` can fail. Index detail queries are disabled while the versions disagree; catalog-only index health metrics remain available.
+Calls into `pg_search` can fail. Index detail queries are disabled while the versions disagree. Catalog-only index health metrics remain available.
 
 ## Diagnosis
 
