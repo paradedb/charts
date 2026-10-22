@@ -6,6 +6,9 @@ on:
       - ".github/workflows/test-physical-replication.yml"
       - "charts/paradedb/prometheus_rules/**"
       - "charts/paradedb/templates/prometheus-rule.yaml"
+      - "charts/paradedb/templates/monitoring-physical-replication.yaml"
+      - "charts/paradedb/templates/cluster.yaml"
+      - "charts/paradedb/monitoring/paradedb-dashboard.json"
       - "charts/paradedb/tests/physical-replication*_test.yaml"
       - "charts/paradedb/values.yaml"
   workflow_dispatch:
