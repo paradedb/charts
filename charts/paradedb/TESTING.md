@@ -1,6 +1,6 @@
 # Testing
 
-This chart uses Kyverno Chainsaw and implements end-to-end (E2E) tests for common features. Not everything is tested because of inadequate tooling — for example, local simulation of Azure and Google Cloud Storage. We do test S3 via RustFS. Our aim is that every critical feature that is technically feasible to test is covered.
+This chart uses Kyverno Chainsaw for end-to-end tests. S3 backup and recovery tests use RustFS. Azure and Google Cloud Storage are not tested locally.
 
 We use a local kind cluster (minikube also works) and provision prerequisites such as the CloudNativePG operator, Prometheus CRDs, and RustFS. Then we run the `chainsaw` utility, which executes the individual tests. It can run tests in parallel, which is essential because some tests take over five minutes to complete.
 
@@ -51,7 +51,7 @@ We use a local kind cluster (minikube also works) and provision prerequisites su
        cnpg/plugin-barman-cloud
     ```
 
-5. Install RustFS (optional, but required for backup/recovery tests; needs cert-manager from step 4 for its TLS certificates).
+5. Install RustFS for backup and recovery tests. It needs cert-manager from step 4 for its TLS certificates.
 
     ```bash
     # renovate: datasource=helm depName=rustfs registryUrl=https://charts.rustfs.com
@@ -83,9 +83,8 @@ We use a local kind cluster (minikube also works) and provision prerequisites su
 7. Run the tests
 
     Run chainsaw from the repository root and always pass the shared values
-    file (it provides the container images the test manifests reference via
-    `($values.*)` — without it, those tests fail with an unresolved
-    expression).
+    file. It provides the container images referenced by `($values.*)` in the
+    test manifests. Without it, those expressions fail to resolve.
 
     To run the whole test suite:
 
@@ -124,4 +123,4 @@ Inside each test there is a `chainsaw-test.yaml` file that outlines the steps of
 
     This will substantially help with debugging later.
 * Provide useful step descriptions to aid in understanding test failures.
-* Use reasonable test timeouts so tests fail if something isn't finished after 5–10 minutes. Aim for tests to complete within 10 minutes.
+* Set test timeouts to 5 to 10 minutes. Aim for tests to complete within 10 minutes.

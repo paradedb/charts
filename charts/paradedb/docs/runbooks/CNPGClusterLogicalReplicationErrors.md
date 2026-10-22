@@ -11,9 +11,9 @@ Both count apply errors, raised when applying changes received from the publishe
 
 ## Impact
 
-Apply and initial sync errors can delay replication. Some errors are transient and recover on retry; persistent conflicts can block a subscription until the cause is resolved.
+Apply and initial sync errors can delay replication. Some errors clear on retry. Persistent conflicts can block replication until they are fixed.
 
-The alert counts errors, not committed apply progress. Check subscriber logs and committed replication progress before concluding that replication has stopped or data remains divergent. Message receipt timestamps and received LSNs show transport activity, not committed apply progress.
+Check the subscriber logs and confirm that transactions are being applied. A worker can keep receiving messages while it fails to apply them.
 
 ## Diagnosis
 

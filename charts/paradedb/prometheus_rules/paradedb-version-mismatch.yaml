@@ -6,7 +6,7 @@ annotations:
   description: |-
     The pg_search extension catalog in database "{{ .labels.datname }}" reports version "{{ .labels.installed_version }}", but this ParadeDB image expects "{{ .labels.expected_version }}".
 
-    Calls into pg_search can cause errors while these versions disagree. Index detail metrics that call extension functions are disabled until the mismatch is resolved; catalog-only index health metrics remain available.
+    Calls into pg_search can fail while these versions disagree. Index detail metrics that call extension functions are disabled until the versions match. Catalog-only index health metrics remain available.
   runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/ParadeDBVersionMismatch.md
 expr: |
   max by (namespace, pod, datname, installed_version, expected_version) (

@@ -6,7 +6,7 @@ The `CNPGContinuousArchivingFailed` alert is triggered when a CloudNativePG clus
 
 This is a separate condition from the backup alerts, which look at base backups. A cluster can report `LastBackupSucceeded=True` and `Ready=True` while every WAL segment written since the last base backup has failed to ship.
 
-The alert compares `cnpg_pg_stat_archiver_last_failed_time` against `cnpg_pg_stat_archiver_last_archived_time`, both exported by CloudNativePG from `pg_stat_archiver`. Only the primary archives WAL; replicas report `-1` for both and cannot trigger the alert.
+The alert compares `cnpg_pg_stat_archiver_last_failed_time` against `cnpg_pg_stat_archiver_last_archived_time`, both exported by CloudNativePG from `pg_stat_archiver`. Only the primary archives WAL. Replicas report `-1` for both and cannot trigger the alert.
 
 ## Impact
 

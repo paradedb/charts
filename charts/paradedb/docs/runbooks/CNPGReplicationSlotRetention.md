@@ -31,7 +31,7 @@ ORDER BY pg_wal_lsn_diff(pg_current_wal_lsn(), restart_lsn) DESC NULLS LAST;
 
 For a logical slot, identify the subscription or external CDC consumer that owns `slot_name`. For a physical slot whose name begins with `_cnpg_`, inspect the corresponding CloudNativePG replica and its WAL receiver. Check recent consumer, network, and PostgreSQL logs before deciding that a slot is abandoned.
 
-Confirm whether the cluster has dedicated WAL storage. A PVC ending in `-wal` stores retained WAL when present; otherwise WAL shares the instance's data PVC.
+Confirm whether the cluster has dedicated WAL storage. A PVC ending in `-wal` stores retained WAL when present. Otherwise WAL shares the instance's data PVC.
 
 ## Mitigation
 
@@ -43,6 +43,6 @@ If a logical consumer has been permanently removed, verify that it cannot return
 SELECT pg_drop_replication_slot('<slot_name>');
 ```
 
-Dropping a slot is irreversible and forces that consumer to be reinitialized from a new snapshot or base backup. Do not manually drop CloudNativePG-managed `_cnpg_` physical slots; repair or remove the corresponding replica through CloudNativePG instead.
+Dropping a slot is irreversible and forces that consumer to be reinitialized from a new snapshot or base backup. For CloudNativePG-managed `_cnpg_` physical slots, repair or remove the corresponding replica through CloudNativePG. Do not drop these slots manually.
 
 If the volume is close to full, add storage before recovery work so the database does not run out of space while the consumer catches up. Confirm afterward that the slot is active or gone, retained bytes are falling, and both alerts clear.

@@ -3,14 +3,14 @@
 ## Description
 
 These alerts report the subscriber's `received_lsn` minus `latest_end_lsn`.
-Warning fires above 1 GiB for five minutes; critical fires above 4 GiB for two
+Warning fires above 1 GiB for five minutes. Critical fires above 4 GiB for two
 minutes. Labels identify the pod, database, and subscription.
 
 ## Impact
 
 A large WAL-position gap warrants investigation but does not measure unapplied
 work or committed apply progress. Missing worker metrics cannot trigger these
-alerts; check worker health separately.
+alerts. Check worker health separately.
 
 ## Diagnosis
 

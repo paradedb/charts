@@ -4,15 +4,14 @@ alert: {{ $alert }}
 annotations:
   summary: ParadeDB CNPG Cluster metrics collector is failing its queries
   description: |-
-    ParadeDB CNPG instance "{{ .namespace }}/{{ .labels.pod }}" is answering on its metrics endpoint, but its most recent collection ended in an error, so part of what it should be publishing is missing.
+    ParadeDB CNPG instance "{{ .namespace }}/{{ .labels.pod }}" is answering on its metrics endpoint, but its latest collection failed. Some metrics may be missing.
 
-    This is the counterpart to CNPGInstanceMetricsAbsent. There scrapes fail or collector metrics are absent. Here it responds normally and only the queries behind individual metrics fail, so nothing reports the instance as down.
+    Alerts that depend on missing metrics may not fire. Check database and replication health directly.
 
-    The alerts that read the missing series have no samples to evaluate and cannot fire. Their silence means nothing for this instance while this is active.
+    Check the collector logs and its connection to the cluster's application database.
 
-    The usual cause is the collector being unable to reach the cluster's application database, which fails every default per-database query at once while the exporter itself stays healthy.
-    Invalid or not-ready ParadeDB indexes are counted separately by ParadeDBIndexInvalid;
-    index detail queries must exclude them before opening index storage.
+    ParadeDBIndexInvalid reports invalid or not-ready indexes separately.
+    Index detail queries must exclude these indexes before opening index storage.
   runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGInstanceMetricsFailing.md
 expr: |
   max by (namespace, pod) (
