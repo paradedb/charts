@@ -4,7 +4,7 @@
 
 Physical replication alerts use replay latency and WAL replay backlog. Both metrics come from the upstream's `pg_stat_replication` view. The alerts use `application_name` to identify the receiving replica and exclude logical replication connections.
 
-All thresholds must hold for five minutes.
+Latency and backlog thresholds must hold for five minutes.
 
 | Alert | Condition |
 | --- | --- |
@@ -99,13 +99,13 @@ kubectl delete -n <namespace> pod/<pod-name> pvc/<pod-name> pvc/<pod-name>-wal
 
 ## Replay stalls and disconnects
 
-The status indicator shows Streaming, WAL pending, Stalled, Disconnected, or Unknown. Streaming means the receiver is connected with no observed pending WAL. It is not a guarantee of data freshness. The two main graphs remain replay latency and WAL replay backlog.
+The status indicator shows Connected, WAL pending, Stalled, Disconnected, or Unknown. Connected means the receiver is connected with no observed pending WAL. It is not a guarantee of data freshness. The two main graphs remain replay latency and WAL replay backlog.
 
 A stalled replica has pending WAL and no change in its replay position for five minutes. This catches small stalled backlogs even when the recent replay-latency measurement is low. Warning and critical alerts use five-minute and fifteen-minute no-progress windows, followed by a one-minute hold. Dedicated replica clusters retain their 90-minute warning and two-hour critical allowance for stalls as well as latency. The status indicator still shows a five-minute stall so operators can see it before the alert threshold.
 
-A replica with no streaming WAL receiver warns after five minutes and alerts critically after fifteen minutes. This describes the streaming connection, not data loss. The replica may still be replaying archived WAL. These thresholds also apply to dedicated replicas.
+A replica with no WAL receiver warns after five minutes and alerts critically after fifteen minutes. This describes the streaming connection, not data loss. The replica may still be replaying archived WAL. These thresholds also apply to dedicated replicas.
 
-The exporter adds instance-wide replay position, locally received pending bytes, recovery state, and receiver connection state. Pending work uses upstream replay backlog when available and falls back to locally received pending bytes. That fallback cannot see WAL that the upstream has not sent. No heartbeat or transaction-age metric is used.
+The extra query adds only instance-wide replay position and locally received pending bytes. Recovery and WAL receiver health come from CNPG's default queries, which must remain enabled. Pending work uses upstream replay backlog when available and falls back to locally received pending bytes. That fallback cannot see WAL that the upstream has not sent. No heartbeat or transaction-age metric is used.
 
 Missing position samples do not establish a stall. Missing receiver telemetry does not establish a disconnect. Keep the existing exporter, instance-health, and HA alerts enabled to cover missing telemetry. A new replica needs enough samples to fill the no-progress window before a stall can fire.
 

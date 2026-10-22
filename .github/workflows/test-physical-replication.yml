@@ -11,6 +11,7 @@ on:
       - "charts/paradedb/monitoring/paradedb-dashboard.json"
       - "charts/paradedb/tests/physical-replication*_test.yaml"
       - "charts/paradedb/values.yaml"
+      - "charts/paradedb/values.schema.json"
   workflow_dispatch:
 
 permissions:
@@ -50,6 +51,14 @@ jobs:
               if resource and resource.get('kind') == 'PrometheusRule':
                   Path('charts/paradedb/tests/rules.generated.yaml').write_text(json.dumps(resource['spec']))
           PY
+
+      - name: Require default CNPG queries
+        run: |
+          if helm template paradedb charts/paradedb --set cluster.monitoring.disableDefaultQueries=true > /tmp/disabled-queries.log 2>&1; then
+            echo "Expected disabled default queries to be rejected"
+            exit 1
+          fi
+          grep -F 'disableDefaultQueries' /tmp/disabled-queries.log
 
       - name: Test physical replication alerts
         working-directory: charts/paradedb/tests

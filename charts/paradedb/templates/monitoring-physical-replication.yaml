@@ -9,20 +9,12 @@ metadata:
     {{- include "cluster.labels" . | nindent 4 }}
 data:
   custom-queries: |
-    # Instance-wide metrics. Do not collect these once per database.
+    # Instance-wide metrics. CNPG's default queries provide recovery and receiver health.
     paradedb_physical_replication:
       query: |
-        SELECT pg_is_in_recovery() AS in_recovery,
-               EXISTS (SELECT 1 FROM pg_stat_wal_receiver WHERE status = 'streaming') AS receiver_up,
-               pg_wal_lsn_diff(pg_last_wal_replay_lsn(), '0/0') AS replay_lsn,
+        SELECT pg_wal_lsn_diff(pg_last_wal_replay_lsn(), '0/0') AS replay_lsn,
                GREATEST(0, pg_wal_lsn_diff(pg_last_wal_receive_lsn(), pg_last_wal_replay_lsn())) AS pending_bytes
       metrics:
-        - in_recovery:
-            usage: GAUGE
-            description: Whether this instance is in recovery
-        - receiver_up:
-            usage: GAUGE
-            description: Whether this instance has a streaming WAL receiver
         - replay_lsn:
             usage: GAUGE
             description: Last replayed WAL position in bytes, used to detect replay progress
