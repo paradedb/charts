@@ -430,7 +430,7 @@
             },
             "disableDefaultQueries": {
               "default": false,
-              "description": "Whether to disable default monitoring queries.",
+              "description": "Whether the default queries should be injected.\nSet it to true if you don't want to inject default queries into the cluster.",
               "type": "boolean"
             },
             "enabled": {
