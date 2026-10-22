@@ -104,3 +104,5 @@ The status indicator shows Connected, WAL pending, Disconnected, or Unknown usin
 A replica with no WAL receiver warns after five minutes and alerts critically after fifteen minutes. Check upstream reachability, authentication, replication slots, and PostgreSQL logs. The replica may still be replaying archived WAL.
 
 These alerts do not detect an exact duration without replay progress. Small stalled backlogs can remain below the byte thresholds while recent replay latency stays low. We track adding replay-position metrics to CNPG's default queries in https://github.com/paradedb/cloud/issues/630. This chart adds no custom physical replication query.
+
+A standby with no WAL receiver for 15 minutes triggers a warning only. This catches lost streaming connections even when sender metrics disappear. Archive recovery may still be running, so an absent receiver alone does not trigger a critical alert.
