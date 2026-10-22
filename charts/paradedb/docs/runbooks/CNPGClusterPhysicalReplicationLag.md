@@ -105,7 +105,7 @@ A stalled replica has pending WAL and no change in its replay position for five 
 
 A replica with no WAL receiver warns after five minutes and alerts critically after fifteen minutes. This describes the streaming connection, not data loss. The replica may still be replaying archived WAL. These thresholds also apply to dedicated replicas.
 
-The extra query adds only instance-wide replay position and locally received pending bytes. Recovery and WAL receiver health come from CNPG's default queries, which must remain enabled. Pending work uses upstream replay backlog when available and falls back to locally received pending bytes. That fallback cannot see WAL that the upstream has not sent. No heartbeat or transaction-age metric is used.
+The extra query adds only instance-wide replay position and locally received pending bytes. Recovery and WAL receiver health come from CNPG's default queries. Disabling those queries leaves custom metrics enabled but removes metrics used by the built-in dashboards and alerts. Pending work uses upstream replay backlog when available and falls back to locally received pending bytes. That fallback cannot see WAL that the upstream has not sent. No heartbeat or transaction-age metric is used.
 
 Missing position samples do not establish a stall. Missing receiver telemetry does not establish a disconnect. Keep the existing exporter, instance-health, and HA alerts enabled to cover missing telemetry. A new replica needs enough samples to fill the no-progress window before a stall can fire.
 
