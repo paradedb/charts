@@ -1,0 +1,38 @@
+{{- $alert := "CNPGClusterPhysicalReplicationLagCritical" -}}
+{{- if not (has $alert .excludeRules) -}}
+alert: {{ $alert }}
+annotations:
+  summary: ParadeDB physical replica replay latency critical
+  description: 'Physical replica "{{ .namespace }}/{{ .labels.pod }}" has {{ .value }}s of replay latency and unreplayed WAL. Check replay progress, disk, network, and recovery conflicts.'
+  runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterPhysicalReplicationLag.md
+# Check latency only while WAL is pending. Keep byte-backlog alerts as a fallback
+# when replay stalls and the latency measurement stops updating.
+# Dedicated replica clusters retain their 90/120-minute latency allowance.
+expr: |
+  (
+    (
+      max by (namespace, pod) (label_replace(cnpg_pg_stat_replication_replay_lag_seconds{namespace="{{ .namespace }}", pod=~"{{ .podSelector }}", usename="streaming_replica", application_name=~"{{ .podSelector }}"}, "pod", "$1", "application_name", "(.+)")) > 600
+      unless on (namespace)
+      max by (namespace) (
+        label_replace(kube_customresource_primary_info{customresource_group="postgresql.cnpg.io", customresource_kind="Cluster", namespace="{{ .namespace }}", cluster="{{ .cluster }}"} == 1, "pod", "$1", "current_primary", "(.+)")
+        and on (namespace, pod)
+        (
+          cnpg_pg_replication_in_recovery{namespace="{{ .namespace }}", pod=~"{{ .podSelector }}"}
+          or cnpg_paradedb_physical_replication_in_recovery{namespace="{{ .namespace }}", pod=~"{{ .podSelector }}"}
+        ) == 1
+      )
+    )
+    or
+    max by (namespace, pod) (label_replace(cnpg_pg_stat_replication_replay_lag_seconds{namespace="{{ .namespace }}", pod=~"{{ .podSelector }}", usename="streaming_replica", application_name=~"{{ .podSelector }}"}, "pod", "$1", "application_name", "(.+)")) > 7200
+  )
+  and on (namespace, pod)
+  max by (namespace, pod) (label_replace(cnpg_pg_stat_replication_replay_diff_bytes{namespace="{{ .namespace }}", pod=~"{{ .podSelector }}", usename="streaming_replica", application_name=~"{{ .podSelector }}"}, "pod", "$1", "application_name", "(.+)")) > 0
+for: 5m
+labels:
+  severity: critical
+  namespace: {{ .namespace }}
+  cnpg_cluster: {{ .cluster }}
+{{- range $key, $val := .additionalLabels }}
+  {{ $key }}: {{ $val | toString | quote }}
+{{- end }}
+{{- end -}}

@@ -1,0 +1,53 @@
+name: Test Physical Replication Alerts
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/test-physical-replication.yml"
+      - "charts/paradedb/prometheus_rules/**"
+      - "charts/paradedb/templates/prometheus-rule.yaml"
+      - "charts/paradedb/tests/physical-replication*_test.yaml"
+      - "charts/paradedb/values.yaml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  VICTORIAMETRICS_VERSION: v1.148.0
+
+jobs:
+  physical-replication-alerts:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install Helm
+        uses: azure/setup-helm@v5
+
+      - name: Install test tools
+        run: |
+          curl -fsSL "https://github.com/VictoriaMetrics/VictoriaMetrics/releases/download/${VICTORIAMETRICS_VERSION}/vmutils-linux-amd64-${VICTORIAMETRICS_VERSION}.tar.gz" \
+            | tar xz vmalert-tool-prod
+          sudo install vmalert-tool-prod /usr/local/bin/vmalert-tool
+          pip install pyyaml
+
+      - name: Render alert rules
+        run: |
+          helm template paradedb charts/paradedb --namespace customer-acme \
+            --set fullnameOverride=db --set cluster.monitoring.enabled=true \
+            > /tmp/paradedb.yaml
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          import yaml
+
+          for resource in yaml.safe_load_all(Path('/tmp/paradedb.yaml').read_text()):
+              if resource and resource.get('kind') == 'PrometheusRule':
+                  Path('charts/paradedb/tests/rules.generated.yaml').write_text(json.dumps(resource['spec']))
+          PY
+
+      - name: Test physical replication alerts
+        working-directory: charts/paradedb/tests
+        run: vmalert-tool unittest --disableAlertgroupLabel --files='physical-replication*_test.yaml'
