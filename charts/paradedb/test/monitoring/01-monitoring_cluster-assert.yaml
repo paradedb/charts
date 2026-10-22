@@ -16,8 +16,6 @@ spec:
         enabled: true
       disableDefaultQueries: false
       customQueriesConfigMap:
-        - name: monitoring-paradedb-monitoring-physical-replication
-          key: custom-queries
         - name: monitoring-paradedb-monitoring-paradedb-index
           key: custom-queries
         - name: monitoring-paradedb-monitoring-logical-replication
@@ -170,9 +168,3 @@ metadata:
   name: paradedb-grafana-dashboard
   labels:
     grafana_dashboard: "1"
-
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: monitoring-paradedb-monitoring-physical-replication
