@@ -71,6 +71,11 @@ spec:
               exit 1
             fi
 
+            # These gauges are instance-wide, even with default queries disabled.
+            scrape > /tmp/physical-metrics.txt
+            grep -E '^cnpg_paradedb_physical_replication_in_recovery(\{[^}]*\})? 0$' /tmp/physical-metrics.txt
+            grep -E '^cnpg_paradedb_physical_replication_receiver_up(\{[^}]*\})? 0$' /tmp/physical-metrics.txt
+
             echo "pg_stat_subscription_received_lsn"
             scrape | grep pg_stat_subscription_received_lsn
             echo "pg_stat_subscription_last_msg_send_time"
