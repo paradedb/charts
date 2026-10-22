@@ -291,7 +291,7 @@ refer to the [CloudNativePG Documentation](https://cloudnative-pg.io/documentati
 | cluster.logLevel | string | `"info"` | The instances' log level, one of the following values: error, warning, info (default), debug, trace |
 | cluster.monitoring.customQueries | list | `[]` | Custom Prometheus metrics Will be stored in the ConfigMap |
 | cluster.monitoring.customQueriesSecret | list | `[]` | The list of secrets containing the custom queries |
-| cluster.monitoring.disableDefaultQueries | bool | `false` | Whether to disable default monitoring queries. |
+| cluster.monitoring.disableDefaultQueries | bool | `false` | Must remain false. CNPG default queries are required for monitoring. |
 | cluster.monitoring.enabled | bool | `false` | Whether to enable monitoring |
 | cluster.monitoring.instrumentation.logicalReplication | bool | `true` | Enable logical replication metrics |
 | cluster.monitoring.instrumentation.paradedbIndex | bool | `true` | Enable ParadeDB index metrics |

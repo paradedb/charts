@@ -18,7 +18,6 @@ expr: |
         and on (namespace, pod)
         (
           cnpg_pg_replication_in_recovery{namespace="{{ .namespace }}", pod=~"{{ .podSelector }}"}
-          or cnpg_paradedb_physical_replication_in_recovery{namespace="{{ .namespace }}", pod=~"{{ .podSelector }}"}
         ) == 1
       )
     )

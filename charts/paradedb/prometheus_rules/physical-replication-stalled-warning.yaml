@@ -11,15 +11,14 @@ expr: |
     and on (namespace, pod) min_over_time((((max by (namespace, pod) (label_replace(cnpg_pg_stat_replication_replay_diff_bytes{namespace="{{ .namespace }}", pod=~"{{ .podSelector }}", usename="streaming_replica", application_name=~"{{ .podSelector }}"}, "pod", "$1", "application_name", "(.+)"))) or on (namespace, pod) (max by (namespace, pod) (cnpg_paradedb_physical_replication_pending_bytes{namespace="{{ .namespace }}", pod=~"{{ .podSelector }}"}))))[5m:1m]) > 0
     and on (namespace, pod) max by (namespace, pod) (changes(cnpg_paradedb_physical_replication_replay_lsn{namespace="{{ .namespace }}", pod=~"{{ .podSelector }}"}[5m])) == 0
     and on (namespace, pod) max by (namespace, pod) (count_over_time(cnpg_paradedb_physical_replication_replay_lsn{namespace="{{ .namespace }}", pod=~"{{ .podSelector }}"}[5m])) >= 5
-    and on (namespace, pod) max by (namespace, pod) (cnpg_paradedb_physical_replication_receiver_up{namespace="{{ .namespace }}", pod=~"{{ .podSelector }}"}) == 1
-    and on (namespace, pod) (max by (namespace, pod) (cnpg_paradedb_physical_replication_in_recovery{namespace="{{ .namespace }}", pod=~"{{ .podSelector }}"}) == 1))
+    and on (namespace, pod) max by (namespace, pod) (cnpg_pg_replication_is_wal_receiver_up{namespace="{{ .namespace }}", pod=~"{{ .podSelector }}"}) == 1
+    and on (namespace, pod) (max by (namespace, pod) (cnpg_pg_replication_in_recovery{namespace="{{ .namespace }}", pod=~"{{ .podSelector }}"}) == 1))
     unless on (namespace)
     max by (namespace) (
         label_replace(kube_customresource_primary_info{customresource_group="postgresql.cnpg.io", customresource_kind="Cluster", namespace="{{ .namespace }}", cluster="{{ .cluster }}"} == 1, "pod", "$1", "current_primary", "(.+)")
         and on (namespace, pod)
         (
           cnpg_pg_replication_in_recovery{namespace="{{ .namespace }}", pod=~"{{ .podSelector }}"}
-          or cnpg_paradedb_physical_replication_in_recovery{namespace="{{ .namespace }}", pod=~"{{ .podSelector }}"}
         ) == 1
       )
   )
@@ -29,15 +28,14 @@ expr: |
     and on (namespace, pod) min_over_time((((max by (namespace, pod) (label_replace(cnpg_pg_stat_replication_replay_diff_bytes{namespace="{{ .namespace }}", pod=~"{{ .podSelector }}", usename="streaming_replica", application_name=~"{{ .podSelector }}"}, "pod", "$1", "application_name", "(.+)"))) or on (namespace, pod) (max by (namespace, pod) (cnpg_paradedb_physical_replication_pending_bytes{namespace="{{ .namespace }}", pod=~"{{ .podSelector }}"}))))[90m:1m]) > 0
     and on (namespace, pod) max by (namespace, pod) (changes(cnpg_paradedb_physical_replication_replay_lsn{namespace="{{ .namespace }}", pod=~"{{ .podSelector }}"}[90m])) == 0
     and on (namespace, pod) max by (namespace, pod) (count_over_time(cnpg_paradedb_physical_replication_replay_lsn{namespace="{{ .namespace }}", pod=~"{{ .podSelector }}"}[90m])) >= 90
-    and on (namespace, pod) max by (namespace, pod) (cnpg_paradedb_physical_replication_receiver_up{namespace="{{ .namespace }}", pod=~"{{ .podSelector }}"}) == 1
-    and on (namespace, pod) (max by (namespace, pod) (cnpg_paradedb_physical_replication_in_recovery{namespace="{{ .namespace }}", pod=~"{{ .podSelector }}"}) == 1))
+    and on (namespace, pod) max by (namespace, pod) (cnpg_pg_replication_is_wal_receiver_up{namespace="{{ .namespace }}", pod=~"{{ .podSelector }}"}) == 1
+    and on (namespace, pod) (max by (namespace, pod) (cnpg_pg_replication_in_recovery{namespace="{{ .namespace }}", pod=~"{{ .podSelector }}"}) == 1))
     and on (namespace)
     max by (namespace) (
         label_replace(kube_customresource_primary_info{customresource_group="postgresql.cnpg.io", customresource_kind="Cluster", namespace="{{ .namespace }}", cluster="{{ .cluster }}"} == 1, "pod", "$1", "current_primary", "(.+)")
         and on (namespace, pod)
         (
           cnpg_pg_replication_in_recovery{namespace="{{ .namespace }}", pod=~"{{ .podSelector }}"}
-          or cnpg_paradedb_physical_replication_in_recovery{namespace="{{ .namespace }}", pod=~"{{ .podSelector }}"}
         ) == 1
       )
   )
