@@ -22,6 +22,9 @@ concurrency:
   group: paradedb-publish-chart-${{ github.head_ref || github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   paradedb-publish-chart:
     name: Publish ParadeDB Helm Charts to GitHub Pages
