@@ -16,7 +16,7 @@ cluster:
     storageClass: standard
   monitoring:
     enabled: true
-    disableDefaultQueries: true
+    disableDefaultQueries: false
     instrumentation:
       paradedbIndex: true
       logicalReplication: true

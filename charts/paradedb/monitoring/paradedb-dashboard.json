@@ -272,82 +272,59 @@
       "type": "stat"
     },
     {
+      "id": 590,
+      "type": "stat",
+      "title": "Replication status",
+      "description": "CNPG receiver connection and upstream WAL replay backlog. WAL pending does not imply replay has stopped. Missing metrics are unknown.",
+      "gridPos": {
+        "h": 2,
+        "w": 1,
+        "x": 7,
+        "y": 1
+      },
       "datasource": {
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "High lag indicates issue with replication. Network or storage interfaces may not have enough bandwidth to handle incoming traffic and replication at the same time.",
+      "targets": [
+        {
+          "expr": "(\n  ((max by (namespace, pod) (cnpg_pg_replication_is_wal_receiver_up{namespace=\"$namespace\", pod=~\"$cluster-([1-9][0-9]*)$\"}) == 0) and on (namespace, pod) (max by (namespace, pod) (cnpg_pg_replication_in_recovery{namespace=\"$namespace\", pod=~\"$cluster-([1-9][0-9]*)$\"}) == 1)) * 0 + 3\n  or on (namespace, pod) ((max by (namespace, pod) (label_replace(cnpg_pg_stat_replication_replay_diff_bytes{namespace=\"$namespace\", pod=~\"$cluster-([1-9][0-9]*)$\", usename=\"streaming_replica\", application_name=~\"$cluster-([1-9][0-9]*)$\"}, \"pod\", \"$1\", \"application_name\", \"(.+)\")) > 0) and on (namespace, pod) (max by (namespace, pod) (cnpg_pg_replication_is_wal_receiver_up{namespace=\"$namespace\", pod=~\"$cluster-([1-9][0-9]*)$\"}) == 1) and on (namespace, pod) (max by (namespace, pod) (cnpg_pg_replication_in_recovery{namespace=\"$namespace\", pod=~\"$cluster-([1-9][0-9]*)$\"}) == 1)) * 0 + 1\n  or on (namespace, pod) ((max by (namespace, pod) (label_replace(cnpg_pg_stat_replication_replay_diff_bytes{namespace=\"$namespace\", pod=~\"$cluster-([1-9][0-9]*)$\", usename=\"streaming_replica\", application_name=~\"$cluster-([1-9][0-9]*)$\"}, \"pod\", \"$1\", \"application_name\", \"(.+)\")) == 0) and on (namespace, pod) (max by (namespace, pod) (cnpg_pg_replication_is_wal_receiver_up{namespace=\"$namespace\", pod=~\"$cluster-([1-9][0-9]*)$\"}) == 1) and on (namespace, pod) (max by (namespace, pod) (cnpg_pg_replication_in_recovery{namespace=\"$namespace\", pod=~\"$cluster-([1-9][0-9]*)$\"}) == 1)) * 0\n  or on (namespace, pod) (max by (namespace, pod) (cnpg_pg_replication_in_recovery{namespace=\"$namespace\", pod=~\"$cluster-([1-9][0-9]*)$\"}) == 1) * 0 + 4\n)",
+          "refId": "A",
+          "instant": true,
+          "legendFormat": "{{pod}}"
+        }
+      ],
       "fieldConfig": {
         "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
           "mappings": [
             {
+              "type": "value",
               "options": {
-                "match": "null",
-                "result": {
-                  "color": "text",
-                  "index": 0,
-                  "text": "No data"
+                "0": {
+                  "text": "Connected",
+                  "color": "green"
+                },
+                "1": {
+                  "text": "WAL pending",
+                  "color": "yellow"
+                },
+                "3": {
+                  "text": "Disconnected",
+                  "color": "red"
+                },
+                "4": {
+                  "text": "Unknown",
+                  "color": "gray"
                 }
-              },
-              "type": "special"
-            },
-            {
-              "options": {
-                "from": 0,
-                "result": {
-                  "color": "green",
-                  "index": 1,
-                  "text": "Healthy"
-                },
-                "to": 0.1
-              },
-              "type": "range"
-            },
-            {
-              "options": {
-                "from": 0.1,
-                "result": {
-                  "color": "yellow",
-                  "index": 2,
-                  "text": "Sub-second"
-                },
-                "to": 1
-              },
-              "type": "range"
-            },
-            {
-              "options": {
-                "from": 1,
-                "result": {
-                  "color": "orange",
-                  "index": 3,
-                  "text": "Delayed"
-                },
-                "to": 5
-              },
-              "type": "range"
-            },
-            {
-              "options": {
-                "from": 5,
-                "result": {
-                  "color": "red",
-                  "index": 4,
-                  "text": "High"
-                },
-                "to": 4294967295
-              },
-              "type": "range"
+              }
             }
           ],
+          "noValue": "Unknown",
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "gray",
                 "value": null
               }
             ]
@@ -355,19 +332,7 @@
         },
         "overrides": []
       },
-      "gridPos": {
-        "h": 2,
-        "w": 1,
-        "x": 7,
-        "y": 1
-      },
-      "id": 590,
       "options": {
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "percentChangeColorMode": "standard",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
@@ -375,39 +340,12 @@
           "fields": "",
           "values": false
         },
-        "showPercentChange": false,
+        "orientation": "auto",
         "textMode": "value_and_name",
-        "wideLayout": true
-      },
-      "pluginVersion": "11.5.1",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
-          "editorMode": "code",
-          "expr": "max(cnpg_pg_replication_lag{namespace=~\"$namespace\",pod=~\"$instances\"}) + max(cnpg_pg_stat_replication_write_lag_seconds{namespace=~\"$namespace\",pod=~\"$instances\"}) + max(cnpg_pg_stat_replication_flush_lag_seconds{namespace=~\"$namespace\",pod=~\"$instances\"}) + max(cnpg_pg_stat_replication_replay_lag_seconds{namespace=~\"$namespace\",pod=~\"$instances\"})",
-          "hide": false,
-          "instant": false,
-          "legendFormat": "Lag",
-          "range": true,
-          "refId": "LAG"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
-          "expr": "",
-          "hide": false,
-          "instant": false,
-          "range": true,
-          "refId": "A"
-        }
-      ],
-      "title": "",
-      "type": "stat"
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto"
+      }
     },
     {
       "datasource": {
@@ -2349,7 +2287,7 @@
         {
           "editorMode": "code",
           "exemplar": false,
-          "expr": "label_join(kube_customresource_primary_info{customresource_group=\"postgresql.cnpg.io\", customresource_kind=\"Cluster\", namespace=\"$namespace\",cluster=\"$cluster\"}, \"Primary\", \" ➔ \", \"current_primary\", \"target_primary\") or label_replace(kube_customresource_primary_info{customresource_group=\"postgresql.cnpg.io\", customresource_kind=\"Cluster\", namespace=\"$namespace\",cluster=\"$cluster\"}, \"Primary\", \"$1\", \"current_primary\", \"(.*)\") == label_replace(kube_customresource_primary_info{customresource_group=\"postgresql.cnpg.io\", customresource_kind=\"Cluster\", namespace=\"$namespace\",cluster=\"$cluster\"}, \"Primary\", \"$1\", \"target_primary\", \"(.*)\")",
+          "expr": "label_join(kube_customresource_primary_info{customresource_group=\"postgresql.cnpg.io\", customresource_kind=\"Cluster\", namespace=\"$namespace\",cluster=\"$cluster\"}, \"Primary\", \" \u2794 \", \"current_primary\", \"target_primary\") or label_replace(kube_customresource_primary_info{customresource_group=\"postgresql.cnpg.io\", customresource_kind=\"Cluster\", namespace=\"$namespace\",cluster=\"$cluster\"}, \"Primary\", \"$1\", \"current_primary\", \"(.*)\") == label_replace(kube_customresource_primary_info{customresource_group=\"postgresql.cnpg.io\", customresource_kind=\"Cluster\", namespace=\"$namespace\",cluster=\"$cluster\"}, \"Primary\", \"$1\", \"target_primary\", \"(.*)\")",
           "format": "table",
           "instant": true,
           "legendFormat": "__auto",
@@ -2663,7 +2601,6 @@
             "mode": "thresholds"
           },
           "mappings": [],
-          "max": 30,
           "min": 0,
           "thresholds": {
             "mode": "absolute",
@@ -2674,19 +2611,15 @@
               },
               {
                 "color": "yellow",
-                "value": 1
-              },
-              {
-                "color": "orange",
-                "value": 10
+                "value": 1073741824
               },
               {
                 "color": "red",
-                "value": 20
+                "value": 10737418240
               }
             ]
           },
-          "unit": "s"
+          "unit": "bytes"
         },
         "overrides": []
       },
@@ -2723,16 +2656,16 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "max(cnpg_pg_replication_lag{namespace=~\"$namespace\",pod=~\"$instances\"})",
+          "expr": "max(max by (pod) (label_replace(cnpg_pg_stat_replication_replay_diff_bytes{namespace=\"$namespace\",job=\"$namespace/$cluster\",usename=\"streaming_replica\",application_name=~\"$instances\"}, \"pod\", \"$1\", \"application_name\", \"(.+)\")))",
           "instant": false,
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
         }
       ],
-      "title": "Replication Lag",
+      "title": "WAL Replay Backlog",
       "type": "stat",
-      "description": "Largest reported physical replication replay lag among selected instances, in seconds."
+      "description": "WAL generated by the primary that each connected physical replica has yet to replay. Disconnected replicas have no sender metrics."
     },
     {
       "datasource": {
@@ -3064,7 +2997,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "Largest reported time for a standby to acknowledge replaying recent WAL, in seconds.",
+      "description": "Time for recent WAL to be replayed and acknowledged by each connected physical replica. This is not an estimate of catch-up time. CNPG reports zero after an idle measurement expires. Check WAL backlog alongside latency. Disconnected replicas have no sender metrics.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -3080,15 +3013,11 @@
               },
               {
                 "color": "yellow",
-                "value": 1
-              },
-              {
-                "color": "orange",
-                "value": 10
+                "value": 60
               },
               {
                 "color": "red",
-                "value": 20
+                "value": 600
               }
             ]
           },
@@ -3128,13 +3057,13 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "max(cnpg_pg_stat_replication_replay_lag_seconds{namespace=~\"$namespace\",pod=~\"$instances\"})",
-          "legendFormat": "__auto",
+          "expr": "max(max by (pod) (label_replace(cnpg_pg_stat_replication_replay_lag_seconds{namespace=\"$namespace\",job=\"$namespace/$cluster\",usename=\"streaming_replica\",application_name=~\"$instances\"}, \"pod\", \"$1\", \"application_name\", \"(.+)\")))",
+          "legendFormat": "{{pod}}",
           "range": true,
           "refId": "A"
         }
       ],
-      "title": "Replay Lag",
+      "title": "Replay Latency",
       "type": "stat"
     },
     {
@@ -9518,7 +9447,7 @@
               "type": "linear"
             },
             "showPoints": "never",
-            "spanNulls": true,
+            "spanNulls": false,
             "stacking": {
               "group": "A",
               "mode": "none"
@@ -9532,19 +9461,20 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": null
               },
               {
-                "color": "#EAB839",
-                "value": 600
+                "color": "yellow",
+                "value": 1073741824
               },
               {
-                "color": "dark-red",
-                "value": 3600
+                "color": "red",
+                "value": 10737418240
               }
             ]
           },
-          "unit": "s"
+          "unit": "bytes"
         },
         "overrides": []
       },
@@ -9576,16 +9506,16 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": true,
-          "expr": "max by (pod) (cnpg_pg_replication_lag{namespace=~\"$namespace\",pod=~\"$instances\"})",
+          "expr": "max by (pod) (label_replace(cnpg_pg_stat_replication_replay_diff_bytes{namespace=\"$namespace\",job=\"$namespace/$cluster\",usename=\"streaming_replica\",application_name=~\"$instances\"}, \"pod\", \"$1\", \"application_name\", \"(.+)\"))",
           "instant": false,
           "interval": "",
           "legendFormat": "{{pod}}",
           "refId": "A"
         }
       ],
-      "title": "Replication Lag",
+      "title": "WAL Replay Backlog",
       "type": "timeseries",
-      "description": "Physical replication replay lag reported by each instance, in seconds."
+      "description": "WAL generated by the primary that each connected physical replica has yet to replay. Disconnected replicas have no sender metrics."
     },
     {
       "datasource": {
@@ -9621,7 +9551,7 @@
               "type": "linear"
             },
             "showPoints": "never",
-            "spanNulls": true,
+            "spanNulls": false,
             "stacking": {
               "group": "A",
               "mode": "none"
@@ -9676,10 +9606,10 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "max by (pod, application_name) (cnpg_pg_stat_replication_write_lag_seconds{namespace=~\"$namespace\",pod=~\"$instances\"})",
+          "expr": "max by (pod) (label_replace(cnpg_pg_stat_replication_write_lag_seconds{namespace=\"$namespace\",job=\"$namespace/$cluster\",usename=\"streaming_replica\",application_name=~\"$instances\"}, \"pod\", \"$1\", \"application_name\", \"(.+)\"))",
           "instant": false,
           "interval": "",
-          "legendFormat": "{{pod}} -> {{application_name}}",
+          "legendFormat": "{{pod}}",
           "refId": "A"
         }
       ],
@@ -9721,7 +9651,7 @@
               "type": "linear"
             },
             "showPoints": "never",
-            "spanNulls": true,
+            "spanNulls": false,
             "stacking": {
               "group": "A",
               "mode": "none"
@@ -9776,10 +9706,10 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "max by (pod, application_name) (cnpg_pg_stat_replication_flush_lag_seconds{namespace=~\"$namespace\",pod=~\"$instances\"})",
+          "expr": "max by (pod) (label_replace(cnpg_pg_stat_replication_flush_lag_seconds{namespace=\"$namespace\",job=\"$namespace/$cluster\",usename=\"streaming_replica\",application_name=~\"$instances\"}, \"pod\", \"$1\", \"application_name\", \"(.+)\"))",
           "instant": false,
           "interval": "",
-          "legendFormat": "{{pod}} -> {{application_name}}",
+          "legendFormat": "{{pod}}",
           "refId": "A"
         }
       ],
@@ -9792,7 +9722,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "Time for each standby to acknowledge replaying recent WAL, as reported by its upstream instance.",
+      "description": "Time for recent WAL to be replayed and acknowledged by each connected physical replica. This is not an estimate of catch-up time. CNPG reports zero after an idle measurement expires. Check WAL backlog alongside latency. Disconnected replicas have no sender metrics.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -9822,7 +9752,7 @@
               "type": "linear"
             },
             "showPoints": "never",
-            "spanNulls": true,
+            "spanNulls": false,
             "stacking": {
               "group": "A",
               "mode": "none"
@@ -9836,11 +9766,16 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 60
               },
               {
                 "color": "red",
-                "value": 80
+                "value": 600
               }
             ]
           },
@@ -9877,14 +9812,14 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "max by (pod, application_name) (cnpg_pg_stat_replication_replay_lag_seconds{namespace=~\"$namespace\",pod=~\"$instances\"})",
+          "expr": "max by (pod) (label_replace(cnpg_pg_stat_replication_replay_lag_seconds{namespace=\"$namespace\",job=\"$namespace/$cluster\",usename=\"streaming_replica\",application_name=~\"$instances\"}, \"pod\", \"$1\", \"application_name\", \"(.+)\"))",
           "interval": "",
-          "legendFormat": "{{pod}} -> {{application_name}}",
+          "legendFormat": "{{pod}}",
           "range": true,
           "refId": "A"
         }
       ],
-      "title": "Replay Lag",
+      "title": "Replay Latency",
       "type": "timeseries"
     },
     {
@@ -11805,7 +11740,7 @@
           },
           "editorMode": "code",
           "refId": "A",
-          "legendFormat": "{{node}} · {{condition}}",
+          "legendFormat": "{{node}} \u00b7 {{condition}}",
           "expr": "avg by (node, condition) (kube_node_status_condition{condition!=\"Ready\", status=\"false\", node=~\"$nodes\"} * on (node) group_left() max by (node) (kube_pod_info{namespace=~\"$namespace\", pod=~\"$instances\"}))"
         },
         {
@@ -11815,7 +11750,7 @@
           },
           "editorMode": "code",
           "refId": "B",
-          "legendFormat": "{{node}} · {{condition}}",
+          "legendFormat": "{{node}} \u00b7 {{condition}}",
           "expr": "avg by (node, condition) (kube_node_status_condition{condition=\"Ready\", status=\"true\", node=~\"$nodes\"} * on (node) group_left() max by (node) (kube_pod_info{namespace=~\"$namespace\", pod=~\"$instances\"}))"
         }
       ],
