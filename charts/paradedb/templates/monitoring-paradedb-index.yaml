@@ -1,4 +1,5 @@
 {{- if .Values.cluster.monitoring.instrumentation.paradedbIndex }}
+{{- $pgVersion := include "cluster.postgresqlMajor" . | int -}}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -141,6 +142,52 @@ data:
         - is_ready:
             description: Whether the index is ready for inserts
             usage: GAUGE
+    # PostgreSQL catalog counters do not call pg_search functions.
+    paradedb_index_usage:
+      query: |
+        SELECT current_database() AS datname
+             , s.schemaname AS schema
+             , s.relname AS tablename
+             , s.indexrelname AS relname
+             , s.idx_scan
+             , s.idx_tup_read
+             , s.idx_tup_fetch
+             {{- if ge $pgVersion 16 }}
+             , COALESCE(EXTRACT(EPOCH FROM s.last_idx_scan), 0)::bigint AS last_idx_scan
+             {{- end }}
+        FROM pg_stat_all_indexes s
+        JOIN pg_class c ON c.oid = s.indexrelid
+        JOIN pg_am am ON am.oid = c.relam
+        WHERE am.amname IN ('paradedb', 'bm25');
+      target_databases: ["*"]
+      predicate_query: "SELECT 1 FROM pg_extension WHERE extname = 'pg_search';"
+      metrics:
+        - datname:
+            description: Name of the database
+            usage: LABEL
+        - schema:
+            description: Schema within the database
+            usage: LABEL
+        - tablename:
+            description: Table the index is on
+            usage: LABEL
+        - relname:
+            description: Index name
+            usage: LABEL
+        - idx_scan:
+            description: Number of scans of the index since its statistics were last reset
+            usage: COUNTER
+        - idx_tup_read:
+            description: Number of index entries returned by scans of the index
+            usage: COUNTER
+        - idx_tup_fetch:
+            description: Number of live table rows fetched by simple index scans of the index
+            usage: COUNTER
+        {{- if ge $pgVersion 16 }}
+        - last_idx_scan:
+            description: Time of the last scan of the index as a Unix timestamp, or 0 for none
+            usage: GAUGE
+        {{- end }}
     # Always emit a count, including zero when no ParadeDB indexes exist.
     paradedb_invalid_indexes:
       query: |

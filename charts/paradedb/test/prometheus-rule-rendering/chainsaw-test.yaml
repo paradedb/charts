@@ -66,7 +66,19 @@ spec:
               missing_metrics="$(printf '%s\n' "$rendered" | alert_rule CNPGInstanceMetricsAbsent)"
               printf '%s\n' "$missing_metrics" | grep -Fq 'unless on (namespace, pod)'
               printf '%s\n' "$missing_metrics" | grep -Fq '} == 1)'
-              printf '%s\n' "$missing_metrics" | grep -Fq '} == 0)'
+              if printf '%s\n' "$missing_metrics" | grep -Fq '} == 0'; then
+                echo "failed scrapes belong to TargetDown, not CNPGInstanceMetricsAbsent"
+                exit 1
+              fi
+              unreachable="$(printf '%s\n' "$rendered" | alert_rule TargetDown)"
+              printf '%s\n' "$unreachable" | grep -Fq 'endpoint="metrics"} == 0'
+              printf '%s\n' "$unreachable" | grep -Fq 'severity: warning'
+              printf '%s\n' "$unreachable" | grep -Fq 'for: 10m'
+              unreachable_excluded="$(render 3 --set 'cluster.monitoring.prometheusRule.excludeRules[0]=TargetDown')"
+              if printf '%s\n' "$unreachable_excluded" | grep -Fq -- '- alert: TargetDown'; then
+                echo "excluded unreachable metrics alert must not render"
+                exit 1
+              fi
               printf '%s\n' "$missing_metrics" | grep -Fq 'for: 10m'
               if printf '%s\n' "$missing_metrics" | grep -Fq 'kube_pod_status_ready'; then
                 echo "missing metrics alert must not require kube-state-metrics"

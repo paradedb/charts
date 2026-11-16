@@ -6,11 +6,7 @@ annotations:
   description: |-
     CloudNativePG Cluster "{{ .namespace }}/{{ .cluster }}" subscription "{{ .labels.subname }}" is enabled but has no apply worker running.
 
-    The subscription is meant to be replicating and is not. Data is diverging from the publisher for
-    as long as this persists, and the lag alerts cannot fire while the worker is absent.
-
-    Check the subscriber logs for repeated apply worker crashes, and the publisher for a dropped or
-    invalidated replication slot.
+    Check the subscriber logs for apply worker crashes and the publisher for a dropped or invalidated replication slot. Check committed apply progress on the subscriber.
   runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterLogicalReplicationStopped.md
 expr: |
   (

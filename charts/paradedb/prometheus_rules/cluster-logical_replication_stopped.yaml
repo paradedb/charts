@@ -4,11 +4,9 @@ alert: {{ $alert }}
 annotations:
   summary: ParadeDB CNPG Cluster logical replication subscription is disabled
   description: |-
-    CloudNativePG Cluster "{{ .namespace }}/{{ .cluster }}" subscription "{{ .labels.subname }}" is disabled and is replicating nothing.
+    CloudNativePG Cluster "{{ .namespace }}/{{ .cluster }}" subscription "{{ .labels.subname }}" is disabled.
 
-    This may be intentional (e.g. a subscription disabled for maintenance, or an ALTER SUBSCRIPTION ... DISABLE)
-    that was never reverted. Either way the lag alerts cannot fire for this subscription while it is
-    disabled, so nothing else will catch it.
+    Check whether the subscription was disabled for maintenance before enabling it.
   runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGClusterLogicalReplicationStopped.md
 expr: |
   max by (namespace, cluster, pod, datname, subname) (

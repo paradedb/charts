@@ -109,6 +109,12 @@ spec:
             scrape | grep paradedb_index_max_docs
             echo "paradedb_index_deleted_ratio"
             scrape | grep paradedb_index_deleted_ratio
+            # Usage counters are available without opening index storage.
+            scrape > /tmp/index-usage-metrics.txt
+            for metric in idx_scan idx_tup_read idx_tup_fetch last_idx_scan; do
+              grep "^cnpg_paradedb_index_usage_${metric}{" /tmp/index-usage-metrics.txt | grep 'relname="search_idx"'
+            done
+
             echo "paradedb_index_health_is_valid"
             scrape | grep paradedb_index_health_is_valid
             echo "paradedb_index_health_is_ready"

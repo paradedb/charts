@@ -2,10 +2,7 @@
 
 ## Description
 
-The `CNPGInstanceMetricsAbsent` alert fires when a CloudNativePG metrics endpoint
-is unreachable or a successful scrape is missing collector
-metrics for 10 minutes. This can indicate an exporter problem even when HTTP
-scrapes still succeed.
+`CNPGInstanceMetricsAbsent` fires at critical severity when scrapes succeed but collector metrics are missing for 10 minutes. `TargetDown` fires at warning severity when an instance's metrics endpoint is unreachable for 10 minutes. Both alerts are scoped to the cluster's instance metrics endpoints.
 
 ## Impact
 
@@ -15,7 +12,7 @@ The instance keeps serving queries, so the risk is in what the missing metrics h
 - `CNPGClusterHA*` reads `cnpg_pg_replication_streaming_replicas` and `cnpg_pg_replication_is_wal_receiver_up`
 - The logical replication alerts read `cnpg_pg_stat_subscription_*`
 
-These are all `expr > threshold` rules, so once the exporter goes silent there are no samples to evaluate and they cannot fire. While this alert is active, their silence means nothing for this instance. Check replication directly because missing metrics can hide a stalled standby.
+Alerts that require missing series have no samples to evaluate and cannot fire. While this alert is active, their silence means nothing for this instance. Check replication directly because missing metrics can hide a stalled standby.
 
 ## Diagnosis
 
@@ -79,7 +76,7 @@ kubectl exec -n <namespace> -it pod/<instance-pod-name> -- psql -c "SELECT pg_te
 kubectl delete -n <namespace> pod/<replica-pod-name>
 ```
 
-The alert clears when scrapes succeed and collector metrics resume, or when the target is removed. Confirm metrics are flowing. Check the upstream instance for replay-latency series, which identify replicas through `application_name`:
+`TargetDown` clears when scrapes succeed or the target is removed. `CNPGInstanceMetricsAbsent` clears when collector metrics resume or successful scrapes stop. Confirm metrics are flowing:
 
 ```bash
 kubectl exec -n <namespace> -it pod/<instance-pod-name> -- curl -sS --max-time 5 http://localhost:9187/metrics | grep -E "cnpg_collector_up|cnpg_pg_stat_replication_replay_lag_seconds"

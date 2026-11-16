@@ -2,14 +2,14 @@
 
 ## Description
 
-The `CNPGClusterHAWarning` and `CNPGClusterHACritical` alerts are triggered when the CloudNativePG cluster has fewer than two ready standby replicas.
+The alerts check the number of connected standby replicas on a writable cluster:
 
-- **Warning level**: the cluster has one ready standby replica
-- **Critical level**: the cluster has no ready standby replicas
+- `CNPGClusterHAWarning` fires when there are fewer standbys than `cluster.instances - 1`.
+- `CNPGClusterHACritical` fires when there are no standbys and `cluster.instances` is greater than one.
 
-Either may fire briefly during a regular failover or a planned automated version upgrade, while only the primary is active and the failover completes.
+Both conditions must persist for five minutes. Neither alert is enabled for a single-instance cluster. Instances in recovery and dedicated replica clusters are excluded.
 
-Both alerts remain active at all times on a single-instance cluster, and the warning does on a two-instance cluster. If running with that many instances is intentional, consider silencing the alert.
+A failover or instance upgrade can reduce the standby count while a replica reconnects and catches up.
 
 ## Impact
 
