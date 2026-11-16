@@ -2,9 +2,9 @@
 
 ## Description
 
-Physical replication alerts use replay latency and WAL replay backlog. Both metrics come from the upstream's `pg_stat_replication` view. The alerts use `application_name` to identify the receiving replica and exclude logical replication connections.
+These alerts check replay latency and unreplayed WAL from `pg_stat_replication` on the upstream instance. `application_name` identifies the replica. Logical replication connections are excluded.
 
-Latency and backlog thresholds must hold for five minutes.
+Each alert fires after five minutes above its threshold.
 
 | Alert                                           | Condition                                                      |
 | ----------------------------------------------- | -------------------------------------------------------------- |
@@ -13,17 +13,17 @@ Latency and backlog thresholds must hold for five minutes.
 | `CNPGClusterPhysicalReplicationBacklogWarning`  | Replay backlog above 1 GiB                                     |
 | `CNPGClusterPhysicalReplicationBacklogCritical` | Replay backlog above 10 GiB                                    |
 
-Dedicated replica clusters retain their 90-minute warning and two-hour critical latency thresholds. Their byte-backlog thresholds are unchanged.
+For dedicated replica clusters, latency warns at 90 minutes and becomes critical at two hours. Backlog still warns at 1 GiB and becomes critical at 10 GiB.
 
-Replay latency uses `cnpg_pg_stat_replication_replay_lag_seconds`, the same metric as the Cloud console. It measures the time between flushing WAL on the primary and receiving confirmation that the replica replayed it. It does not estimate catch-up time. CNPG reports zero after an idle latency measurement expires. A stalled replica can also stop producing new measurements while its backlog grows, so the byte-backlog alerts stay active even when latency is low or missing.
+Replay latency (`cnpg_pg_stat_replication_replay_lag_seconds`) measures the time from flushing WAL on the primary to confirmation that the replica replayed it. The Cloud console uses the same metric. It does not tell you how long the replica needs to catch up. CNPG reports zero once an idle measurement expires. If replay stalls, latency measurements can stop while the backlog grows. Check the backlog even when latency is low or missing.
 
-The latency alerts require unreplayed WAL on the same replica. An old latency sample cannot fire an alert after that replica has caught up. The old `cnpg_pg_replication_lag` transaction-age metric is not used.
+Latency alerts only fire while that replica has unreplayed WAL, so an old sample cannot trigger an alert after it catches up. These alerts do not use `cnpg_pg_replication_lag`, which measures transaction age.
 
-Disconnected replicas and archive-only recovery have no sender row. Missing connections and unavailable instances need separate health monitoring.
+Disconnected replicas and replicas recovering only from archives have no sender row. Check connection and instance health as well.
 
 ## Impact
 
-Physical replication lag can cause the cluster replicas to become out of sync. Queries to the `-r` and `-ro` endpoints may return stale data. Unreplayed WAL may already be durable on the replica, so replay backlog alone does not measure failover data-loss risk. WAL that has not reached durable storage on the promoted replica may be lost.
+Queries to the `-r` and `-ro` endpoints may return stale data. Unreplayed WAL may already be stored durably on the replica. Backlog alone therefore does not tell you how much data a failover could lose. WAL that has not reached durable storage on the promoted replica may be lost.
 
 ## Diagnosis
 
@@ -33,7 +33,7 @@ Check replication status in the [CloudNativePG Grafana Dashboard](https://grafan
 kubectl exec -n <namespace> -it services/paradedb-rw -- psql -c "SELECT * FROM pg_stat_replication;"
 ```
 
-High physical replication lag can be caused by a number of factors:
+Check for:
 
 - Network congestion on the node interface, or insufficient bandwidth between the primary and its replicas. Inspect the network interface statistics using the `Kubernetes Cluster` section of the Grafana dashboard.
 
@@ -99,10 +99,10 @@ kubectl delete -n <namespace> pod/<pod-name> pvc/<pod-name> pvc/<pod-name>-wal
 
 ## Connection status
 
-The status indicator shows Connected, WAL pending, Disconnected, or Unknown using CNPG's default metrics. WAL pending does not imply that replay has stopped. Missing metrics remain unknown.
+The status indicator uses CNPG's default metrics: Connected, WAL pending, Disconnected, or Unknown. WAL pending means there is unreplayed WAL, which may still be replaying normally. Missing metrics show as Unknown.
 
-The designated primary of a dedicated replica cluster is excluded from disconnect warnings because it can recover from archived WAL without a streaming connection. Streaming standbys in that cluster still need a WAL receiver. Check upstream reachability, authentication, replication slots, and PostgreSQL logs when they disconnect.
+A dedicated replica cluster's primary can recover from archived WAL without a streaming connection, so it does not trigger disconnect warnings. Its streaming standbys still need a WAL receiver. If they disconnect, check upstream reachability, authentication, replication slots, and PostgreSQL logs.
 
-These alerts do not detect an exact duration without replay progress. Small stalled backlogs can remain below the byte thresholds while recent replay latency stays low. We track adding replay-position metrics to CNPG's default queries in https://github.com/paradedb/cloud/issues/630. This chart adds no custom physical replication query.
+A small backlog can stall without triggering these alerts if it stays below the byte thresholds and reported latency stays low. Detecting how long replay has stopped needs replay-position metrics, tracked in [cloud#630](https://github.com/paradedb/cloud/issues/630). The chart uses CNPG's default queries.
 
-A standby with no WAL receiver for 15 minutes triggers a warning only. This catches lost streaming connections even when sender metrics disappear. Archive recovery may still be running, so an absent receiver alone does not trigger a critical alert.
+A standby with no WAL receiver for 15 minutes triggers a warning, even if sender metrics have disappeared. It may still be recovering from archives, so this does not trigger a critical alert.
