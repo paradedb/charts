@@ -6,12 +6,12 @@ Physical replication alerts use replay latency and WAL replay backlog. Both metr
 
 Latency and backlog thresholds must hold for five minutes.
 
-| Alert | Condition |
-| --- | --- |
-| `CNPGClusterPhysicalReplicationLagWarning` | Replay latency above 60 seconds and unreplayed WAL above zero |
-| `CNPGClusterPhysicalReplicationLagCritical` | Replay latency above 600 seconds and unreplayed WAL above zero |
-| `CNPGClusterPhysicalReplicationBacklogWarning` | Replay backlog above 1 GiB |
-| `CNPGClusterPhysicalReplicationBacklogCritical` | Replay backlog above 10 GiB |
+| Alert                                           | Condition                                                      |
+| ----------------------------------------------- | -------------------------------------------------------------- |
+| `CNPGClusterPhysicalReplicationLagWarning`      | Replay latency above 60 seconds and unreplayed WAL above zero  |
+| `CNPGClusterPhysicalReplicationLagCritical`     | Replay latency above 600 seconds and unreplayed WAL above zero |
+| `CNPGClusterPhysicalReplicationBacklogWarning`  | Replay backlog above 1 GiB                                     |
+| `CNPGClusterPhysicalReplicationBacklogCritical` | Replay backlog above 10 GiB                                    |
 
 Dedicated replica clusters retain their 90-minute warning and two-hour critical latency thresholds. Their byte-backlog thresholds are unchanged.
 
