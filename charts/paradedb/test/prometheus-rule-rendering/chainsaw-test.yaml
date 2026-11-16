@@ -102,6 +102,11 @@ spec:
               printf '%s\n' "$rendered" | alert_rule CNPGClusterLogicalReplicationDistanceHigh | grep -Fq 'for: 5m'
               printf '%s\n' "$rendered" | alert_rule CNPGClusterLogicalReplicationDistanceCritical | grep -Fq '/ 1024^3 > 4'
               printf '%s\n' "$rendered" | alert_rule CNPGClusterLogicalReplicationDistanceCritical | grep -Fq 'for: 2m'
+              disconnected="$(printf '%s\n' "$rendered" | alert_rule CNPGClusterPhysicalReplicationDisconnectedWarning)"
+              printf '%s\n' "$disconnected" | grep -Fq 'unless on (namespace, pod)'
+              printf '%s\n' "$disconnected" | grep -Fq 'kube_customresource_primary_info'
+              printf '%s\n' "$disconnected" | grep -Fq 'current_primary'
+              printf '%s\n' "$disconnected" | grep -Fq 'for: 15m'
               for severity in Warning Critical; do
                 threshold=1
                 if [ "$severity" = Critical ]; then threshold=10; fi

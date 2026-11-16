@@ -101,7 +101,7 @@ kubectl delete -n <namespace> pod/<pod-name> pvc/<pod-name> pvc/<pod-name>-wal
 
 The status indicator shows Connected, WAL pending, Disconnected, or Unknown using CNPG's default metrics. WAL pending does not imply that replay has stopped. Missing metrics remain unknown.
 
-A replica with no WAL receiver warns after five minutes and alerts critically after fifteen minutes. Check upstream reachability, authentication, replication slots, and PostgreSQL logs. The replica may still be replaying archived WAL.
+The designated primary of a dedicated replica cluster is excluded from disconnect warnings because it can recover from archived WAL without a streaming connection. Streaming standbys in that cluster still need a WAL receiver. Check upstream reachability, authentication, replication slots, and PostgreSQL logs when they disconnect.
 
 These alerts do not detect an exact duration without replay progress. Small stalled backlogs can remain below the byte thresholds while recent replay latency stays low. We track adding replay-position metrics to CNPG's default queries in https://github.com/paradedb/cloud/issues/630. This chart adds no custom physical replication query.
 
