@@ -15,7 +15,7 @@ Latency and backlog thresholds must hold for five minutes.
 
 Dedicated replica clusters retain their 90-minute warning and two-hour critical latency thresholds. Their byte-backlog thresholds are unchanged.
 
-Replay latency measures how long recent WAL took to be replayed and acknowledged. It does not estimate catch-up time. CNPG reports zero after an idle latency measurement expires. A stalled replica can also stop producing new measurements while its backlog grows, so the byte-backlog alerts stay active even when latency is low or missing.
+Replay latency uses `cnpg_pg_stat_replication_replay_lag_seconds`, the same metric as the Cloud console. It measures the time between flushing WAL on the primary and receiving confirmation that the replica replayed it. It does not estimate catch-up time. CNPG reports zero after an idle latency measurement expires. A stalled replica can also stop producing new measurements while its backlog grows, so the byte-backlog alerts stay active even when latency is low or missing.
 
 The latency alerts require unreplayed WAL on the same replica. An old latency sample cannot fire an alert after that replica has caught up. The old `cnpg_pg_replication_lag` transaction-age metric is not used.
 

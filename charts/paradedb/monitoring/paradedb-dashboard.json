@@ -2997,7 +2997,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "Time for recent WAL to be replayed and acknowledged by each connected physical replica. This is not an estimate of catch-up time. CNPG reports zero after an idle measurement expires. Check WAL backlog alongside latency. Disconnected replicas have no sender metrics.",
+      "description": "Time between flushing WAL on the primary and receiving confirmation that each connected physical replica replayed it. This is not an estimate of catch-up time. CNPG reports zero after an idle measurement expires. Check WAL backlog alongside latency. Disconnected replicas have no sender metrics.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -9722,7 +9722,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "Time for recent WAL to be replayed and acknowledged by each connected physical replica. This is not an estimate of catch-up time. CNPG reports zero after an idle measurement expires. Check WAL backlog alongside latency. Disconnected replicas have no sender metrics.",
+      "description": "Time between flushing WAL on the primary and receiving confirmation that each connected physical replica replayed it. This is not an estimate of catch-up time. CNPG reports zero after an idle measurement expires. Check WAL backlog alongside latency. Disconnected replicas have no sender metrics.",
       "fieldConfig": {
         "defaults": {
           "color": {
