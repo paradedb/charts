@@ -16,7 +16,7 @@ Which alerts go blind depends on which queries are failing. If the collector can
 - `CNPGClusterHA*`, which reads `cnpg_pg_replication_streaming_replicas` and `cnpg_pg_replication_is_wal_receiver_up`
 - The logical replication alerts, which read `cnpg_pg_stat_subscription_*`
 
-A standby in this state has previously replayed nothing for two months without alerting, because the one rule aimed squarely at that condition had no series to evaluate.
+A standby can stop replaying WAL without triggering a replication alert if the required metrics are missing.
 
 ## Diagnosis
 
@@ -95,4 +95,4 @@ The alert resolves once a collection completes without error. Confirm the missin
 kubectl exec -n <namespace> -it pod/<instance-pod-name> -- curl -sS --max-time 5 http://localhost:9187/metrics | grep -E "cnpg_collector_last_collection_error|cnpg_errors_total|cnpg_pg_stat_replication_replay_lag_seconds"
 ```
 
-Afterwards, audit whether any replication or HA alert should have fired while the series were missing, and for how long they had been missing before this alert existed. Escalate if the collection error persists after the database name is correct, if it appears across several instances at once, which suggests a bad instrumentation rollout rather than one misconfigured cluster, or if `pg_stat_replication` on the primary shows a standby that has not been replaying.
+Afterwards, audit whether any replication or HA alert should have fired while the series were missing, and how long the metrics were missing. Escalate if the collection error persists after the database name is correct, if it appears across several instances at once, which suggests a bad instrumentation rollout rather than one misconfigured cluster, or if `pg_stat_replication` on the primary shows a standby that has not been replaying.

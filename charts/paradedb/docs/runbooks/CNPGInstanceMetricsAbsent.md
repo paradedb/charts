@@ -15,7 +15,7 @@ The instance keeps serving queries, so the risk is in what the missing metrics h
 - `CNPGClusterHA*` reads `cnpg_pg_replication_streaming_replicas` and `cnpg_pg_replication_is_wal_receiver_up`
 - The logical replication alerts read `cnpg_pg_stat_subscription_*`
 
-These are all `expr > threshold` rules, so once the exporter goes silent there are no samples to evaluate and they cannot fire. While this alert is active, their silence means nothing for this instance. A hung exporter has previously coincided with a frozen standby, where replication was stuck and nothing alerted on it.
+These are all `expr > threshold` rules, so once the exporter goes silent there are no samples to evaluate and they cannot fire. While this alert is active, their silence means nothing for this instance. Check replication directly because missing metrics can hide a stalled standby.
 
 ## Diagnosis
 
