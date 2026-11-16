@@ -2733,7 +2733,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "max(cnpg_pg_stat_replication_write_lag_seconds{namespace=~\"$namespace\",pod=~\"$instances\"})",
+          "expr": "max(max by (pod) (label_replace(cnpg_pg_stat_replication_write_lag_seconds{namespace=\"$namespace\",job=\"$namespace/$cluster\",usename=\"streaming_replica\",application_name=~\"$instances\"}, \"pod\", \"$1\", \"application_name\", \"(.+)\")))",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
@@ -3058,7 +3058,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "max(cnpg_pg_stat_replication_flush_lag_seconds{namespace=~\"$namespace\",pod=~\"$instances\"})",
+          "expr": "max(max by (pod) (label_replace(cnpg_pg_stat_replication_flush_lag_seconds{namespace=\"$namespace\",job=\"$namespace/$cluster\",usename=\"streaming_replica\",application_name=~\"$instances\"}, \"pod\", \"$1\", \"application_name\", \"(.+)\")))",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
