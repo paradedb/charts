@@ -13,11 +13,11 @@ Each alert fires after five minutes above its threshold.
 | `CNPGClusterPhysicalReplicationBacklogWarning`  | Replay backlog above 1 GiB                                     |
 | `CNPGClusterPhysicalReplicationBacklogCritical` | Replay backlog above 10 GiB                                    |
 
-For dedicated replica clusters, latency warns at 90 minutes and becomes critical at two hours. Backlog still warns at 1 GiB and becomes critical at 10 GiB.
+For dedicated replica clusters, latency warns at 90 minutes and becomes critical at two hours. Backlog warns at 1 GiB and becomes critical at 10 GiB.
 
-Replay latency (`cnpg_pg_stat_replication_replay_lag_seconds`) measures the time from flushing WAL on the primary to confirmation that the replica replayed it. The Cloud console uses the same metric. It does not tell you how long the replica needs to catch up. CNPG reports zero once an idle measurement expires. If replay stalls, latency measurements can stop while the backlog grows. Check the backlog even when latency is low or missing.
+Replay latency (`cnpg_pg_stat_replication_replay_lag_seconds`) measures the time from flushing WAL on the primary to confirmation that the replica replayed it. It does not tell you how long the replica needs to catch up. CNPG reports zero once an idle measurement expires. If replay stalls, latency measurements can stop while the backlog grows. Check the backlog even when latency is low or missing.
 
-Latency alerts only fire while that replica has unreplayed WAL, so an old sample cannot trigger an alert after it catches up. These alerts do not use `cnpg_pg_replication_lag`, which measures transaction age.
+Latency alerts only fire while that replica has unreplayed WAL, so a stale latency sample cannot trigger an alert after it catches up.
 
 Disconnected replicas and replicas recovering only from archives have no sender row. Check connection and instance health as well.
 
@@ -99,10 +99,10 @@ kubectl delete -n <namespace> pod/<pod-name> pvc/<pod-name> pvc/<pod-name>-wal
 
 ## Connection status
 
-The status indicator uses CNPG's default metrics: Connected, WAL pending, Disconnected, or Unknown. WAL pending means there is unreplayed WAL, which may still be replaying normally. Missing metrics show as Unknown.
+The status indicator uses CNPG's default metrics: Connected, WAL pending, Disconnected, or Unknown. WAL pending means there is unreplayed WAL, which may be replaying normally. Missing metrics show as Unknown.
 
-A dedicated replica cluster's primary can recover from archived WAL without a streaming connection, so it does not trigger disconnect warnings. Its streaming standbys still need a WAL receiver. If they disconnect, check upstream reachability, authentication, replication slots, and PostgreSQL logs.
+A dedicated replica cluster's primary can recover from archived WAL without a streaming connection, so it does not trigger disconnect warnings. Its streaming standbys need a WAL receiver. If they disconnect, check upstream reachability, authentication, replication slots, and PostgreSQL logs.
 
-A small backlog can stall without triggering these alerts if it stays below the byte thresholds and reported latency stays low. Detecting how long replay has stopped needs replay-position metrics, tracked in [cloud#630](https://github.com/paradedb/cloud/issues/630). The chart uses CNPG's default queries.
+A small backlog can stall without triggering these alerts if it stays below the byte thresholds and reported latency stays low. CNPG's default metrics do not measure how long replay has stopped.
 
-A standby with no WAL receiver for 15 minutes triggers a warning, even if sender metrics have disappeared. It may still be recovering from archives, so this does not trigger a critical alert.
+A standby with no WAL receiver for 15 minutes triggers a warning, even if sender metrics have disappeared. It may be recovering from archives, so this does not trigger a critical alert.
