@@ -6,7 +6,7 @@
 
 ## Impact
 
-The instance keeps serving queries, so the risk is in what the missing metrics hide. The lag, HA and replication alerts all read from this exporter:
+Missing metrics can hide database or replication failures. Check the instance directly. The lag, HA and replication alerts all read from this exporter:
 
 - `CNPGClusterPhysicalReplicationLag*` reads `cnpg_pg_stat_replication_replay_lag_seconds` from the upstream instance
 - `CNPGClusterHA*` reads `cnpg_pg_replication_streaming_replicas` and `cnpg_pg_replication_is_wal_receiver_up`
