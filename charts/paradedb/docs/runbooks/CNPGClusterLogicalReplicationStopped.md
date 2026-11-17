@@ -2,19 +2,12 @@
 
 ## Description
 
-Cloud and BYOC monitoring distinguish two conditions on the writable primary, separately for each database/subscription pair:
+The alerts distinguish two conditions on the writable primary, separately for each database/subscription pair:
 
 - `CNPGClusterLogicalReplicationSubscriptionDisabled`: the subscription is disabled for 5 minutes (warning).
 - `CNPGClusterLogicalReplicationWorkerDown`: the subscription is enabled but has no positive worker PID for 5 minutes (critical).
 
 Neither condition requires receipt-age or WAL-position metrics, which can be absent when no worker runs. Physical standbys and replica-cluster primaries in recovery are excluded.
-
-These replace the Charts alerts `CNPGClusterLogicalReplicationStopped` and `CNPGClusterLogicalReplicationStoppedCritical`. Update `cluster.monitoring.prometheusRule.excludeRules`, external routing, and silences to use the new alert names. The old names are no longer supported.
-
-| Previous alert | Replacement alert |
-| --- | --- |
-| `CNPGClusterLogicalReplicationStopped` | `CNPGClusterLogicalReplicationSubscriptionDisabled` |
-| `CNPGClusterLogicalReplicationStoppedCritical` | `CNPGClusterLogicalReplicationWorkerDown` |
 
 ## Impact
 

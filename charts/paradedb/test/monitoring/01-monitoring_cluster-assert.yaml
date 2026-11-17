@@ -14,8 +14,10 @@ spec:
   monitoring:
       tls:
         enabled: true
-      disableDefaultQueries: true
+      disableDefaultQueries: false
       customQueriesConfigMap:
+        - name: cnpg-default-monitoring
+          key: queries
         - name: monitoring-paradedb-monitoring-paradedb-index
           key: custom-queries
         - name: monitoring-paradedb-monitoring-logical-replication

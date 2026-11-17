@@ -11,11 +11,11 @@ scrapes still succeed.
 
 The instance keeps serving queries, so the risk is in what the missing metrics hide. The lag, HA and replication alerts all read from this exporter:
 
-- `CNPGClusterPhysicalReplicationLag*` reads `cnpg_pg_replication_lag`
+- `CNPGClusterPhysicalReplicationLag*` reads `cnpg_pg_stat_replication_replay_lag_seconds` from the upstream instance
 - `CNPGClusterHA*` reads `cnpg_pg_replication_streaming_replicas` and `cnpg_pg_replication_is_wal_receiver_up`
 - The logical replication alerts read `cnpg_pg_stat_subscription_*`
 
-These are all `expr > threshold` rules, so once the exporter goes silent there are no samples to evaluate and they cannot fire. While this alert is active, their silence means nothing for this instance. A hung exporter has previously coincided with a frozen standby, where replication was stuck and nothing alerted on it.
+These are all `expr > threshold` rules, so once the exporter goes silent there are no samples to evaluate and they cannot fire. While this alert is active, their silence means nothing for this instance. Check replication directly because missing metrics can hide a stalled standby.
 
 ## Diagnosis
 
@@ -79,10 +79,10 @@ kubectl exec -n <namespace> -it pod/<instance-pod-name> -- psql -c "SELECT pg_te
 kubectl delete -n <namespace> pod/<replica-pod-name>
 ```
 
-The alert clears when scrapes succeed and collector metrics resume, or when the target is removed. Confirm metrics are flowing:
+The alert clears when scrapes succeed and collector metrics resume, or when the target is removed. Confirm metrics are flowing. Check the upstream instance for replay-latency series, which identify replicas through `application_name`:
 
 ```bash
-kubectl exec -n <namespace> -it pod/<instance-pod-name> -- curl -sS --max-time 5 http://localhost:9187/metrics | grep -E "cnpg_collector_up|cnpg_pg_replication_lag"
+kubectl exec -n <namespace> -it pod/<instance-pod-name> -- curl -sS --max-time 5 http://localhost:9187/metrics | grep -E "cnpg_collector_up|cnpg_pg_stat_replication_replay_lag_seconds"
 ```
 
 Afterwards, audit whether any replication or HA alert should have fired while the exporter was down. Escalate if the endpoint stays unresponsive after terminating stuck backends, if `pg_stat_replication` on the primary shows replay frozen for the affected standby, or if the collector hangs repeatedly or across several instances, which suggests a systemic instrumentation or engine bug.

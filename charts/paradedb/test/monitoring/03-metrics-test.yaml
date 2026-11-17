@@ -71,6 +71,11 @@ spec:
               exit 1
             fi
 
+            # Recovery and receiver health come from CNPG default queries.
+            scrape > /tmp/physical-metrics.txt
+            grep -E '^cnpg_pg_replication_in_recovery(\{[^}]*\})? 0$' /tmp/physical-metrics.txt
+            grep -E '^cnpg_pg_replication_is_wal_receiver_up(\{[^}]*\})? 0$' /tmp/physical-metrics.txt
+
             echo "pg_stat_subscription_received_lsn"
             scrape | grep pg_stat_subscription_received_lsn
             echo "pg_stat_subscription_last_msg_send_time"

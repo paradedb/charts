@@ -12,11 +12,11 @@ The instance may keep serving queries while some metrics are missing. Alerts tha
 
 Which alerts go blind depends on which queries are failing. If the collector cannot reach the application database, every default per-database query fails at once and that includes:
 
-- `CNPGClusterPhysicalReplicationLag*`, which reads `cnpg_pg_replication_lag`
+- `CNPGClusterPhysicalReplicationLag*`, which reads `cnpg_pg_stat_replication_replay_lag_seconds` from the upstream instance
 - `CNPGClusterHA*`, which reads `cnpg_pg_replication_streaming_replicas` and `cnpg_pg_replication_is_wal_receiver_up`
 - The logical replication alerts, which read `cnpg_pg_stat_subscription_*`
 
-A standby in this state has previously replayed nothing for two months without alerting, because the one rule aimed squarely at that condition had no series to evaluate.
+A standby can stop replaying WAL without triggering a replication alert if the required metrics are missing.
 
 ## Diagnosis
 
@@ -56,10 +56,10 @@ kubectl exec -n <namespace> -it pod/<instance-pod-name> -- psql -lqt | cut -d '|
 
 If the two disagree, that is the fault. A dedicated replica declared as its own cluster is the easiest place to get this wrong, because the database name has to be repeated there and is easy to leave out. With this chart, that name comes from `replica.bootstrap.database`.
 
-- Confirm which series are actually missing, so you know what was unmonitored:
+- Confirm which series are actually missing, so you know what was unmonitored. Check the upstream instance for replay-latency series:
 
 ```bash
-kubectl exec -n <namespace> -it pod/<instance-pod-name> -- curl -sS --max-time 5 http://localhost:9187/metrics | grep -cE "cnpg_pg_replication_lag|cnpg_pg_replication_streaming_replicas"
+kubectl exec -n <namespace> -it pod/<instance-pod-name> -- curl -sS --max-time 5 http://localhost:9187/metrics | grep -cE "cnpg_pg_stat_replication_replay_lag_seconds|cnpg_pg_replication_streaming_replicas"
 ```
 
 - On a standby, check from the primary whether replication is healthy, since the lag alerts could not have told you:
@@ -89,10 +89,10 @@ ORDER BY duration DESC NULLS LAST;
 kubectl exec -n <namespace> -it pod/<instance-pod-name> -- psql -c "SELECT pg_terminate_backend(<pid>);"
 ```
 
-The alert resolves once a collection completes without error. Confirm the missing series are back:
+The alert resolves once a collection completes without error. Confirm the missing series are back. Check the upstream instance for replay-latency series:
 
 ```bash
-kubectl exec -n <namespace> -it pod/<instance-pod-name> -- curl -sS --max-time 5 http://localhost:9187/metrics | grep -E "cnpg_collector_last_collection_error|cnpg_errors_total|cnpg_pg_replication_lag"
+kubectl exec -n <namespace> -it pod/<instance-pod-name> -- curl -sS --max-time 5 http://localhost:9187/metrics | grep -E "cnpg_collector_last_collection_error|cnpg_errors_total|cnpg_pg_stat_replication_replay_lag_seconds"
 ```
 
-Afterwards, audit whether any replication or HA alert should have fired while the series were missing, and for how long they had been missing before this alert existed. Escalate if the collection error persists after the database name is correct, if it appears across several instances at once, which suggests a bad instrumentation rollout rather than one misconfigured cluster, or if `pg_stat_replication` on the primary shows a standby that has not been replaying.
+Afterwards, audit whether any replication or HA alert should have fired while the series were missing, and how long the metrics were missing. Escalate if the collection error persists after the database name is correct, if it appears across several instances at once, which suggests a bad instrumentation rollout rather than one misconfigured cluster, or if `pg_stat_replication` on the primary shows a standby that has not been replaying.
