@@ -5,12 +5,9 @@ These fixtures evaluate the chart's rendered rules against synthetic metrics wit
 recovery, cluster isolation, configured standby counts, logical worker state,
 and physical WAL backlog. Rendering checks run separately through Chainsaw.
 
-Run from the repository root with Helm, Python, PyYAML and `vmalert-tool` installed:
+The `Test Alert Rules` workflow renders one-, two-, three-, and four-instance
+clusters into a temporary directory and runs the fixtures with `vmalert-tool`.
+Its shell commands can also be run locally with Helm and `vmalert-tool` installed.
 
-```sh
-python3 .github/scripts/test-alert-rules.py
-```
-
-Use `--vmalert-tool /path/to/vmalert-tool-prod` for a binary outside `PATH`.
-The script renders one-, two-, three-, and four-instance clusters into a temporary
-directory and removes the generated files when it finishes.
+PostgreSQL version checks for index usage metrics run in the Chainsaw
+`prometheus-rule-rendering` test.

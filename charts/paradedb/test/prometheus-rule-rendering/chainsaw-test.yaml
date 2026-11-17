@@ -30,6 +30,20 @@ spec:
                 '
               }
 
+              for version in 14 15 16 17 18; do
+                metrics="$(helm template metrics ../../ \
+                  --set-string "version.postgresql=$version" \
+                  --show-only templates/monitoring-paradedb-index.yaml)"
+                printf '%s\n' "$metrics" | grep -Fq 'paradedb_index_usage:'
+                if [ "$version" -ge 16 ]; then
+                  printf '%s\n' "$metrics" | grep -Fq 's.last_idx_scan'
+                  printf '%s\n' "$metrics" | grep -Fq -- '- last_idx_scan:'
+                elif printf '%s\n' "$metrics" | grep -Fq 'last_idx_scan'; then
+                  echo "last_idx_scan requires PostgreSQL 16 or later"
+                  exit 1
+                fi
+              done
+
               rendered="$(render 3)"
               for rule in ../../prometheus_rules/*.yaml; do
                 alert="$(sed -n 's/.*$alert := "\([^"]*\)".*/\1/p' "$rule")"

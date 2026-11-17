@@ -6,7 +6,6 @@ on:
     paths:
       - charts/paradedb/**
       - tests/alert-rules/**
-      - .github/scripts/test-alert-rules.py
       - .github/workflows/test-alert-rules.yml
   workflow_dispatch:
 
@@ -32,9 +31,22 @@ jobs:
         uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310 # v5
       - name: Install Test Tools
         run: |
-          pip install PyYAML==6.0.3
           curl -fsSL "https://github.com/VictoriaMetrics/VictoriaMetrics/releases/download/${VICTORIAMETRICS_VERSION}/vmutils-linux-amd64-${VICTORIAMETRICS_VERSION}.tar.gz" \
             | tar xz vmalert-tool-prod
           sudo install vmalert-tool-prod /usr/local/bin/vmalert-tool
       - name: Test Alert Behavior
-        run: python3 .github/scripts/test-alert-rules.py
+        run: |
+          work=$(mktemp -d)
+          trap 'rm -rf "$work"' EXIT
+          for instances in 1 2 3 4; do
+            helm template alerts charts/paradedb \
+              --namespace alert-test \
+              --set "cluster.instances=$instances" \
+              --set cluster.monitoring.enabled=true \
+              --set cluster.monitoring.prometheusRule.enabled=true \
+              --show-only templates/prometheus-rule.yaml \
+              | sed '1,/^spec:$/d' > "$work/rules-$instances.yaml"
+          done
+          cp tests/alert-rules/*_test.yaml "$work/"
+          cd "$work"
+          vmalert-tool unittest --disableAlertgroupLabel --files='*_test.yaml'
