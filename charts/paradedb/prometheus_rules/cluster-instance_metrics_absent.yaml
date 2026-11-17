@@ -4,14 +4,18 @@ alert: {{ $alert }}
 annotations:
   summary: ParadeDB CNPG instance metrics are missing
   description: |-
-    ParadeDB CNPG instance "{{ .namespace }}/{{ .labels.pod }}" has responded to scrapes without collector metrics for 10 minutes.
+    ParadeDB CNPG instance "{{ .namespace }}/{{ .labels.pod }}" has had an unreachable metrics endpoint or missing collector metrics for 10 minutes.
 
     Alerts that depend on missing series cannot fire. Check database and replication health directly.
   runbook_url: https://github.com/paradedb/charts/blob/main/charts/paradedb/docs/runbooks/CNPGInstanceMetricsAbsent.md
 expr: |
-  max by (namespace, pod) (up{namespace="{{ .namespace }}",pod=~"{{ .podSelector }}",endpoint="metrics"} == 1)
-  unless on (namespace, pod)
-  count by (namespace, pod) (cnpg_collector_up{namespace="{{ .namespace }}",pod=~"{{ .podSelector }}"})
+  (
+    max by (namespace, pod) (up{namespace="{{ .namespace }}",pod=~"{{ .podSelector }}",endpoint="metrics"} == 1)
+    unless on (namespace, pod)
+    count by (namespace, pod) (cnpg_collector_up{namespace="{{ .namespace }}",pod=~"{{ .podSelector }}"})
+  )
+  or
+  max by (namespace, pod) (up{namespace="{{ .namespace }}",pod=~"{{ .podSelector }}",endpoint="metrics"} == 0)
 for: 10m
 labels:
   severity: critical
