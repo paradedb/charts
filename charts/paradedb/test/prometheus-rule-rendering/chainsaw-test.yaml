@@ -188,7 +188,7 @@ spec:
                 echo "excluded version mismatch alert must not render"
                 exit 1
               fi
-              for image in paradedb/paradedb:0.26.0-pg18 paradedb/paradedb:custom-pg18; do
+              for image in paradedb/paradedb:0.27.0-pg18 paradedb/paradedb:custom-pg18; do
                 queries="$(helm template alerts-3 ../../ --set "cluster.imageName=$image" --show-only templates/monitoring-paradedb-index.yaml)"
                 printf '%s\n' "$queries" | grep -Fq 'a.default_version AS expected_version'
                 printf '%s\n' "$queries" | grep -Fq "e.extversion = a.default_version;"

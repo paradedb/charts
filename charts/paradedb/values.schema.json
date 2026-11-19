@@ -1626,7 +1626,7 @@
     "version": {
       "properties": {
         "paradedb": {
-          "default": "0.26.0",
+          "default": "0.27.0",
           "description": "ParadeDB version to use",
           "type": "string"
         },
